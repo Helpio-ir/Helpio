@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.Domain", "src\Core\H
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.Application", "src\Core\Helpio.Application\Helpio.Application.csproj", "{8A8735B4-DE6B-4C9A-8A5A-89BE9D061138}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helpio.Infrastructure", "Infrastructure", "{DC8364CB-0DB3-43A4-BAEA-CBD9A4512AA7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DC8364CB-0DB3-43A4-BAEA-CBD9A4512AA7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.Infrastructure", "src\Infrastructure\Helpio.Infrastructure\Helpio.Infrastructure.csproj", "{CE1F96B4-E573-4A19-8579-A4A16F991F7B}"
 EndProject

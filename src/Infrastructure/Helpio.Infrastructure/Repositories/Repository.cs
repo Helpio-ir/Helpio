@@ -1,21 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Helpio.Ir.Domain.Entities;
-using Helpio.Ir.Domain.Interfaces;
+using Helpio.Ir.Domain.Interfaces.Repositories;
 using Helpio.Ir.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Helpio.Ir.Infrastructure.Repositories
 {
     public abstract class Repository<T> : IRepository<T> where T : class
     {
-        protected readonly IApplicationDbContext _context;
+        protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        protected Repository(IApplicationDbContext context)
+        protected Repository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();

@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Helpio.Ir.Domain.Interfaces
+namespace Helpio.Ir.Domain.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class
     {
