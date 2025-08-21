@@ -1,0 +1,13 @@
+@Helpio_Ir_API_HostAddress = http://localhost:5190
+
+### Health Check
+GET {{Helpio_Ir_API_HostAddress}}/health
+Accept: application/json
+
+### Sample API endpoint
+GET {{Helpio_Ir_API_HostAddress}}/api/sample
+Accept: application/json
+
+### Add your API endpoints here as you develop them
+# GET {{Helpio_Ir_API_HostAddress}}/api/your-endpoint
+# Accept: application/json
