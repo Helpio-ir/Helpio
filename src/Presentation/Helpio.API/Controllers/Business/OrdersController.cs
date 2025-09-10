@@ -5,6 +5,7 @@ using Helpio.Ir.Application.DTOs.Business;
 using Helpio.Ir.Application.DTOs.Common;
 using Helpio.Ir.API.Services;
 using FluentValidation;
+using Helpio.Ir.Application.Services; // Added using statement for ISubscriptionService
 
 namespace Helpio.Ir.API.Controllers.Business
 {
@@ -14,6 +15,7 @@ namespace Helpio.Ir.API.Controllers.Business
     {
         private readonly IOrderService _orderService;
         private readonly ICustomerService _customerService;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly IOrganizationContext _organizationContext;
         private readonly IValidator<CreateOrderDto> _createValidator;
         private readonly IValidator<UpdateOrderDto> _updateValidator;
@@ -22,6 +24,7 @@ namespace Helpio.Ir.API.Controllers.Business
         public OrdersController(
             IOrderService orderService,
             ICustomerService customerService,
+            ISubscriptionService subscriptionService,
             IOrganizationContext organizationContext,
             IValidator<CreateOrderDto> createValidator,
             IValidator<UpdateOrderDto> updateValidator,
@@ -29,6 +32,7 @@ namespace Helpio.Ir.API.Controllers.Business
         {
             _orderService = orderService;
             _customerService = customerService;
+            _subscriptionService = subscriptionService;
             _organizationContext = organizationContext;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
@@ -611,10 +615,9 @@ namespace Helpio.Ir.API.Controllers.Business
                 // ????? Subscription (??? ???? ????)
                 if (subscriptionId > 0)
                 {
-                    // TODO: ????? ???? service ???? Subscription
-                    // var subscription = await _subscriptionService.GetByIdAsync(subscriptionId);
-                    // if (subscription?.OrganizationId != _organizationContext.OrganizationId.Value)
-                    //     return false;
+                    var subscription = await _subscriptionService.GetByIdAsync(subscriptionId);
+                    if (subscription?.OrganizationId != _organizationContext.OrganizationId.Value)
+                        return false;
                 }
 
                 return true;

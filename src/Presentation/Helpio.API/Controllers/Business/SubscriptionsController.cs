@@ -38,9 +38,28 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpGet]
         public async Task<ActionResult<PaginatedResult<SubscriptionDto>>> GetSubscriptions([FromQuery] PaginationRequest request)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var result = await _subscriptionService.GetSubscriptionsAsync(request);
+                
+                // ????? subscriptions ?? ???? ?????? ????
+                var filteredSubscriptions = result.Items.Where(s => 
+                    s.OrganizationId == _organizationContext.OrganizationId.Value);
+                
+                result.Items = filteredSubscriptions;
+                result.TotalItems = filteredSubscriptions.Count();
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -56,10 +75,27 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpGet("{id}")]
         public async Task<ActionResult<SubscriptionDto>> GetSubscription(int id)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             var subscription = await _subscriptionService.GetByIdAsync(id);
             if (subscription == null)
             {
                 return NotFound();
+            }
+
+            // ????? ?????? ???????
+            if (subscription.OrganizationId != _organizationContext.OrganizationId.Value)
+            {
+                return Forbid("Access denied to this subscription");
             }
 
             return Ok(subscription);
@@ -71,17 +107,25 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpPost]
         public async Task<ActionResult<SubscriptionDto>> CreateSubscription(CreateSubscriptionDto createDto)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
+            // ????? ?????? ???? subscription
+            createDto.OrganizationId = _organizationContext.OrganizationId.Value;
+
             // Validate input
             var validationResult = await _createValidator.ValidateAsync(createDto);
             if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
-            }
-
-            // Set organization context if available and not already set
-            if (!createDto.OrganizationId.HasValue && _organizationContext.OrganizationId.HasValue)
-            {
-                createDto.OrganizationId = _organizationContext.OrganizationId.Value;
             }
 
             try
@@ -106,6 +150,29 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpPut("{id}")]
         public async Task<ActionResult<SubscriptionDto>> UpdateSubscription(int id, UpdateSubscriptionDto updateDto)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
+            // ????? ???? subscription ? ?????? ???????
+            var existingSubscription = await _subscriptionService.GetByIdAsync(id);
+            if (existingSubscription == null)
+            {
+                return NotFound();
+            }
+
+            if (existingSubscription.OrganizationId != _organizationContext.OrganizationId.Value)
+            {
+                return Forbid("Access denied to this subscription");
+            }
+
             // Validate input
             var validationResult = await _updateValidator.ValidateAsync(updateDto);
             if (!validationResult.IsValid)
@@ -129,11 +196,40 @@ namespace Helpio.Ir.API.Controllers.Business
         }
 
         /// <summary>
-        /// Delete subscription
+        /// Delete subscription (????? ???)
         /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSubscription(int id)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
+            // ????? ???? subscription ? ?????? ???????
+            var existingSubscription = await _subscriptionService.GetByIdAsync(id);
+            if (existingSubscription == null)
+            {
+                return NotFound();
+            }
+
+            if (existingSubscription.OrganizationId != _organizationContext.OrganizationId.Value)
+            {
+                return Forbid("Access denied to this subscription");
+            }
+
+            // ???????: ??? subscriptions inactive ?? cancelled ???? ??? ?????
+            if (existingSubscription.Status == SubscriptionStatusDto.Active)
+            {
+                return BadRequest("Active subscriptions cannot be deleted. Cancel the subscription first.");
+            }
+
             try
             {
                 var result = await _subscriptionService.DeleteAsync(id);
@@ -236,10 +332,26 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<SubscriptionDto>>> GetActiveSubscriptions()
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var subscriptions = await _subscriptionService.GetActiveSubscriptionsAsync();
-                return Ok(subscriptions);
+                
+                // ????? ?? ???? ??????
+                var filteredSubscriptions = subscriptions.Where(s => 
+                    s.OrganizationId == _organizationContext.OrganizationId.Value);
+
+                return Ok(filteredSubscriptions);
             }
             catch (Exception ex)
             {
@@ -254,12 +366,28 @@ namespace Helpio.Ir.API.Controllers.Business
         [HttpGet("expiring")]
         public async Task<ActionResult<IEnumerable<SubscriptionDto>>> GetExpiringSubscriptions([FromQuery] DateTime? expiryDate = null)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             var targetDate = expiryDate ?? DateTime.UtcNow.AddDays(30); // Default to 30 days
 
             try
             {
                 var subscriptions = await _subscriptionService.GetExpiringSubscriptionsAsync(targetDate);
-                return Ok(subscriptions);
+                
+                // ????? ?? ???? ??????
+                var filteredSubscriptions = subscriptions.Where(s => 
+                    s.OrganizationId == _organizationContext.OrganizationId.Value);
+
+                return Ok(filteredSubscriptions);
             }
             catch (Exception ex)
             {
