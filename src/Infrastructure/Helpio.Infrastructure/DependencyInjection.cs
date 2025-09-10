@@ -37,6 +37,7 @@ namespace Helpio.Ir.Infrastructure
             services.AddScoped<ITeamRepository, TeamRepository>();
             services.AddScoped<ISupportAgentRepository, SupportAgentRepository>();
             services.AddScoped<IProfileRepository, ProfileRepository>();
+            services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
             // Ticketing Repositories
             services.AddScoped<ITicketRepository, TicketRepository>();

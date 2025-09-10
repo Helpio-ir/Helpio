@@ -1,5 +1,7 @@
 using Helpio.Ir.Application;
 using Helpio.Ir.Infrastructure;
+using Helpio.Ir.API.Services;
+using Helpio.Ir.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(Helpio.Ir.Application.Mappings.MappingProfile).Assembly);
 
+// Add API-specific services
+builder.Services.AddHttpContextAccessor(); // Required for OrganizationContext
+builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,6 +32,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Add API Key authentication middleware BEFORE authorization
+app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

@@ -26,6 +26,13 @@ namespace Helpio.Ir.API.Services
             get
             {
                 var orgIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("OrganizationId")?.Value;
+                
+                // Log ???? ??? ??????
+                if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true)
+                {
+                    Console.WriteLine($"[OrganizationContext] Reading OrganizationId claim: {orgIdClaim}");
+                }
+                
                 return int.TryParse(orgIdClaim, out var orgId) ? orgId : null;
             }
         }

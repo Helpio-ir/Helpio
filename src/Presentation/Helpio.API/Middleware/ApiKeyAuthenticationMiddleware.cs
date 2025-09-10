@@ -68,6 +68,9 @@ namespace Helpio.Ir.API.Middleware
                 var identity = new ClaimsIdentity(claims, "ApiKey");
                 context.User = new ClaimsPrincipal(identity);
 
+                // Log ???? ??? ????? Claims
+                Console.WriteLine($"[Middleware] Claims set - OrganizationId: {apiKeyDetails.OrganizationId}");
+
                 _logger.LogInformation("API Key authenticated for Organization: {OrganizationId}", 
                     apiKeyDetails.OrganizationId);
             }
