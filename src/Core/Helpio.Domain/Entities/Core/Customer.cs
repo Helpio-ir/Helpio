@@ -12,7 +12,11 @@ namespace Helpio.Ir.Domain.Entities.Core
         public string? Address { get; set; }
         public string? CompanyName { get; set; }
         
+        // ????? ?? ???? ??? SaaS
+        public int? OrganizationId { get; set; }
+        
         // Navigation properties
+        public virtual Organization? Organization { get; set; }
         public virtual ICollection<Ticketing.Ticket> Tickets { get; set; } = new List<Ticketing.Ticket>();
         public virtual ICollection<Business.Order> Orders { get; set; } = new List<Business.Order>();
     }

@@ -12,6 +12,10 @@ namespace Helpio.Ir.Application.DTOs.Core
         public string? CompanyName { get; set; }
         public string FullName => $"{FirstName} {LastName}";
         public int TotalTickets { get; set; }
+        
+        // ????? ?? ???? ??? SaaS
+        public int? OrganizationId { get; set; }
+        public OrganizationDto? Organization { get; set; }
     }
 
     public class CreateCustomerDto
@@ -22,6 +26,9 @@ namespace Helpio.Ir.Application.DTOs.Core
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Address { get; set; }
         public string? CompanyName { get; set; }
+        
+        // ????? ?? - ????? ???? ?? ??????? ???? ????? ????
+        public int? OrganizationId { get; set; }
     }
 
     public class UpdateCustomerDto
@@ -31,5 +38,7 @@ namespace Helpio.Ir.Application.DTOs.Core
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Address { get; set; }
         public string? CompanyName { get; set; }
+        
+        // OrganizationId ????????? ????? ???
     }
 }

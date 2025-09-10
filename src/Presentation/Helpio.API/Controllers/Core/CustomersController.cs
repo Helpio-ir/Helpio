@@ -37,9 +37,29 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpGet]
         public async Task<ActionResult<PaginatedResult<CustomerDto>>> GetCustomers([FromQuery] PaginationRequest request)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var result = await _customerService.GetCustomersAsync(request);
+                
+                // ????? ??????? ?? ???? ??????
+                var filteredCustomers = result.Items.Where(c => 
+                    c.OrganizationId == _organizationContext.OrganizationId.Value || 
+                    c.OrganizationId == null); // ??????? global (???????)
+                
+                result.Items = filteredCustomers;
+                result.TotalItems = filteredCustomers.Count();
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -55,10 +75,28 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerDto>> GetCustomer(int id)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // ????? ?????? ???????
+            if (customer.OrganizationId.HasValue && 
+                customer.OrganizationId.Value != _organizationContext.OrganizationId.Value)
+            {
+                return Forbid("Access denied to other organization's customers");
             }
 
             return Ok(customer);
@@ -85,6 +123,20 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpPost]
         public async Task<ActionResult<CustomerDto>> CreateCustomer(CreateCustomerDto createDto)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
+            // ????? ?????? ???? ?????
+            createDto.OrganizationId = _organizationContext.OrganizationId.Value;
+
             // Validate input
             var validationResult = await _createValidator.ValidateAsync(createDto);
             if (!validationResult.IsValid)
@@ -96,7 +148,8 @@ namespace Helpio.Ir.API.Controllers.Core
             {
                 var result = await _customerService.CreateAsync(createDto);
                 
-                _logger.LogInformation("Customer created: {CustomerEmail}", result.Email);
+                _logger.LogInformation("Customer created: {CustomerEmail} for Organization: {OrganizationId}", 
+                    result.Email, createDto.OrganizationId);
 
                 return CreatedAtAction(nameof(GetCustomer), new { id = result.Id }, result);
             }
@@ -179,6 +232,17 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<CustomerDto>>> SearchCustomers([FromQuery] string searchTerm)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 return BadRequest("Search term is required");
@@ -187,7 +251,13 @@ namespace Helpio.Ir.API.Controllers.Core
             try
             {
                 var customers = await _customerService.SearchCustomersAsync(searchTerm);
-                return Ok(customers);
+                
+                // ????? ?? ???? ??????
+                var filteredCustomers = customers.Where(c => 
+                    c.OrganizationId == _organizationContext.OrganizationId.Value || 
+                    c.OrganizationId == null);
+                
+                return Ok(filteredCustomers);
             }
             catch (Exception ex)
             {
@@ -202,10 +272,27 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpGet("with-tickets")]
         public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomersWithTickets()
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var customers = await _customerService.GetCustomersWithTicketsAsync();
-                return Ok(customers);
+                
+                // ????? ?? ???? ??????
+                var filteredCustomers = customers.Where(c => 
+                    c.OrganizationId == _organizationContext.OrganizationId.Value || 
+                    c.OrganizationId == null);
+                
+                return Ok(filteredCustomers);
             }
             catch (Exception ex)
             {
@@ -238,21 +325,41 @@ namespace Helpio.Ir.API.Controllers.Core
         [HttpGet("statistics")]
         public async Task<ActionResult> GetCustomerStatistics()
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
-                // ?????? ??? ??????? ???? ?????? ????
+                // ??? ???? ??????? ????? ?? ?????? ????
                 var allCustomers = await _customerService.GetCustomersAsync(new PaginationRequest 
                 { 
                     PageNumber = 1, 
                     PageSize = int.MaxValue 
                 });
 
+                var organizationCustomers = allCustomers.Items.Where(c => 
+                    c.OrganizationId == _organizationContext.OrganizationId.Value || 
+                    c.OrganizationId == null).ToList();
+
+                var customersWithTickets = await _customerService.GetCustomersWithTicketsAsync();
+                var filteredCustomersWithTickets = customersWithTickets.Where(c => 
+                    c.OrganizationId == _organizationContext.OrganizationId.Value || 
+                    c.OrganizationId == null);
+
                 var statistics = new
                 {
-                    TotalCustomers = allCustomers.TotalItems,
-                    CustomersWithTickets = (await _customerService.GetCustomersWithTicketsAsync()).Count(),
-                    RecentlyRegistered = allCustomers.Items.Count(c => c.CreatedAt > DateTime.UtcNow.AddDays(-30)),
-                    TopCompanies = allCustomers.Items
+                    TotalCustomers = organizationCustomers.Count,
+                    CustomersWithTickets = filteredCustomersWithTickets.Count(),
+                    RecentlyRegistered = organizationCustomers.Count(c => c.CreatedAt > DateTime.UtcNow.AddDays(-30)),
+                    TopCompanies = organizationCustomers
                         .Where(c => !string.IsNullOrEmpty(c.CompanyName))
                         .GroupBy(c => c.CompanyName)
                         .OrderByDescending(g => g.Count())

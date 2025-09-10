@@ -458,10 +458,25 @@ namespace Helpio.Ir.API.Controllers.Ticketing
         [HttpGet("unassigned")]
         public async Task<ActionResult<IEnumerable<TicketDto>>> GetUnassignedTickets()
         {
+            // بررسی احراز هویت
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var tickets = await _ticketService.GetUnassignedTicketsAsync();
-                return Ok(tickets);
+                
+                // فیلتر بر اساس دسترسی سازمانی
+                var filteredTickets = tickets.Where(ticket => HasTicketAccess(ticket));
+
+                return Ok(filteredTickets);
             }
             catch (Exception ex)
             {
@@ -476,10 +491,25 @@ namespace Helpio.Ir.API.Controllers.Ticketing
         [HttpGet("overdue")]
         public async Task<ActionResult<IEnumerable<TicketDto>>> GetOverdueTickets()
         {
+            // بررسی احراز هویت
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var tickets = await _ticketService.GetOverdueTicketsAsync();
-                return Ok(tickets);
+                
+                // فیلتر بر اساس دسترسی سازمانی
+                var filteredTickets = tickets.Where(ticket => HasTicketAccess(ticket));
+
+                return Ok(filteredTickets);
             }
             catch (Exception ex)
             {
@@ -489,14 +519,38 @@ namespace Helpio.Ir.API.Controllers.Ticketing
         }
 
         /// <summary>
-        /// Get ticket statistics
+        /// Get ticket statistics (محدود به سازمان)
         /// </summary>
         [HttpGet("statistics")]
         public async Task<ActionResult<Dictionary<string, int>>> GetTicketStatistics()
         {
+            // بررسی احراز هویت
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
-                var statistics = await _ticketService.GetTicketStatisticsAsync();
+                // فقط آمار تیکت‌های سازمان جاری
+                var allTickets = await _ticketService.GetTicketsAsync(new PaginationRequest { PageNumber = 1, PageSize = int.MaxValue });
+                var organizationTickets = allTickets.Items.Where(ticket => HasTicketAccess(ticket)).ToList();
+
+                var statistics = new Dictionary<string, int>
+                {
+                    ["Total"] = organizationTickets.Count,
+                    ["Open"] = organizationTickets.Count(t => !t.IsResolved),
+                    ["Resolved"] = organizationTickets.Count(t => t.IsResolved),
+                    ["Overdue"] = organizationTickets.Count(t => t.IsOverdue),
+                    ["Unassigned"] = organizationTickets.Count(t => !t.SupportAgentId.HasValue),
+                    ["HighPriority"] = organizationTickets.Count(t => t.Priority == TicketPriorityDto.High || t.Priority == TicketPriorityDto.Critical)
+                };
+
                 return Ok(statistics);
             }
             catch (Exception ex)

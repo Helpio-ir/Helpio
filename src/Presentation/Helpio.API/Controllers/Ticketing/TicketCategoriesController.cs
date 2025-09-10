@@ -37,9 +37,26 @@ namespace Helpio.Ir.API.Controllers.Ticketing
         [HttpGet]
         public async Task<ActionResult<PaginatedResult<TicketCategoryDto>>> GetTicketCategories([FromQuery] PaginationRequest request)
         {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
             try
             {
                 var result = await _ticketCategoryService.GetCategoriesAsync(request);
+                
+                // ????? ???????????? ?? ???? ??????
+                var filteredCategories = result.Items.Where(c => c.OrganizationId == _organizationContext.OrganizationId.Value);
+                result.Items = filteredCategories;
+                result.TotalItems = filteredCategories.Count();
+
                 return Ok(result);
             }
             catch (Exception ex)
