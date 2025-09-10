@@ -1,13 +1,66 @@
+using Helpio.Ir.Domain.Entities.Core;
+using Helpio.Ir.Infrastructure.Data;
+using Helpio.Dashboard.Services;
+using Helpio.Dashboard.Middleware;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 namespace Helpio.Dashboard;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+
+        // Add Entity Framework
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+        // Add Identity
+        builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+
+            // User settings
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = true;
+
+            // Sign in settings
+            options.SignIn.RequireConfirmedEmail = false;
+            options.SignIn.RequireConfirmedPhoneNumber = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
+        // Configure application cookie
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Logout";
+            options.AccessDeniedPath = "/Account/AccessDenied";
+            options.SlidingExpiration = true;
+        });
+
+        // Add custom services
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+        builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
         var app = builder.Build();
 
@@ -22,7 +75,11 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
+
+        // Add user context middleware AFTER authentication
+        app.UseUserContext();
 
         app.MapStaticAssets();
         app.MapControllerRoute(
@@ -30,6 +87,9 @@ public class Program
             pattern: "{controller=Home}/{action=Index}/{id?}")
             .WithStaticAssets();
 
-        app.Run();
+        // Initialize database with default users
+        await DatabaseInitializer.SeedDefaultUsersAsync(app.Services);
+
+        await app.RunAsync();
     }
 }

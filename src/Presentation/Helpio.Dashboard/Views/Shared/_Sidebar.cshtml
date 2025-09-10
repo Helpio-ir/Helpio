@@ -1,0 +1,238 @@
+﻿<!--begin::Sidebar-->
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+  <!--begin::Sidebar Brand-->
+  <div class="sidebar-brand">
+    <!--begin::Brand Link-->
+    <a asp-controller="Home" asp-action="Index" class="brand-link">
+      <!--begin::Brand Image-->
+      <img
+        src="~/assets/img/AdminLTELogo.png"
+        alt="Helpio Logo"
+        class="brand-image opacity-75 shadow"
+      />
+      <!--end::Brand Image-->
+      <!--begin::Brand Text-->
+      <span class="brand-text fw-light">Helpio Dashboard</span>
+      <!--end::Brand Text-->
+    </a>
+    <!--end::Brand Link-->
+  </div>
+  <!--end::Sidebar Brand-->
+  <!--begin::Sidebar Wrapper-->
+  <div class="sidebar-wrapper">
+    <nav class="mt-2">
+      <!--begin::Sidebar Menu-->
+      <ul
+        class="nav sidebar-menu flex-column"
+        data-lte-toggle="treeview"
+        role="navigation"
+        aria-label="Main navigation"
+        data-accordion="false"
+        id="navigation"
+      >
+        <li class="nav-item">
+          <a asp-controller="Home" asp-action="Index" class="nav-link">
+            <i class="nav-icon bi bi-speedometer"></i>
+            <p>داشبورد</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-box-seam-fill"></i>
+            <p>
+              ویجت‌ها
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>جعبه کوچک</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>جعبه اطلاعات</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-people-fill"></i>
+            <p>
+              مدیریت کاربران
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>لیست کاربران</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>افزودن کاربر</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>نقش‌ها و مجوزها</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-tree-fill"></i>
+            <p>
+              عناصر رابط کاربری
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>عمومی</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>آیکون‌ها</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>دکمه‌ها</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-pencil-square"></i>
+            <p>
+              فرم‌ها
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>عناصر عمومی</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>اعتبارسنجی</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-table"></i>
+            <p>
+              جداول
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>جداول ساده</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>جداول پیشرفته</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-bar-chart"></i>
+            <p>
+              گزارشات
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>گزارش فروش</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>گزارش کاربران</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-header">تنظیمات</li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-gear-fill"></i>
+            <p>
+              تنظیمات سیستم
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>تنظیمات عمومی</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>تنظیمات امنیتی</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a asp-controller="Home" asp-action="Privacy" class="nav-link">
+            <i class="nav-icon bi bi-shield-check"></i>
+            <p>حریم خصوصی</p>
+          </a>
+        </li>
+        <li class="nav-header">راهنما</li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-question-circle"></i>
+            <p>راهنمای استفاده</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-telephone"></i>
+            <p>تماس با پشتیبانی</p>
+          </a>
+        </li>
+      </ul>
+      <!--end::Sidebar Menu-->
+    </nav>
+  </div>
+  <!--end::Sidebar Wrapper-->
+</aside>
+<!--end::Sidebar-->

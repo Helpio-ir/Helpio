@@ -1,0 +1,24 @@
+@using Helpio.Dashboard.Services
+@inject ICurrentUserContext UserContext
+
+@if (UserContext.CurrentOrganization != null)
+{
+    <div class="organization-info text-center py-2 bg-light border-bottom">
+        <small class="text-muted">
+            <i class="bi bi-building"></i>
+            <strong>@UserContext.CurrentOrganization.Name</strong>
+            @if (UserContext.CurrentTeam != null)
+            {
+                <span class="mx-2">|</span>
+                <i class="bi bi-people"></i>
+                @UserContext.CurrentTeam.Name
+            }
+            @if (UserContext.UserRoles.Any())
+            {
+                <span class="mx-2">|</span>
+                <i class="bi bi-person-badge"></i>
+                @string.Join(", ", UserContext.UserRoles)
+            }
+        </small>
+    </div>
+}

@@ -1,8 +1,206 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "صفحه اصلی";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!--begin::Welcome Section-->
+@if (ViewBag.WelcomeMessage != null)
+{
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h4><i class="bi bi-info-circle"></i> @ViewBag.WelcomeMessage</h4>
+                @if (ViewBag.OrganizationMessage != null)
+                {
+                    <p class="mb-1">@ViewBag.OrganizationMessage</p>
+                }
+                @if (ViewBag.TeamMessage != null)
+                {
+                    <p class="mb-0">@ViewBag.TeamMessage</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+<!--end::Welcome Section-->
+
+<!--begin::User Role Info-->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات کاربری شما</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>نقش‌های شما:</strong>
+                        @if (ViewBag.UserRoles != null && ((List<string>)ViewBag.UserRoles).Any())
+                        {
+                            @foreach (var role in (List<string>)ViewBag.UserRoles)
+                            {
+                                <span class="badge bg-primary me-1">@role</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">نقشی تعریف نشده</span>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <strong>سطح دسترسی:</strong>
+                        @if (ViewBag.IsAdmin == true)
+                        {
+                            <span class="badge bg-danger">مدیر کل سیستم</span>
+                        }
+                        else if (ViewBag.IsManager == true)
+                        {
+                            <span class="badge bg-warning">مدیر تیم</span>
+                        }
+                        else if (ViewBag.IsAgent == true)
+                        {
+                            <span class="badge bg-success">کارشناس پشتیبانی</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">کاربر عادی</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!--end::User Role Info-->
+
+<!--begin::Row-->
+<div class="row">
+  <div class="col-12">
+    <!-- Default box -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">خوش آمدید به داشبورد Helpio</h3>
+        <div class="card-tools">
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-lte-toggle="card-collapse"
+            title="Collapse"
+          >
+            <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+            <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+          </button>
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-lte-toggle="card-remove"
+            title="Remove"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="text-center">
+          <h1 class="display-4">سیستم مدیریت پشتیبانی</h1>
+          <p class="lead">به سیستم مدیریت Helpio خوش آمدید. اینجا می‌توانید تیکت‌ها، مشتریان و گزارش‌ها را مدیریت کنید.</p>
+          <p>برای شروع کار با سیستم، از منوی سمت راست استفاده کنید.</p>
+        </div>
+      </div>
+      <!-- /.card-body -->
+      <div class="card-footer text-center">
+        <small class="text-muted">آخرین بروزرسانی: @DateTime.Now.ToString("yyyy/MM/dd")</small>
+      </div>
+      <!-- /.card-footer-->
+    </div>
+    <!-- /.card -->
+  </div>
+</div>
+
+<!--begin::Info Boxes Row-->
+<div class="row">
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="info-box">
+      <span class="info-box-icon text-bg-info"><i class="bi bi-ticket-detailed"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">تیکت‌های جدید</span>
+        <span class="info-box-number">25</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon text-bg-success"><i class="bi bi-check-circle"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">تیکت‌های حل شده</span>
+        <span class="info-box-number">153</span>
+      </div>
+    </div>
+  </div>
+  <div class="clearfix hidden-md-up"></div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon text-bg-warning"><i class="bi bi-clock"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">در انتظار پاسخ</span>
+        <span class="info-box-number">12</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="info-box mb-3">
+      <span class="info-box-icon text-bg-danger"><i class="bi bi-people-fill"></i></span>
+      <div class="info-box-content">
+        <span class="info-box-text">مشتریان فعال</span>
+        <span class="info-box-number">2,847</span>
+      </div>
+    </div>
+  </div>
+</div>
+<!--end::Info Boxes Row-->
+
+<!--begin::Sample Users Info-->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">کاربران نمونه سیستم</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>نقش</th>
+                                <th>ایمیل</th>
+                                <th>رمز عبور</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-danger">Admin</span></td>
+                                <td>admin@helpio.ir</td>
+                                <td>Admin123!</td>
+                                <td>مدیر کل سیستم - دسترسی به همه بخش‌ها</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">Manager</span></td>
+                                <td>manager@helpio.ir</td>
+                                <td>Manager123!</td>
+                                <td>مدیر تیم - دسترسی به تیم و گزارش‌ها</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Agent</span></td>
+                                <td>agent@helpio.ir</td>
+                                <td>Agent123!</td>
+                                <td>کارشناس پشتیبانی - دسترسی به تیکت‌های خود</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end::Sample Users Info-->
+<!--end::Row-->

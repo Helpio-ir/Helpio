@@ -4,39 +4,41 @@ using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Domain.Entities.Knowledge;
 using Helpio.Ir.Domain.Entities.Ticketing;
 using Helpio.Ir.Domain.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Helpio.Ir.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext, IApplicationDbContext
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // Entity DbSets
-        public DbSet<User> Users { get; set; }
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<Organization> Organizations { get; set; }
-        public DbSet<Branch> Branches { get; set; }
-        public DbSet<Team> Teams { get; set; }
-        public DbSet<SupportAgent> SupportAgents { get; set; }
-        public DbSet<Profile> Profiles { get; set; }
-        public DbSet<ApiKey> ApiKeys { get; set; }
-        public DbSet<Ticket> Tickets { get; set; }
-        public DbSet<TicketState> TicketStates { get; set; }
-        public DbSet<TicketCategory> TicketCategories { get; set; }
-        public DbSet<Note> Notes { get; set; }
-        public DbSet<Response> Responses { get; set; }
-        public DbSet<Attachment> Attachments { get; set; }
-        public DbSet<AttachmentNote> AttachmentNotes { get; set; }
-        public DbSet<AttachmentResponse> AttachmentResponses { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<Subscription> Subscriptions { get; set; }
-        public DbSet<CannedResponse> CannedResponses { get; set; }
-        public DbSet<Articles> Articles { get; set; }
+        // Entity DbSets - Override Users to match interface
+        public override DbSet<User> Users { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
+        public DbSet<Organization> Organizations { get; set; } = null!;
+        public DbSet<Branch> Branches { get; set; } = null!;
+        public DbSet<Team> Teams { get; set; } = null!;
+        public DbSet<SupportAgent> SupportAgents { get; set; } = null!;
+        public DbSet<Profile> Profiles { get; set; } = null!;
+        public DbSet<ApiKey> ApiKeys { get; set; } = null!;
+        public DbSet<Ticket> Tickets { get; set; } = null!;
+        public DbSet<TicketState> TicketStates { get; set; } = null!;
+        public DbSet<TicketCategory> TicketCategories { get; set; } = null!;
+        public DbSet<Note> Notes { get; set; } = null!;
+        public DbSet<Response> Responses { get; set; } = null!;
+        public DbSet<Attachment> Attachments { get; set; } = null!;
+        public DbSet<AttachmentNote> AttachmentNotes { get; set; } = null!;
+        public DbSet<AttachmentResponse> AttachmentResponses { get; set; } = null!;
+        public DbSet<Transaction> Transactions { get; set; } = null!;
+        public DbSet<Order> Orders { get; set; } = null!;
+        public DbSet<Subscription> Subscriptions { get; set; } = null!;
+        public DbSet<CannedResponse> CannedResponses { get; set; } = null!;
+        public DbSet<Articles> Articles { get; set; } = null!;
 
         void IApplicationDbContext.Update<TEntity>(TEntity entity)
         {
@@ -47,7 +49,16 @@ namespace Helpio.Ir.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Entity configurations will be added here
+            // Configure Identity tables with Persian names
+            modelBuilder.Entity<User>().ToTable("Users", "Identity");
+            modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles", "Identity");
+            modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles", "Identity");
+            modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims", "Identity");
+            modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins", "Identity");
+            modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens", "Identity");
+            modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims", "Identity");
+
+            // Entity configurations
             ConfigureRelationships(modelBuilder);
         }
 
@@ -244,6 +255,23 @@ namespace Helpio.Ir.Infrastructure.Data
             var entries = ChangeTracker.Entries<BaseEntity>();
 
             foreach (var entry in entries)
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedAt = DateTime.UtcNow;
+                        break;
+                    case EntityState.Modified:
+                        entry.Entity.UpdatedAt = DateTime.UtcNow;
+                        break;
+                }
+            }
+
+            // Handle User entities separately
+            var userEntries = ChangeTracker.Entries<User>()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+            foreach (var entry in userEntries)
             {
                 switch (entry.State)
                 {
