@@ -15,6 +15,7 @@ namespace Helpio.Ir.Domain.Interfaces
         ITeamRepository Teams { get; }
         ISupportAgentRepository SupportAgents { get; }
         IProfileRepository Profiles { get; }
+        IApiKeyRepository ApiKeys { get; }
 
         // Ticketing Repositories
         ITicketRepository Tickets { get; }

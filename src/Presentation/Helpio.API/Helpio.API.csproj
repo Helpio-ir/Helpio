@@ -20,10 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Core\Helpio.Application\Helpio.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Helpio.Infrastructure\Helpio.Infrastructure.csproj" />
   </ItemGroup>

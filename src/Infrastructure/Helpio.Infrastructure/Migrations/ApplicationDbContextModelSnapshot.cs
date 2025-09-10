@@ -188,6 +188,69 @@ namespace Helpio.Ir.Infrastructure.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("Helpio.Ir.Domain.Entities.Core.ApiKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AllowedIPs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("KeyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("KeyValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Permissions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique();
+
+                    b.HasIndex("KeyValue")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("ApiKeys");
+                });
+
             modelBuilder.Entity("Helpio.Ir.Domain.Entities.Core.Branch", b =>
                 {
                     b.Property<int>("Id")
@@ -1019,6 +1082,17 @@ namespace Helpio.Ir.Infrastructure.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Helpio.Ir.Domain.Entities.Core.ApiKey", b =>
+                {
+                    b.HasOne("Helpio.Ir.Domain.Entities.Core.Organization", "Organization")
+                        .WithMany("ApiKeys")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("Helpio.Ir.Domain.Entities.Core.Branch", b =>
                 {
                     b.HasOne("Helpio.Ir.Domain.Entities.Core.User", "BranchManager")
@@ -1218,19 +1292,19 @@ namespace Helpio.Ir.Infrastructure.Migrations
                     b.HasOne("Helpio.Ir.Domain.Entities.Core.Team", "Team")
                         .WithMany("Tickets")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Helpio.Ir.Domain.Entities.Ticketing.TicketCategory", "TicketCategory")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Helpio.Ir.Domain.Entities.Ticketing.TicketState", "TicketState")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketStateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Helpio.Ir.Domain.Entities.Core.User", null)
@@ -1278,6 +1352,8 @@ namespace Helpio.Ir.Infrastructure.Migrations
 
             modelBuilder.Entity("Helpio.Ir.Domain.Entities.Core.Organization", b =>
                 {
+                    b.Navigation("ApiKeys");
+
                     b.Navigation("Articles");
 
                     b.Navigation("Branches");

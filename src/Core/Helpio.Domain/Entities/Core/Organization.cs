@@ -17,5 +17,6 @@ namespace Helpio.Ir.Domain.Entities.Core
         public virtual ICollection<Ticketing.TicketCategory> TicketCategories { get; set; } = new List<Ticketing.TicketCategory>();
         public virtual ICollection<Knowledge.CannedResponse> CannedResponses { get; set; } = new List<Knowledge.CannedResponse>();
         public virtual ICollection<Knowledge.Articles> Articles { get; set; } = new List<Knowledge.Articles>();
+        public virtual ICollection<ApiKey> ApiKeys { get; set; } = new List<ApiKey>();
     }
 }

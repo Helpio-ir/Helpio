@@ -40,6 +40,7 @@ namespace Helpio.Ir.Application
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IBranchService, BranchService>();
             services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IApiKeyService, ApiKeyService>();
         }
 
         private static void RegisterTicketingServices(IServiceCollection services)

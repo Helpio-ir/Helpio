@@ -109,6 +109,23 @@ namespace Helpio.Ir.Application.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+
+            // ApiKey mappings
+            CreateMap<ApiKey, ApiKeyDto>();
+            CreateMap<CreateApiKeyDto, ApiKey>()
+                .ForMember(dest => dest.KeyValue, opt => opt.Ignore()) // Set in service
+                .ForMember(dest => dest.KeyHash, opt => opt.Ignore()) // Set in service
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.LastUsedAt, opt => opt.Ignore());
+            CreateMap<UpdateApiKeyDto, ApiKey>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
+                .ForMember(dest => dest.KeyValue, opt => opt.Ignore())
+                .ForMember(dest => dest.KeyHash, opt => opt.Ignore())
+                .ForMember(dest => dest.LastUsedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
         }
 
         private void CreateTicketingMappings()

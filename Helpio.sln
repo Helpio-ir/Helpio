@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.API", "src\Presentation\Helpio.API\Helpio.API.csproj", "{391BBC0A-A606-4AFB-A592-FF661C746806}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.web", "src\Presentation\Helpio.web\Helpio.web.csproj", "{135B50F0-67BD-60FD-C69E-8008E301C54F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.Dashboard", "src\Presentation\Helpio.Dashboard\Helpio.Dashboard.csproj", "{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,14 @@ Global
 		{391BBC0A-A606-4AFB-A592-FF661C746806}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{391BBC0A-A606-4AFB-A592-FF661C746806}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{391BBC0A-A606-4AFB-A592-FF661C746806}.Release|Any CPU.Build.0 = Release|Any CPU
+		{135B50F0-67BD-60FD-C69E-8008E301C54F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{135B50F0-67BD-60FD-C69E-8008E301C54F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{135B50F0-67BD-60FD-C69E-8008E301C54F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{135B50F0-67BD-60FD-C69E-8008E301C54F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +65,8 @@ Global
 		{CE1F96B4-E573-4A19-8579-A4A16F991F7B} = {DC8364CB-0DB3-43A4-BAEA-CBD9A4512AA7}
 		{DEA4134F-9DB3-444D-9320-BCA273F3D304} = {0BCDBA68-7414-45DE-AFEC-85C25B77CA66}
 		{391BBC0A-A606-4AFB-A592-FF661C746806} = {DEA4134F-9DB3-444D-9320-BCA273F3D304}
+		{135B50F0-67BD-60FD-C69E-8008E301C54F} = {DEA4134F-9DB3-444D-9320-BCA273F3D304}
+		{A3B20E15-B9A5-1D10-1E1B-20E7883A7606} = {DEA4134F-9DB3-444D-9320-BCA273F3D304}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C9DF0ED-093F-4E05-AD6F-CAE84CF84DA2}

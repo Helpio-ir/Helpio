@@ -23,6 +23,7 @@ namespace Helpio.Ir.Infrastructure.Data
         public DbSet<Team> Teams { get; set; }
         public DbSet<SupportAgent> SupportAgents { get; set; }
         public DbSet<Profile> Profiles { get; set; }
+        public DbSet<ApiKey> ApiKeys { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketState> TicketStates { get; set; }
         public DbSet<TicketCategory> TicketCategories { get; set; }
@@ -102,7 +103,7 @@ namespace Helpio.Ir.Infrastructure.Data
                 .WithMany(o => o.Branches)
                 .HasForeignKey(b => b.OrganizationId);
 
-            // Ticket relationships
+            // Ticket relationships - Fix cascade conflicts
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Customer)
                 .WithMany(c => c.Tickets)
@@ -111,12 +112,14 @@ namespace Helpio.Ir.Infrastructure.Data
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.TicketState)
                 .WithMany(ts => ts.Tickets)
-                .HasForeignKey(t => t.TicketStateId);
+                .HasForeignKey(t => t.TicketStateId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade conflicts
 
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Team)
                 .WithMany(team => team.Tickets)
-                .HasForeignKey(t => t.TeamId);
+                .HasForeignKey(t => t.TeamId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade conflicts
 
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.SupportAgent)
@@ -127,7 +130,8 @@ namespace Helpio.Ir.Infrastructure.Data
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.TicketCategory)
                 .WithMany(tc => tc.Tickets)
-                .HasForeignKey(t => t.TicketCategoryId);
+                .HasForeignKey(t => t.TicketCategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade conflicts
 
             // TicketCategory relationships
             modelBuilder.Entity<TicketCategory>()
@@ -219,6 +223,20 @@ namespace Helpio.Ir.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(a => a.AuthorId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // ApiKey relationships
+            modelBuilder.Entity<ApiKey>()
+                .HasOne(ak => ak.Organization)
+                .WithMany(o => o.ApiKeys)
+                .HasForeignKey(ak => ak.OrganizationId);
+
+            modelBuilder.Entity<ApiKey>()
+                .HasIndex(ak => ak.KeyValue)
+                .IsUnique();
+
+            modelBuilder.Entity<ApiKey>()
+                .HasIndex(ak => ak.KeyHash)
+                .IsUnique();
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

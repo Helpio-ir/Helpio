@@ -25,6 +25,7 @@ namespace Helpio.Ir.Infrastructure.Repositories
         private ITeamRepository? _teams;
         private ISupportAgentRepository? _supportAgents;
         private IProfileRepository? _profiles;
+        private IApiKeyRepository? _apiKeys;
 
         // Ticketing Repositories
         private ITicketRepository? _tickets;
@@ -58,6 +59,7 @@ namespace Helpio.Ir.Infrastructure.Repositories
         public ITeamRepository Teams => _teams ??= new TeamRepository(_context);
         public ISupportAgentRepository SupportAgents => _supportAgents ??= new SupportAgentRepository(_context);
         public IProfileRepository Profiles => _profiles ??= new ProfileRepository(_context);
+        public IApiKeyRepository ApiKeys => _apiKeys ??= new ApiKeyRepository(_context);
 
         // Ticketing Repositories Properties
         public ITicketRepository Tickets => _tickets ??= new TicketRepository(_context);

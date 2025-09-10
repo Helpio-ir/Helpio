@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Helpio.Ir.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateWithApiKeys : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -136,6 +136,37 @@ namespace Helpio.Ir.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ApiKeys",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrganizationId = table.Column<int>(type: "int", nullable: false),
+                    KeyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    KeyValue = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    KeyHash = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastUsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AllowedIPs = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Permissions = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApiKeys", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApiKeys_Organizations_OrganizationId",
+                        column: x => x.OrganizationId,
+                        principalTable: "Organizations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -561,25 +592,42 @@ namespace Helpio.Ir.Infrastructure.Migrations
                         column: x => x.TeamId,
                         principalTable: "Teams",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Tickets_TicketCategories_TicketCategoryId",
                         column: x => x.TicketCategoryId,
                         principalTable: "TicketCategories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Tickets_TicketStates_TicketStateId",
                         column: x => x.TicketStateId,
                         principalTable: "TicketStates",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Tickets_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiKeys_KeyHash",
+                table: "ApiKeys",
+                column: "KeyHash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiKeys_KeyValue",
+                table: "ApiKeys",
+                column: "KeyValue",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApiKeys_OrganizationId",
+                table: "ApiKeys",
+                column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_AuthorId",
@@ -834,6 +882,9 @@ namespace Helpio.Ir.Infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Teams_SupportAgents_TeamLeadId",
                 table: "Teams");
+
+            migrationBuilder.DropTable(
+                name: "ApiKeys");
 
             migrationBuilder.DropTable(
                 name: "Articles");
