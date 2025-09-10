@@ -1,4 +1,7 @@
-﻿<!--begin::Header-->
+﻿@using Helpio.Dashboard.Services
+@inject ICurrentUserContext UserContext
+
+<!--begin::Header-->
 <nav class="app-header navbar navbar-expand bg-body">
   <!--begin::Container-->
   <div class="container-fluid">
@@ -10,11 +13,17 @@
         </a>
       </li>
       <li class="nav-item d-none d-md-block">
-        <a asp-controller="Home" asp-action="Index" class="nav-link">خانه</a>
+        <a asp-controller="Dashboard" asp-action="Index" class="nav-link">داشبورد</a>
       </li>
       <li class="nav-item d-none d-md-block">
-        <a asp-controller="Home" asp-action="Privacy" class="nav-link">حریم خصوصی</a>
+        <a asp-controller="Tickets" asp-action="Index" class="nav-link">تیکت‌ها</a>
       </li>
+      @if (UserContext.IsAdmin || UserContext.IsManager)
+      {
+        <li class="nav-item d-none d-md-block">
+          <a asp-controller="Reports" asp-action="Index" class="nav-link">گزارشات</a>
+        </li>
+      }
     </ul>
     <!--end::Start Navbar Links-->
     <!--begin::End Navbar Links-->
@@ -26,69 +35,63 @@
         </a>
       </li>
       <!--end::Navbar Search-->
-      <!--begin::Messages Dropdown Menu-->
-      <li class="nav-item dropdown">
-        <a class="nav-link" data-bs-toggle="dropdown" href="#">
-          <i class="bi bi-chat-text"></i>
-          <span class="navbar-badge badge text-bg-danger">3</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-          <a href="#" class="dropdown-item">
-            <!--begin::Message-->
-            <div class="d-flex">
-              <div class="flex-shrink-0">
-                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                  <i class="bi bi-person text-white"></i>
-                </div>
-              </div>
-              <div class="flex-grow-1 ms-3">
-                <h3 class="dropdown-item-title">
-                  کاربر نمونه
-                  <span class="float-end fs-7 text-danger"
-                    ><i class="bi bi-star-fill"></i
-                  ></span>
-                </h3>
-                <p class="fs-7">پیام جدید دریافت شده...</p>
-                <p class="fs-7 text-secondary">
-                  <i class="bi bi-clock-fill me-1"></i> 4 ساعت پیش
-                </p>
-              </div>
-            </div>
-            <!--end::Message-->
+      
+      <!--begin::Quick Actions-->
+      @if (UserContext.IsAdmin || UserContext.IsManager)
+      {
+        <li class="nav-item dropdown">
+          <a class="nav-link" data-bs-toggle="dropdown" href="#" title="عملیات سریع">
+            <i class="bi bi-plus-circle"></i>
           </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item dropdown-footer">مشاهده تمام پیام‌ها</a>
-        </div>
-      </li>
-      <!--end::Messages Dropdown Menu-->
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+            <span class="dropdown-item dropdown-header">عملیات سریع</span>
+            <div class="dropdown-divider"></div>
+            <a asp-controller="Tickets" asp-action="Create" class="dropdown-item">
+              <i class="bi bi-ticket-detailed me-2"></i> ایجاد تیکت جدید
+            </a>
+            <a asp-controller="Customers" asp-action="Create" class="dropdown-item">
+              <i class="bi bi-person-plus me-2"></i> افزودن مشتری
+            </a>
+            @if (UserContext.IsAdmin)
+            {
+              <a asp-controller="Organizations" asp-action="Create" class="dropdown-item">
+                <i class="bi bi-building me-2"></i> ایجاد سازمان
+              </a>
+            }
+          </div>
+        </li>
+      }
+      <!--end::Quick Actions-->
+      
       <!--begin::Notifications Dropdown Menu-->
       <li class="nav-item dropdown">
         <a class="nav-link" data-bs-toggle="dropdown" href="#">
           <i class="bi bi-bell-fill"></i>
-          <span class="navbar-badge badge text-bg-warning">15</span>
+          <span class="navbar-badge badge text-bg-warning">3</span>
         </a>
         <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-          <span class="dropdown-item dropdown-header">15 اعلان</span>
+          <span class="dropdown-item dropdown-header">3 اعلان جدید</span>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item">
-            <i class="bi bi-envelope me-2"></i> 4 پیام جدید
-            <span class="float-end text-secondary fs-7">3 دقیقه</span>
+            <i class="bi bi-ticket-detailed me-2 text-info"></i> تیکت جدید اختصاص داده شد
+            <span class="float-end text-secondary fs-7">5 دقیقه</span>
           </a>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item">
-            <i class="bi bi-people-fill me-2"></i> 8 درخواست دوستی
-            <span class="float-end text-secondary fs-7">12 ساعت</span>
+            <i class="bi bi-chat-text me-2 text-success"></i> پاسخ جدید از مشتری
+            <span class="float-end text-secondary fs-7">1 ساعت</span>
           </a>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item">
-            <i class="bi bi-file-earmark-fill me-2"></i> 3 گزارش جدید
-            <span class="float-end text-secondary fs-7">2 روز</span>
+            <i class="bi bi-exclamation-triangle me-2 text-warning"></i> تیکت اولویت بالا
+            <span class="float-end text-secondary fs-7">2 ساعت</span>
           </a>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item dropdown-footer"> مشاهده تمام اعلان‌ها </a>
         </div>
       </li>
       <!--end::Notifications Dropdown Menu-->
+      
       <!--begin::Fullscreen Toggle-->
       <li class="nav-item">
         <a class="nav-link" href="#" data-lte-toggle="fullscreen">
@@ -97,6 +100,7 @@
         </a>
       </li>
       <!--end::Fullscreen Toggle-->
+      
       <!--begin::User Menu Dropdown-->
       @if (User.Identity?.IsAuthenticated == true)
       {
@@ -105,7 +109,7 @@
             <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
               <i class="bi bi-person text-white"></i>
             </div>
-            <span class="d-none d-md-inline">@(User.Identity.Name)</span>
+            <span class="d-none d-md-inline">@(UserContext.UserFullName ?? User.Identity.Name)</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
             <!--begin::User Image-->
@@ -114,17 +118,45 @@
                 <i class="bi bi-person text-primary" style="font-size: 2rem;"></i>
               </div>
               <p>
-                @(User.Identity.Name)
-                <small>عضو سیستم</small>
+                @(UserContext.UserFullName ?? User.Identity.Name)
+                <small>
+                  @if (UserContext.UserRoles.Any())
+                  {
+                    @string.Join(", ", UserContext.UserRoles)
+                  }
+                  else
+                  {
+                    <span>کاربر سیستم</span>
+                  }
+                </small>
               </p>
             </li>
             <!--end::User Image-->
+            <!--begin::Menu Body-->
+            <li class="user-body">
+              <div class="row">
+                <div class="col-6 text-center">
+                  <a asp-controller="Profile" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person"></i> پروفایل
+                  </a>
+                </div>
+                <div class="col-6 text-center">
+                  <a asp-controller="Profile" asp-action="Edit" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> تنظیمات
+                  </a>
+                </div>
+              </div>
+            </li>
+            <!--end::Menu Body-->
             <!--begin::Menu Footer-->
             <li class="user-footer">
-              <a href="#" class="btn btn-default btn-flat">پروفایل</a>
-              <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                <button type="submit" class="btn btn-default btn-flat float-end">خروج</button>
-              </form>
+              <div class="d-grid">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                  <button type="submit" class="btn btn-default btn-flat w-100">
+                    <i class="bi bi-box-arrow-right"></i> خروج از سیستم
+                  </button>
+                </form>
+              </div>
             </li>
             <!--end::Menu Footer-->
           </ul>

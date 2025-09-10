@@ -1,0 +1,113 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Core.Team>
+@{
+    ViewData["Title"] = "مدیریت تیم‌ها";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">لیست تیم‌ها</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="Create" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus"></i> تیم جدید
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>نام تیم</th>
+                                    <th>سازمان</th>
+                                    <th>شاخه</th>
+                                    <th>تیم لید</th>
+                                    <th>تعداد اعضا</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var team in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@team.Id" class="text-decoration-none">
+                                                <strong>@team.Name</strong>
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(team.Description))
+                                            {
+                                                <br><small class="text-muted">@team.Description</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (team.Branch?.Organization != null)
+                                            {
+                                                @team.Branch.Organization.Name
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (team.Branch != null)
+                                            {
+                                                @team.Branch.Name
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (team.TeamLead?.User != null)
+                                            {
+                                                @team.TeamLead.User.FirstName @team.TeamLead.User.LastName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">تعیین نشده</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@team.SupportAgents.Count نفر</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(team.IsActive ? "success" : "danger")">
+                                                @(team.IsActive ? "فعال" : "غیرفعال")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-sm btn-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-people-fill" style="font-size: 3rem; color: #ccc;"></i>
+                        <h4 class="text-muted">هیچ تیمی یافت نشد</h4>
+                        <p class="text-muted">در حال حاضر تیمی برای نمایش وجود ندارد.</p>
+                        @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                        {
+                            <a asp-action="Create" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> ایجاد اولین تیم
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

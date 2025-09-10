@@ -1,0 +1,181 @@
+﻿@model Helpio.Dashboard.Controllers.ReportsViewModel
+@{
+    ViewData["Title"] = "گزارشات";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">گزارش کلی سیستم</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>گزارش وضعیت تیکت‌ها</h5>
+                        @if (Model.TicketsByStatus.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>وضعیت</th>
+                                            <th>تعداد</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.TicketsByStatus)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-@(item.Key == "Open" ? "warning" : item.Key == "Closed" ? "success" : "primary")">
+                                                        @item.Key
+                                                    </span>
+                                                </td>
+                                                <td>@item.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">داده‌ای برای نمایش وجود ندارد</p>
+                        }
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>گزارش عملکرد کارشناسان</h5>
+                        @if (Model.TicketsByAgent.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>کارشناس</th>
+                                            <th>تعداد تیکت</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.TicketsByAgent.Take(5))
+                                        {
+                                            <tr>
+                                                <td>@item.Key</td>
+                                                <td>
+                                                    <span class="badge bg-info">@item.Value</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if (Model.TicketsByAgent.Count > 5)
+                            {
+                                <small class="text-muted">و @(Model.TicketsByAgent.Count - 5) کارشناس دیگر...</small>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">داده‌ای برای نمایش وجود ندارد</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">رضایت مشتریان</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-4 text-success">@Model.CustomerSatisfaction.ToString("F1")</div>
+                <p class="text-muted">از 5 امتیاز</p>
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: @((Model.CustomerSatisfaction / 5) * 100)%" 
+                         aria-valuenow="@Model.CustomerSatisfaction" aria-valuemin="0" aria-valuemax="5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">روند تیکت‌ها در 3 ماه اخیر</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.MonthlyTickets.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ماه</th>
+                                    <th>تعداد تیکت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.MonthlyTickets.OrderBy(x => x.Key))
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>
+                                            <span class="badge bg-primary">@item.Value</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">داده‌ای برای نمایش وجود ندارد</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">گزارشات تخصصی</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a asp-action="TicketReport" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <br>گزارش تفصیلی تیکت‌ها
+                        </a>
+                    </div>
+                    
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <a asp-action="AgentPerformance" class="btn btn-outline-success btn-lg w-100">
+                                <i class="bi bi-person-check"></i>
+                                <br>عملکرد کارشناسان
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-info btn-lg w-100">
+                                <i class="bi bi-graph-up"></i>
+                                <br>تحلیل روندها
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

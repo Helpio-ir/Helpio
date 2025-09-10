@@ -1,9 +1,12 @@
-﻿<!--begin::Sidebar-->
+﻿@using Helpio.Dashboard.Services
+@inject ICurrentUserContext UserContext
+
+<!--begin::Sidebar-->
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
   <!--begin::Sidebar Brand-->
   <div class="sidebar-brand">
     <!--begin::Brand Link-->
-    <a asp-controller="Home" asp-action="Index" class="brand-link">
+    <a asp-controller="Dashboard" asp-action="Index" class="brand-link">
       <!--begin::Brand Image-->
       <img
         src="~/assets/img/AdminLTELogo.png"
@@ -30,139 +33,127 @@
         data-accordion="false"
         id="navigation"
       >
+        <!-- Dashboard -->
         <li class="nav-item">
-          <a asp-controller="Home" asp-action="Index" class="nav-link">
+          <a asp-controller="Dashboard" asp-action="Index" class="nav-link">
             <i class="nav-icon bi bi-speedometer"></i>
             <p>داشبورد</p>
           </a>
         </li>
+
+        <!-- Tickets Section -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-box-seam-fill"></i>
+            <i class="nav-icon bi bi-ticket-detailed"></i>
             <p>
-              ویجت‌ها
+              مدیریت تیکت‌ها
               <i class="nav-arrow bi bi-chevron-right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Tickets" asp-action="Index" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>جعبه کوچک</p>
+                <p>لیست تیکت‌ها</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>جعبه اطلاعات</p>
-              </a>
-            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Tickets" asp-action="Create" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>ایجاد تیکت جدید</p>
+                </a>
+              </li>
+            }
           </ul>
         </li>
+
+        <!-- Customers Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-people"></i>
+            <p>
+              مدیریت مشتریان
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a asp-controller="Customers" asp-action="Index" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>لیست مشتریان</p>
+              </a>
+            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Customers" asp-action="Create" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>افزودن مشتری</p>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+
+        <!-- Teams Section -->
         <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon bi bi-people-fill"></i>
             <p>
-              مدیریت کاربران
+              مدیریت تیم‌ها
               <i class="nav-arrow bi bi-chevron-right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Teams" asp-action="Index" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>لیست کاربران</p>
+                <p>لیست تیم‌ها</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>افزودن کاربر</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>نقش‌ها و مجوزها</p>
-              </a>
-            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Teams" asp-action="Create" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>ایجاد تیم جدید</p>
+                </a>
+              </li>
+            }
           </ul>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-tree-fill"></i>
-            <p>
-              عناصر رابط کاربری
-              <i class="nav-arrow bi bi-chevron-right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>عمومی</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>آیکون‌ها</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>دکمه‌ها</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-pencil-square"></i>
-            <p>
-              فرم‌ها
-              <i class="nav-arrow bi bi-chevron-right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>عناصر عمومی</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>اعتبارسنجی</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-table"></i>
-            <p>
-              جداول
-              <i class="nav-arrow bi bi-chevron-right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>جداول ساده</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>جداول پیشرفته</p>
-              </a>
-            </li>
-          </ul>
-        </li>
+
+        <!-- Organizations Section - Admin Only -->
+        @if (UserContext.IsAdmin)
+        {
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon bi bi-building"></i>
+              <p>
+                مدیریت سازمان‌ها
+                <i class="nav-arrow bi bi-chevron-right"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a asp-controller="Organizations" asp-action="Index" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>لیست سازمان‌ها</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a asp-controller="Organizations" asp-action="Create" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>افزودن سازمان</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+        }
+
+        <!-- Reports Section -->
         <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon bi bi-bar-chart"></i>
@@ -173,49 +164,117 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Reports" asp-action="Index" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>گزارش فروش</p>
+                <p>گزارش کلی</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Reports" asp-action="TicketReport" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>گزارش کاربران</p>
+                <p>گزارش تیکت‌ها</p>
               </a>
             </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Reports" asp-action="AgentPerformance" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>عملکرد کارشناسان</p>
+                </a>
+              </li>
+            }
           </ul>
         </li>
-        <li class="nav-header">تنظیمات</li>
+
+        <!-- Knowledge Base -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-gear-fill"></i>
+            <i class="nav-icon bi bi-journal-bookmark"></i>
             <p>
-              تنظیمات سیستم
+              پایگاه دانش
               <i class="nav-arrow bi bi-chevron-right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Knowledge" asp-action="Articles" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>تنظیمات عمومی</p>
+                <p>مقالات</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="#" class="nav-link">
+              <a asp-controller="Knowledge" asp-action="CannedResponses" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
-                <p>تنظیمات امنیتی</p>
+                <p>پاسخ‌های آماده</p>
               </a>
             </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Knowledge" asp-action="CreateArticle" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>ایجاد مقاله</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a asp-controller="Knowledge" asp-action="CreateCannedResponse" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>ایجاد پاسخ آماده</p>
+                </a>
+              </li>
+            }
           </ul>
         </li>
+
+        <!-- Settings Section -->
+        @if (UserContext.IsAdmin || UserContext.IsManager)
+        {
+          <li class="nav-header">تنظیمات</li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon bi bi-gear-fill"></i>
+              <p>
+                تنظیمات سیستم
+                <i class="nav-arrow bi bi-chevron-right"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              @if (UserContext.IsAdmin)
+              {
+                <li class="nav-item">
+                  <a href="#" class="nav-link">
+                    <i class="nav-icon bi bi-circle"></i>
+                    <p>تنظیمات عمومی</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="#" class="nav-link">
+                    <i class="nav-icon bi bi-circle"></i>
+                    <p>تنظیمات امنیتی</p>
+                  </a>
+                </li>
+              }
+              <li class="nav-item">
+                <a asp-controller="Profile" asp-action="Index" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>پروفایل کاربری</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+        }
+
+        <!-- User Section -->
+        <li class="nav-header">کاربر</li>
         <li class="nav-item">
-          <a asp-controller="Home" asp-action="Privacy" class="nav-link">
-            <i class="nav-icon bi bi-shield-check"></i>
-            <p>حریم خصوصی</p>
+          <a asp-controller="Profile" asp-action="Index" class="nav-link">
+            <i class="nav-icon bi bi-person-circle"></i>
+            <p>پروفایل من</p>
           </a>
         </li>
+        
+        <!-- Help Section -->
         <li class="nav-header">راهنما</li>
         <li class="nav-item">
           <a href="#" class="nav-link">

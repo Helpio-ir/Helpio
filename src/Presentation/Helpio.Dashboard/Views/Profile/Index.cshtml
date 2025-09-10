@@ -1,0 +1,203 @@
+﻿@model Helpio.Dashboard.Controllers.ProfileViewModel
+@{
+    ViewData["Title"] = "پروفایل من";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-primary card-outline">
+            <div class="card-body box-profile">
+                <div class="text-center">
+                    <img class="profile-user-img img-fluid img-circle"
+                         src="~/assets/img/avatars/@(Model.SupportAgent?.Profile?.Avatar ?? "default.png")"
+                         alt="User profile picture"
+                         style="width: 128px; height: 128px; object-fit: cover;">
+                </div>
+
+                <h3 class="profile-username text-center">@Model.User.FirstName @Model.User.LastName</h3>
+
+                <p class="text-muted text-center">
+                    @if (Model.UserRoles.Any())
+                    {
+                        @string.Join(", ", Model.UserRoles)
+                    }
+                    else
+                    {
+                        <span>کاربر</span>
+                    }
+                </p>
+
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>ایمیل</b> <span class="float-end">@Model.User.Email</span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>تلفن</b> <span class="float-end">@(Model.User.PhoneNumber ?? "تعیین نشده")</span>
+                    </li>
+                    @if (Model.SupportAgent != null)
+                    {
+                        <li class="list-group-item">
+                            <b>کد کارشناس</b> <span class="float-end">@Model.SupportAgent.AgentCode</span>
+                        </li>
+                        <li class="list-group-item">
+                            <b>سطح پشتیبانی</b> <span class="float-end">L@Model.SupportAgent.SupportLevel</span>
+                        </li>
+                    }
+                    <li class="list-group-item">
+                        <b>عضویت از</b> <span class="float-end">@Model.User.CreatedAt.ToString("yyyy/MM/dd")</span>
+                    </li>
+                </ul>
+
+                <a asp-action="Edit" class="btn btn-primary btn-block">
+                    <i class="bi bi-pencil"></i> ویرایش پروفایل
+                </a>
+            </div>
+        </div>
+
+        @if (Model.SupportAgent?.Profile != null)
+        {
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">مهارت‌ها</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.SupportAgent.Profile.Skills))
+                    {
+                        var skills = Model.SupportAgent.Profile.Skills.Split(',');
+                        foreach (var skill in skills)
+                        {
+                            <span class="badge bg-primary me-1 mb-1">@skill.Trim()</span>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">مهارتی تعریف نشده است</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header p-2">
+                <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#activity" data-bs-toggle="tab">فعالیت‌ها</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#timeline" data-bs-toggle="tab">تاریخچه</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#settings" data-bs-toggle="tab">تنظیمات</a></li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="active tab-pane" id="activity">
+                        @if (Model.SupportAgent != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-info"><i class="bi bi-ticket-detailed"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">تیکت‌های فعال</span>
+                                            <span class="info-box-number">@Model.SupportAgent.CurrentTicketCount</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">حداکثر ظرفیت</span>
+                                            <span class="info-box-number">@Model.SupportAgent.MaxConcurrentTickets</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.SupportAgent.Profile?.Bio))
+                            {
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">درباره من</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>@Model.SupportAgent.Profile.Bio</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="tab-pane" id="timeline">
+                        <div class="timeline">
+                            <div class="time-label">
+                                <span class="bg-red">تاریخچه فعالیت‌ها</span>
+                            </div>
+                            
+                            <div>
+                                <i class="fas fa-user bg-green"></i>
+                                <div class="timeline-item">
+                                    <span class="time"><i class="fas fa-clock"></i> @Model.User.CreatedAt.ToString("yyyy/MM/dd")</span>
+                                    <h3 class="timeline-header">عضویت در سیستم</h3>
+                                    <div class="timeline-body">
+                                        شما در تاریخ @Model.User.CreatedAt.ToString("yyyy/MM/dd") عضو سیستم شدید.
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (Model.SupportAgent != null)
+                            {
+                                <div>
+                                    <i class="fas fa-badge-check bg-blue"></i>
+                                    <div class="timeline-item">
+                                        <span class="time"><i class="fas fa-clock"></i> @Model.SupportAgent.HireDate.ToString("yyyy/MM/dd")</span>
+                                        <h3 class="timeline-header">شروع به کار به عنوان کارشناس</h3>
+                                        <div class="timeline-body">
+                                            شما در تاریخ @Model.SupportAgent.HireDate.ToString("yyyy/MM/dd") به عنوان کارشناس پشتیبانی شروع به کار کردید.
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div>
+                                <i class="fas fa-clock bg-gray"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="settings">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            برای تغییر تنظیمات پروفایل خود، از دکمه "ویرایش پروفایل" استفاده کنید.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>نقش‌های کاربری:</strong>
+                                <ul class="list-unstyled">
+                                    @foreach (var role in Model.UserRoles)
+                                    {
+                                        <li><span class="badge bg-primary">@role</span></li>
+                                    }
+                                </ul>
+                            </div>
+                            
+                            @if (Model.SupportAgent?.Team != null)
+                            {
+                                <div class="col-md-6">
+                                    <strong>اطلاعات تیم:</strong>
+                                    <ul class="list-unstyled">
+                                        <li><strong>تیم:</strong> @Model.SupportAgent.Team.Name</li>
+                                        @if (Model.SupportAgent.Team.Branch?.Organization != null)
+                                        {
+                                            <li><strong>سازمان:</strong> @Model.SupportAgent.Team.Branch.Organization.Name</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

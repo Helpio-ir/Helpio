@@ -1,7 +1,7 @@
+using Helpio.Dashboard.Middleware;
+using Helpio.Dashboard.Services;
 using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Infrastructure.Data;
-using Helpio.Dashboard.Services;
-using Helpio.Dashboard.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,7 +84,7 @@ public class Program
         app.MapStaticAssets();
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
+            pattern: "{controller=Dashboard}/{action=Index}/{id?}")
             .WithStaticAssets();
 
         // Initialize database with default users

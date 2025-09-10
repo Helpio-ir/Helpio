@@ -1,0 +1,93 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Core.Organization>
+@{
+    ViewData["Title"] = "مدیریت سازمان‌ها";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">لیست سازمان‌ها</h3>
+                <div class="card-tools">
+                    <a asp-action="Create" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus"></i> سازمان جدید
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>نام سازمان</th>
+                                    <th>ایمیل</th>
+                                    <th>تلفن</th>
+                                    <th>تعداد شاخه‌ها</th>
+                                    <th>تعداد API Key</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var org in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@org.Id" class="text-decoration-none">
+                                                <strong>@org.Name</strong>
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(org.Description))
+                                            {
+                                                <br><small class="text-muted">@org.Description</small>
+                                            }
+                                        </td>
+                                        <td>@org.Email</td>
+                                        <td>@org.PhoneNumber</td>
+                                        <td>
+                                            <span class="badge bg-info">@org.Branches.Count</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@org.ApiKeys.Count</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(org.IsActive ? "success" : "danger")">
+                                                @(org.IsActive ? "فعال" : "غیرفعال")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@org.Id" class="btn btn-sm btn-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@org.Id" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form asp-action="ToggleActive" asp-route-id="@org.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-@(org.IsActive ? "danger" : "success")" 
+                                                        onclick="return confirm('آیا مطمئن هستید؟')">
+                                                    <i class="bi bi-@(org.IsActive ? "pause" : "play")"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-building" style="font-size: 3rem; color: #ccc;"></i>
+                        <h4 class="text-muted">هیچ سازمانی یافت نشد</h4>
+                        <p class="text-muted">در حال حاضر سازمانی برای نمایش وجود ندارد.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-plus"></i> ایجاد اولین سازمان
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

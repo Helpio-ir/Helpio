@@ -1,0 +1,140 @@
+﻿@model Helpio.Dashboard.Controllers.EditProfileViewModel
+@{
+    ViewData["Title"] = "ویرایش پروفایل";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش اطلاعات شخصی</h3>
+            </div>
+            <form asp-action="Edit" method="post">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="FirstName" class="form-label">نام <span class="text-danger">*</span></label>
+                                <input asp-for="FirstName" class="form-control" placeholder="نام خود را وارد کنید" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="LastName" class="form-label">نام خانوادگی <span class="text-danger">*</span></label>
+                                <input asp-for="LastName" class="form-control" placeholder="نام خانوادگی خود را وارد کنید" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Email" class="form-label">ایمیل</label>
+                                <input asp-for="Email" type="email" class="form-control" readonly />
+                                <small class="form-text text-muted">ایمیل قابل تغییر نیست</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="PhoneNumber" class="form-label">شماره تلفن</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="09123456789" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Bio" class="form-label">درباره من</label>
+                        <textarea asp-for="Bio" class="form-control" rows="3" placeholder="چند جمله درباره خودتان بنویسید..."></textarea>
+                        <span asp-validation-for="Bio" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Skills" class="form-label">مهارت‌ها</label>
+                        <input asp-for="Skills" class="form-control" placeholder="مهارت‌ها را با کاما جدا کنید، مثال: C#, ASP.NET, SQL" />
+                        <span asp-validation-for="Skills" class="text-danger"></span>
+                        <small class="form-text text-muted">مهارت‌های خود را با کاما (,) از هم جدا کنید</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Avatar" class="form-label">آواتار</label>
+                        <select asp-for="Avatar" class="form-select">
+                            <option value="default.png">پیش‌فرض</option>
+                            <option value="default-admin.png">مدیر</option>
+                            <option value="default-manager.png">مدیر تیم</option>
+                            <option value="default-agent.png">کارشناس</option>
+                            <option value="avatar1.png">آواتار 1</option>
+                            <option value="avatar2.png">آواتار 2</option>
+                            <option value="avatar3.png">آواتار 3</option>
+                        </select>
+                        <span asp-validation-for="Avatar" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ذخیره تغییرات
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">پیش‌نمایش آواتار</h3>
+            </div>
+            <div class="card-body text-center">
+                <img id="avatar-preview" 
+                     src="~/assets/img/avatars/@Model.Avatar" 
+                     alt="Avatar Preview"
+                     class="img-fluid img-circle mb-3"
+                     style="width: 150px; height: 150px; object-fit: cover;">
+                <p class="text-muted">پیش‌نمایش آواتار انتخابی</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">راهنما</h3>
+            </div>
+            <div class="card-body">
+                <h6>نکات مهم:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-info-circle text-info"></i> فیلدهای دارای ستاره (*) اجباری هستند</li>
+                    <li><i class="bi bi-envelope text-warning"></i> ایمیل قابل تغییر نیست</li>
+                    <li><i class="bi bi-person text-primary"></i> مهارت‌ها در پروفایل شما نمایش داده می‌شوند</li>
+                    <li><i class="bi bi-image text-success"></i> آواتار در سیستم نمایش داده می‌شود</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>قابلیت‌های بعدی:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-upload text-info"></i> آپلود تصویر شخصی</li>
+                    <li><i class="bi bi-shield text-warning"></i> تغییر رمز عبور</li>
+                    <li><i class="bi bi-bell text-primary"></i> تنظیمات اعلان‌ها</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Avatar preview functionality
+        document.getElementById('Avatar').addEventListener('change', function() {
+            const selectedAvatar = this.value;
+            const preview = document.getElementById('avatar-preview');
+            preview.src = '/assets/img/avatars/' + selectedAvatar;
+        });
+    </script>
+}

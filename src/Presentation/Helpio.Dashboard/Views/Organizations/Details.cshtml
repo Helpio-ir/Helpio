@@ -1,0 +1,275 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.Organization
+@{
+    ViewData["Title"] = "جزئیات سازمان";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات سازمان: @Model.Name</h3>
+                <div class="card-tools">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil"></i> ویرایش
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>نام سازمان:</th>
+                                <td>@Model.Name</td>
+                            </tr>
+                            <tr>
+                                <th>توضیحات:</th>
+                                <td>@(Model.Description ?? "توضیحی ثبت نشده")</td>
+                            </tr>
+                            <tr>
+                                <th>ایمیل:</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.Email))
+                                    {
+                                        <a href="mailto:@Model.Email">@Model.Email</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">ثبت نشده</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تلفن:</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                    {
+                                        <a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">ثبت نشده</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>وضعیت:</th>
+                                <td>
+                                    <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                                        @(Model.IsActive ? "فعال" : "غیرفعال")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ایجاد:</th>
+                                <td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                            </tr>
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <tr>
+                                    <th>آخرین بروزرسانی:</th>
+                                    <td>@Model.UpdatedAt.Value.ToString("yyyy/MM/dd HH:mm")</td>
+                                </tr>
+                            }
+                            <tr>
+                                <th>تعداد شاخه‌ها:</th>
+                                <td><span class="badge bg-info">@Model.Branches.Count</span></td>
+                            </tr>
+                            <tr>
+                                <th>تعداد API Key:</th>
+                                <td><span class="badge bg-secondary">@Model.ApiKeys.Count</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Address))
+                {
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>آدرس:</h6>
+                            <p class="text-muted">@Model.Address</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Organization Statistics -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">آمار سازمان</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="bi bi-building"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">شاخه‌ها</span>
+                                <span class="info-box-number">@Model.Branches.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="bi bi-people"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیم‌ها</span>
+                                <span class="info-box-number">@Model.Branches.SelectMany(b => b.Teams).Count()</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="bi bi-person-badge"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">کارشناسان</span>
+                                <span class="info-box-number">@Model.Branches.SelectMany(b => b.Teams).SelectMany(t => t.SupportAgents).Count()</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger"><i class="bi bi-key"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">API Keys</span>
+                                <span class="info-box-number">@Model.ApiKeys.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branches -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">شاخه‌های سازمان</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Branches.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>نام شاخه</th>
+                                    <th>تعداد تیم‌ها</th>
+                                    <th>تعداد کارشناسان</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var branch in Model.Branches)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@branch.Name</strong>
+                                            @if (!string.IsNullOrEmpty(branch.Address))
+                                            {
+                                                <br><small class="text-muted">@branch.Address</small>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-info">@branch.Teams.Count</span></td>
+                                        <td><span class="badge bg-success">@branch.Teams.SelectMany(t => t.SupportAgents).Count()</span></td>
+                                        <td>
+                                            <span class="badge bg-@(branch.IsActive ? "success" : "danger")">
+                                                @(branch.IsActive ? "فعال" : "غیرفعال")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-building" style="font-size: 3rem; color: #ccc;"></i>
+                        <h4 class="text-muted">هیچ شاخه‌ای وجود ندارد</h4>
+                        <p class="text-muted">برای این سازمان هنوز شاخه‌ای تعریف نشده است.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <a href="mailto:@Model.Email" class="btn btn-outline-primary">
+                            <i class="bi bi-envelope"></i> ارسال ایمیل
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <a href="tel:@Model.PhoneNumber" class="btn btn-outline-success">
+                            <i class="bi bi-telephone"></i> تماس تلفنی
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">API Keys</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.ApiKeys.Any())
+                {
+                    @foreach (var apiKey in Model.ApiKeys.Take(3))
+                    {
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-key text-white"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">@apiKey.KeyName</h6>
+                                <p class="mb-1 text-muted">@(apiKey.Description ?? "بدون توضیح")</p>
+                                <small class="text-muted">
+                                    ایجاد: @apiKey.CreatedAt.ToString("yyyy/MM/dd")
+                                </small>
+                            </div>
+                        </div>
+                        <hr>
+                    }
+                    
+                    @if (Model.ApiKeys.Count > 3)
+                    {
+                        <div class="text-center">
+                            <small class="text-muted">و @(Model.ApiKeys.Count - 3) کلید دیگر...</small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <i class="bi bi-key" style="font-size: 2rem;"></i>
+                        <p>هیچ API Key وجود ندارد</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

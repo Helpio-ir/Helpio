@@ -1,0 +1,245 @@
+﻿@model Helpio.Dashboard.Controllers.DashboardStatsViewModel
+@{
+    ViewData["Title"] = "داشبورد اصلی";
+}
+
+<!--begin::Row-->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">خوش آمدید @ViewBag.CurrentUser?.UserFullName</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4>سیستم مدیریت پشتیبانی Helpio</h4>
+                        <p>در این پنل می‌توانید تیکت‌ها، مشتریان و گزارش‌های خود را مدیریت کنید.</p>
+                        
+                        @if (ViewBag.CurrentOrganization != null)
+                        {
+                            <div class="alert alert-info">
+                                <strong>سازمان شما:</strong> @ViewBag.CurrentOrganization.Name
+                                @if (ViewBag.CurrentTeam != null)
+                                {
+                                    <br><strong>تیم شما:</strong> @ViewBag.CurrentTeam.Name
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-shield-check text-primary" style="font-size: 4rem;"></i>
+                            <h5>سیستم امن و قابل اعتماد</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--begin::Stats Row-->
+<div class="row">
+    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+    {
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-info">
+                <div class="inner">
+                    <h3>@Model.TotalTickets</h3>
+                    <p>کل تیکت‌ها</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-ticket-detailed"></i>
+                </div>
+                <a asp-controller="Tickets" asp-action="Index" class="small-box-footer link-light">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-success">
+                <div class="inner">
+                    <h3>@Model.ClosedTickets</h3>
+                    <p>تیکت‌های بسته شده</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <a asp-controller="Reports" asp-action="TicketReport" class="small-box-footer link-light">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-warning">
+                <div class="inner">
+                    <h3>@Model.OpenTickets</h3>
+                    <p>تیکت‌های باز</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <a asp-controller="Tickets" asp-action="Index" class="small-box-footer link-dark">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-danger">
+                <div class="inner">
+                    <h3>@Model.TotalCustomers</h3>
+                    <p>مشتریان</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <a asp-controller="Customers" asp-action="Index" class="small-box-footer link-light">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    }
+    else if (ViewBag.IsAgent == true)
+    {
+        <div class="col-lg-4 col-6">
+            <div class="small-box text-bg-primary">
+                <div class="inner">
+                    <h3>@Model.MyTickets</h3>
+                    <p>تیکت‌های من</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <a asp-controller="Tickets" asp-action="Index" class="small-box-footer link-light">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-6">
+            <div class="small-box text-bg-success">
+                <div class="inner">
+                    <h3>@Model.ClosedTickets</h3>
+                    <p>تیکت‌های بسته شده</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <a href="#" class="small-box-footer link-light">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-6">
+            <div class="small-box text-bg-warning">
+                <div class="inner">
+                    <h3>@Model.OpenTickets</h3>
+                    <p>تیکت‌های باز</p>
+                </div>
+                <div class="small-box-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <a asp-controller="Tickets" asp-action="Index" class="small-box-footer link-dark">
+                    مشاهده بیشتر <i class="bi bi-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<!--begin::Quick Actions-->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <a asp-controller="Tickets" asp-action="Create" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-plus-circle"></i>
+                                <br>ایجاد تیکت جدید
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a asp-controller="Customers" asp-action="Create" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-person-plus"></i>
+                                <br>افزودن مشتری
+                            </a>
+                        </div>
+                    }
+                    
+                    <div class="col-md-3 mb-3">
+                        <a asp-controller="Tickets" asp-action="Index" class="btn btn-info btn-lg w-100">
+                            <i class="bi bi-list-check"></i>
+                            <br>مشاهده تیکت‌ها
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <a asp-controller="Reports" asp-action="Index" class="btn btn-warning btn-lg w-100">
+                            <i class="bi bi-bar-chart"></i>
+                            <br>گزارشات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--begin::Role Information-->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات نقش و دسترسی</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>نقش</th>
+                                <th>ایمیل</th>
+                                <th>رمز عبور</th>
+                                <th>دسترسی‌ها</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="@(ViewBag.IsAdmin == true ? "table-danger" : "")">
+                                <td><span class="badge bg-danger">Admin</span></td>
+                                <td>admin@helpio.ir</td>
+                                <td>Admin123!</td>
+                                <td>مدیریت کامل سیستم، همه سازمان‌ها و تیم‌ها</td>
+                            </tr>
+                            <tr class="@(ViewBag.IsManager == true ? "table-warning" : "")">
+                                <td><span class="badge bg-warning">Manager</span></td>
+                                <td>manager@helpio.ir</td>
+                                <td>Manager123!</td>
+                                <td>مدیریت سازمان و تیم‌های مربوطه</td>
+                            </tr>
+                            <tr class="@(ViewBag.IsAgent == true ? "table-success" : "")">
+                                <td><span class="badge bg-success">Agent</span></td>
+                                <td>agent@helpio.ir</td>
+                                <td>Agent123!</td>
+                                <td>مدیریت تیکت‌های اختصاص داده شده</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">
+                    * ردیف برجسته شده نقش فعلی شما را نشان می‌دهد
+                </small>
+            </div>
+        </div>
+    </div>
+</div>

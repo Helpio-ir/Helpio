@@ -1,0 +1,140 @@
+﻿@model Helpio.Ir.Domain.Entities.Ticketing.Ticket
+@{
+    ViewData["Title"] = "ایجاد تیکت جدید";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات تیکت جدید</h3>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="Title" class="form-label">عنوان تیکت <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="عنوان مختصر و واضح تیکت" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="CustomerId" class="form-label">مشتری <span class="text-danger">*</span></label>
+                                <select asp-for="CustomerId" class="form-select">
+                                    <option value="">انتخاب مشتری...</option>
+                                    @if (ViewBag.Customers != null)
+                                    {
+                                        @foreach (var customer in (List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers)
+                                        {
+                                            <option value="@customer.Id">@customer.FirstName @customer.LastName (@customer.Email)</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CustomerId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TicketCategoryId" class="form-label">دسته‌بندی <span class="text-danger">*</span></label>
+                                <select asp-for="TicketCategoryId" class="form-select">
+                                    <option value="">انتخاب دسته‌بندی...</option>
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        @foreach (var category in (List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories)
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="TicketCategoryId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Priority" class="form-label">اولویت</label>
+                                <select asp-for="Priority" class="form-select">
+                                    <option value="1">کم</option>
+                                    <option value="2" selected>عادی</option>
+                                    <option value="3">بالا</option>
+                                    <option value="4">بحرانی</option>
+                                </select>
+                                <span asp-validation-for="Priority" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="DueDate" class="form-label">تاریخ مقرر</label>
+                                <input asp-for="DueDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="DueDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">شرح مسئله <span class="text-danger">*</span></label>
+                        <textarea asp-for="Description" class="form-control" rows="6" 
+                                  placeholder="شرح کاملی از مسئله، مراحل بازتولید و هر اطلاعات مفید دیگر را وارد کنید..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="EstimatedHours" class="form-label">زمان تخمینی (ساعت)</label>
+                        <input asp-for="EstimatedHours" type="number" step="0.5" min="0" class="form-control" placeholder="0" />
+                        <span asp-validation-for="EstimatedHours" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ایجاد تیکت
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">راهنمای ایجاد تیکت</h3>
+            </div>
+            <div class="card-body">
+                <h6>نکات مهم:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-exclamation-triangle text-warning"></i> عنوان واضح و مختصر انتخاب کنید</li>
+                    <li><i class="bi bi-person-check text-info"></i> مشتری مربوطه را دقیق انتخاب کنید</li>
+                    <li><i class="bi bi-tag text-primary"></i> دسته‌بندی صحیح را انتخاب کنید</li>
+                    <li><i class="bi bi-clock text-success"></i> اولویت متناسب با اهمیت مسئله</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>سطوح اولویت:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-secondary">کم</span> مسائل غیر ضروری</li>
+                    <li><span class="badge bg-primary">عادی</span> مسائل معمولی</li>
+                    <li><span class="badge bg-warning">بالا</span> مسائل مهم</li>
+                    <li><span class="badge bg-danger">بحرانی</span> مسائل فوری</li>
+                </ul>
+                
+                <hr>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-lightbulb"></i>
+                    <strong>نکته:</strong> شرح کامل مسئله باعث حل سریع‌تر تیکت می‌شود.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

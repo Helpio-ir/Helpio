@@ -1,0 +1,403 @@
+﻿@model Helpio.Ir.Domain.Entities.Ticketing.Ticket
+@{
+    ViewData["Title"] = "جزئیات تیکت";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">تیکت #@Model.Id - @Model.Title</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true || 
+                         (ViewBag.IsAgent == true && Model.SupportAgentId == ViewBag.CurrentUserId))
+                    {
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear"></i> عملیات
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil"></i> ویرایش</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-check-circle"></i> بستن تیکت</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-clockwise"></i> بازگشایی</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash"></i> حذف</a></li>
+                            </ul>
+                        </div>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>عنوان:</th>
+                                <td>@Model.Title</td>
+                            </tr>
+                            <tr>
+                                <th>مشتری:</th>
+                                <td>
+                                    @if (Model.Customer != null)
+                                    {
+                                        <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId">
+                                            @Model.Customer.FirstName @Model.Customer.LastName
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>وضعیت:</th>
+                                <td>
+                                    <span class="badge bg-@(Model.TicketState.Name == "Open" ? "warning" : Model.TicketState.Name == "Closed" ? "success" : "primary")">
+                                        @Model.TicketState.Name
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>اولویت:</th>
+                                <td>
+                                    <span class="badge bg-@(Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Critical ? "danger" : 
+                                                            Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.High ? "warning" : 
+                                                            Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Normal ? "primary" : "secondary")">
+                                        @(Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Critical ? "بحرانی" :
+                                          Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.High ? "بالا" :
+                                          Model.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Normal ? "عادی" : "کم")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>دسته‌بندی:</th>
+                                <td>@Model.TicketCategory.Name</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>کارشناس:</th>
+                                <td>
+                                    @if (Model.SupportAgent?.User != null)
+                                    {
+                                        @Model.SupportAgent.User.FirstName @Model.SupportAgent.User.LastName
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">تخصیص داده نشده</span>
+                                        @if (ViewBag.IsAgent == true)
+                                        {
+                                            <form asp-action="AssignToMe" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary ms-2">
+                                                    اختصاص به من
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تیم:</th>
+                                <td>
+                                    @if (Model.Team != null)
+                                    {
+                                        <a asp-controller="Teams" asp-action="Details" asp-route-id="@Model.TeamId">
+                                            @Model.Team.Name
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ایجاد:</th>
+                                <td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                            </tr>
+                            @if (Model.DueDate.HasValue)
+                            {
+                                <tr>
+                                    <th>تاریخ مقرر:</th>
+                                    <td>
+                                        @Model.DueDate.Value.ToString("yyyy/MM/dd HH:mm")
+                                        @if (Model.DueDate.Value < DateTime.Now)
+                                        {
+                                            <span class="badge bg-danger ms-2">گذشته</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (Model.ResolvedDate.HasValue)
+                            {
+                                <tr>
+                                    <th>تاریخ حل:</th>
+                                    <td>@Model.ResolvedDate.Value.ToString("yyyy/MM/dd HH:mm")</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>شرح مسئله:</h6>
+                        <div class="border rounded p-3 bg-light">
+                            @Html.Raw(Model.Description.Replace("\n", "<br>"))
+                        </div>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Resolution))
+                {
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>راه‌حل:</h6>
+                            <div class="border rounded p-3 bg-success bg-opacity-10">
+                                @Html.Raw(Model.Resolution.Replace("\n", "<br>"))
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Responses -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">پاسخ‌ها و گفت‌وگو</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Responses.Any())
+                {
+                    @foreach (var response in Model.Responses.OrderBy(r => r.CreatedAt))
+                    {
+                        <div class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="card">
+                                    <div class="card-header py-2">
+                                        <small>
+                                            <strong>@response.User.FirstName @response.User.LastName</strong>
+                                            <span class="text-muted">- @response.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                                        </small>
+                                    </div>
+                                    <div class="card-body py-2">
+                                        @Html.Raw(response.Content.Replace("\n", "<br>"))
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-chat" style="font-size: 2rem;"></i>
+                        <p>هنوز پاسخی ثبت نشده است</p>
+                    </div>
+                }
+                
+                <!-- Add Response Form -->
+                @if (ViewBag.IsAgent == true || ViewBag.IsManager == true)
+                {
+                    <hr>
+                    <form method="post" asp-action="AddResponse" asp-route-id="@Model.Id">
+                        <div class="form-group mb-3">
+                            <label for="responseContent" class="form-label">افزودن پاسخ:</label>
+                            <textarea name="content" id="responseContent" class="form-control" rows="4" 
+                                      placeholder="پاسخ خود را اینجا بنویسید..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> ارسال پاسخ
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <!-- Internal Notes -->
+        @if (ViewBag.IsAgent == true || ViewBag.IsManager == true || ViewBag.IsAdmin == true)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">یادداشت‌های داخلی</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model.Notes.Any())
+                    {
+                        @foreach (var note in Model.Notes.OrderBy(n => n.CreatedAt))
+                        {
+                            <div class="alert alert-info">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@note.SupportAgent?.User?.FirstName @note.SupportAgent?.User?.LastName</strong>
+                                    <small>@note.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small>
+                                </div>
+                                <p class="mb-0 mt-2">@Html.Raw(note.Description.Replace("\n", "<br>"))</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">هیچ یادداشت داخلی وجود ندارد</p>
+                    }
+                    
+                    <!-- Add Note Form -->
+                    <form method="post" asp-action="AddNote" asp-route-id="@Model.Id">
+                        <div class="form-group mb-3">
+                            <label for="noteContent" class="form-label">افزودن یادداشت داخلی:</label>
+                            <textarea name="content" id="noteContent" class="form-control" rows="3" 
+                                      placeholder="یادداشت داخلی (فقط برای تیم قابل مشاهده است)"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-sticky"></i> افزودن یادداشت
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (Model.Customer != null)
+                    {
+                        <a href="mailto:@Model.Customer.Email" class="btn btn-outline-primary">
+                            <i class="bi bi-envelope"></i> ایمیل به مشتری
+                        </a>
+                        @if (!string.IsNullOrEmpty(Model.Customer.PhoneNumber))
+                        {
+                            <a href="tel:@Model.Customer.PhoneNumber" class="btn btn-outline-success">
+                                <i class="bi bi-telephone"></i> تماس با مشتری
+                            </a>
+                        }
+                    }
+                    
+                    @if (ViewBag.IsAgent == true || ViewBag.IsManager == true)
+                    {
+                        @if (Model.TicketState.Name == "Open")
+                        {
+                            <button class="btn btn-success" onclick="changeTicketStatus(@Model.Id, 'Closed')">
+                                <i class="bi bi-check-circle"></i> بستن تیکت
+                            </button>
+                        }
+                        else if (Model.TicketState.Name == "Closed")
+                        {
+                            <button class="btn btn-warning" onclick="changeTicketStatus(@Model.Id, 'Open')">
+                                <i class="bi bi-arrow-clockwise"></i> بازگشایی تیکت
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Timeline -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">زمان‌بندی تیکت</h3>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="time-label">
+                        <span class="bg-primary">تاریخچه تیکت</span>
+                    </div>
+                    
+                    @if (Model.ResolvedDate.HasValue)
+                    {
+                        <div>
+                            <i class="bi bi-check-circle bg-success"></i>
+                            <div class="timeline-item">
+                                <span class="time"><i class="bi bi-clock"></i> @Model.ResolvedDate.Value.ToString("yyyy/MM/dd HH:mm")</span>
+                                <h3 class="timeline-header">تیکت حل شد</h3>
+                                <div class="timeline-body">
+                                    تیکت به صورت کامل حل شد
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @foreach (var response in Model.Responses.OrderByDescending(r => r.CreatedAt).Take(3))
+                    {
+                        <div>
+                            <i class="bi bi-chat bg-blue"></i>
+                            <div class="timeline-item">
+                                <span class="time"><i class="bi bi-clock"></i> @response.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                                <h3 class="timeline-header">پاسخ جدید</h3>
+                                <div class="timeline-body">
+                                    توسط @response.User.FirstName @response.User.LastName
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div>
+                        <i class="bi bi-plus-circle bg-green"></i>
+                        <div class="timeline-item">
+                            <span class="time"><i class="bi bi-clock"></i> @Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                            <h3 class="timeline-header">تیکت ایجاد شد</h3>
+                            <div class="timeline-body">
+                                تیکت توسط @Model.Customer.FirstName @Model.Customer.LastName ایجاد شد
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <i class="bi bi-clock bg-gray"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Tracking -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">زمان‌سنجی</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">@Model.EstimatedHours</h4>
+                            <small class="text-muted">ساعت تخمینی</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@Model.ActualHours</h4>
+                        <small class="text-muted">ساعت واقعی</small>
+                    </div>
+                </div>
+                
+                @if (Model.EstimatedHours > 0)
+                {
+                    <div class="progress mt-3">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @((Model.ActualHours / Model.EstimatedHours * 100).ToString("0"))%">
+                            @((Model.ActualHours / Model.EstimatedHours * 100).ToString("0"))%
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeTicketStatus(ticketId, newStatus) {
+            if (confirm('آیا مطمئن هستید؟')) {
+                // Implementation for changing ticket status
+                console.log('Changing ticket', ticketId, 'to status', newStatus);
+            }
+        }
+    </script>
+}

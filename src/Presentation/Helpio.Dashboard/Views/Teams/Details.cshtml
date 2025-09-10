@@ -1,0 +1,225 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.Team
+@{
+    ViewData["Title"] = "جزئیات تیم";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات تیم: @Model.Name</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> ویرایش
+                        </a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>نام تیم:</th>
+                                <td>@Model.Name</td>
+                            </tr>
+                            <tr>
+                                <th>توضیحات:</th>
+                                <td>@(Model.Description ?? "توضیحی ثبت نشده")</td>
+                            </tr>
+                            <tr>
+                                <th>وضعیت:</th>
+                                <td>
+                                    <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                                        @(Model.IsActive ? "فعال" : "غیرفعال")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ایجاد:</th>
+                                <td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                            </tr>
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <tr>
+                                    <th>آخرین بروزرسانی:</th>
+                                    <td>@Model.UpdatedAt.Value.ToString("yyyy/MM/dd HH:mm")</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            @if (Model.Branch?.Organization != null)
+                            {
+                                <tr>
+                                    <th>سازمان:</th>
+                                    <td>@Model.Branch.Organization.Name</td>
+                                </tr>
+                            }
+                            @if (Model.Branch != null)
+                            {
+                                <tr>
+                                    <th>شاخه:</th>
+                                    <td>@Model.Branch.Name</td>
+                                </tr>
+                            }
+                            @if (Model.TeamLead?.User != null)
+                            {
+                                <tr>
+                                    <th>تیم لید:</th>
+                                    <td>@Model.TeamLead.User.FirstName @Model.TeamLead.User.LastName</td>
+                                </tr>
+                            }
+                            @if (Model.Supervisor?.User != null)
+                            {
+                                <tr>
+                                    <th>سرپرست:</th>
+                                    <td>@Model.Supervisor.User.FirstName @Model.Supervisor.User.LastName</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Statistics -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">آمار تیم</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="bi bi-people"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">اعضای تیم</span>
+                                <span class="info-box-number">@Model.SupportAgents.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="bi bi-ticket"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های فعال</span>
+                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Open")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="bi bi-list-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">کل تیکت‌ها</span>
+                                <span class="info-box-number">@Model.Tickets.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger"><i class="bi bi-check-circle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های بسته</span>
+                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Closed")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Team Members -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اعضای تیم</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.SupportAgents.Any())
+                {
+                    @foreach (var agent in Model.SupportAgents)
+                    {
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">@agent.User.FirstName @agent.User.LastName</h6>
+                                <p class="mb-1 text-muted">@agent.Position</p>
+                                <small class="text-muted">کد: @agent.AgentCode | L@agent.SupportLevel</small>
+                                @if (agent.Id == Model.TeamLeadId)
+                                {
+                                    <span class="badge bg-primary ms-2">تیم لید</span>
+                                }
+                                @if (agent.Id == Model.SupervisorId)
+                                {
+                                    <span class="badge bg-warning ms-2">سرپرست</span>
+                                }
+                            </div>
+                        </div>
+                        <hr>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <i class="bi bi-people" style="font-size: 2rem;"></i>
+                        <p>هیچ عضوی در این تیم نیست</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">تیکت‌های اخیر</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Tickets.Any())
+                {
+                    @foreach (var ticket in Model.Tickets.Take(5).OrderByDescending(t => t.CreatedAt))
+                    {
+                        <div class="d-flex mb-2">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-@(ticket.TicketState.Name == "Open" ? "warning" : ticket.TicketState.Name == "Closed" ? "success" : "primary")">
+                                    #@ticket.Id
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                <p class="mb-1">@ticket.Title</p>
+                                <small class="text-muted">@ticket.CreatedAt.ToString("yyyy/MM/dd")</small>
+                            </div>
+                        </div>
+                        <hr>
+                    }
+                    
+                    <div class="text-center">
+                        <a asp-controller="Tickets" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                            مشاهده همه تیکت‌ها
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <i class="bi bi-ticket" style="font-size: 2rem;"></i>
+                        <p>هیچ تیکتی وجود ندارد</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

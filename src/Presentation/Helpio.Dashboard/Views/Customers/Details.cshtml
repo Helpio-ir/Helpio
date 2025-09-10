@@ -1,0 +1,301 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.Customer
+@{
+    ViewData["Title"] = "جزئیات مشتری";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات مشتری: @Model.FirstName @Model.LastName</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> ویرایش
+                        </a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>نام:</th>
+                                <td>@Model.FirstName</td>
+                            </tr>
+                            <tr>
+                                <th>نام خانوادگی:</th>
+                                <td>@Model.LastName</td>
+                            </tr>
+                            <tr>
+                                <th>ایمیل:</th>
+                                <td>
+                                    <a href="mailto:@Model.Email">@Model.Email</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تلفن:</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                    {
+                                        <a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">ثبت نشده</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>شرکت:</th>
+                                <td>@(Model.CompanyName ?? "ثبت نشده")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>وضعیت:</th>
+                                <td>
+                                    <span class="badge bg-@(!Model.IsDeleted ? "success" : "danger")">
+                                        @(!Model.IsDeleted ? "فعال" : "حذف شده")
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ثبت:</th>
+                                <td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                            </tr>
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <tr>
+                                    <th>آخرین بروزرسانی:</th>
+                                    <td>@Model.UpdatedAt.Value.ToString("yyyy/MM/dd HH:mm")</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Address))
+                {
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>آدرس:</h6>
+                            <p class="text-muted">@Model.Address</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Customer Statistics -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">آمار مشتری</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="bi bi-ticket-detailed"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">کل تیکت‌ها</span>
+                                <span class="info-box-number">@Model.Tickets.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="bi bi-exclamation-triangle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های باز</span>
+                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Open")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های بسته</span>
+                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Closed")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-secondary"><i class="bi bi-cart"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">سفارشات</span>
+                                <span class="info-box-number">@Model.Orders.Count</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets Table -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">تیکت‌های اخیر</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-controller="Tickets" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus"></i> تیکت جدید
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Tickets.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>شماره</th>
+                                    <th>عنوان</th>
+                                    <th>وضعیت</th>
+                                    <th>اولویت</th>
+                                    <th>تاریخ ایجاد</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ticket in Model.Tickets.OrderByDescending(t => t.CreatedAt).Take(10))
+                                {
+                                    <tr>
+                                        <td><strong>#@ticket.Id</strong></td>
+                                        <td>@ticket.Title</td>
+                                        <td>
+                                            <span class="badge bg-@(ticket.TicketState.Name == "Open" ? "warning" : ticket.TicketState.Name == "Closed" ? "success" : "primary")">
+                                                @ticket.TicketState.Name
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Critical ? "danger" : 
+                                                                    ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.High ? "warning" : 
+                                                                    ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Normal ? "primary" : "secondary")">
+                                                @(ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Critical ? "بحرانی" :
+                                                  ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.High ? "بالا" :
+                                                  ticket.Priority == Helpio.Ir.Domain.Entities.Ticketing.TicketPriority.Normal ? "عادی" : "کم")
+                                            </span>
+                                        </td>
+                                        <td>@ticket.CreatedAt.ToString("yyyy/MM/dd")</td>
+                                        <td>
+                                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    @if (Model.Tickets.Count > 10)
+                    {
+                        <div class="text-center">
+                            <a asp-controller="Tickets" asp-action="Index" asp-route-customerId="@Model.Id" class="btn btn-outline-primary">
+                                مشاهده همه تیکت‌ها (@Model.Tickets.Count)
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-ticket" style="font-size: 3rem; color: #ccc;"></i>
+                        <h4 class="text-muted">هیچ تیکتی وجود ندارد</h4>
+                        <p class="text-muted">این مشتری هنوز تیکتی ایجاد نکرده است.</p>
+                        @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                        {
+                            <a asp-controller="Tickets" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> ایجاد اولین تیکت
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="mailto:@Model.Email" class="btn btn-outline-primary">
+                        <i class="bi bi-envelope"></i> ارسال ایمیل
+                    </a>
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <a href="tel:@Model.PhoneNumber" class="btn btn-outline-success">
+                            <i class="bi bi-telephone"></i> تماس تلفنی
+                        </a>
+                    }
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-controller="Tickets" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-primary">
+                            <i class="bi bi-plus"></i> ایجاد تیکت جدید
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Timeline -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">تاریخچه فعالیت</h3>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="time-label">
+                        <span class="bg-primary">فعالیت‌های اخیر</span>
+                    </div>
+                    
+                    @foreach (var ticket in Model.Tickets.OrderByDescending(t => t.CreatedAt).Take(3))
+                    {
+                        <div>
+                            <i class="bi bi-ticket bg-blue"></i>
+                            <div class="timeline-item">
+                                <span class="time"><i class="bi bi-clock"></i> @ticket.CreatedAt.ToString("yyyy/MM/dd")</span>
+                                <h3 class="timeline-header">ایجاد تیکت #@ticket.Id</h3>
+                                <div class="timeline-body">
+                                    @ticket.Title
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div>
+                        <i class="bi bi-person bg-green"></i>
+                        <div class="timeline-item">
+                            <span class="time"><i class="bi bi-clock"></i> @Model.CreatedAt.ToString("yyyy/MM/dd")</span>
+                            <h3 class="timeline-header">ثبت‌نام در سیستم</h3>
+                            <div class="timeline-body">
+                                مشتری در سیستم ثبت‌نام کرد
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <i class="bi bi-clock bg-gray"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

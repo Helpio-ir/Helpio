@@ -1,0 +1,336 @@
+﻿@{
+    ViewData["Title"] = "گزارش تفصیلی تیکت‌ها";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">گزارش تفصیلی تیکت‌ها</h3>
+                <div class="card-tools">
+                    <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+                        <i class="bi bi-file-earmark-excel"></i> خروجی Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="exportToPDF()">
+                        <i class="bi bi-file-earmark-pdf"></i> خروجی PDF
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filters -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">از تاریخ:</label>
+                        <input type="date" class="form-control" id="fromDate" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">تا تاریخ:</label>
+                        <input type="date" class="form-control" id="toDate" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">وضعیت:</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">همه وضعیت‌ها</option>
+                            <option value="Open">باز</option>
+                            <option value="InProgress">در حال بررسی</option>
+                            <option value="Resolved">حل شده</option>
+                            <option value="Closed">بسته</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">اولویت:</label>
+                        <select class="form-select" id="priorityFilter">
+                            <option value="">همه اولویت‌ها</option>
+                            <option value="Low">کم</option>
+                            <option value="Normal">عادی</option>
+                            <option value="High">بالا</option>
+                            <option value="Critical">بحرانی</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">کارشناس:</label>
+                        <select class="form-select" id="agentFilter">
+                            <option value="">همه کارشناسان</option>
+                            <!-- نیاز به populate شدن از سرور -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">دسته‌بندی:</label>
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">همه دسته‌بندی‌ها</option>
+                            <!-- نیاز به populate شدن از سرور -->
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" onclick="loadTicketReport()">
+                            <i class="bi bi-search"></i> اعمال فیلتر
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="bi bi-ticket-detailed"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">کل تیکت‌ها</span>
+                                <span class="info-box-number" id="totalTickets">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="bi bi-exclamation-triangle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های باز</span>
+                                <span class="info-box-number" id="openTickets">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های بسته</span>
+                                <span class="info-box-number" id="closedTickets">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger"><i class="bi bi-fire"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">تیکت‌های بحرانی</span>
+                                <span class="info-box-number" id="criticalTickets">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">توزیع بر اساس وضعیت</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="statusChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">توزیع بر اساس اولویت</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="priorityChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tickets Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="ticketsTable">
+                        <thead>
+                            <tr>
+                                <th>شماره</th>
+                                <th>عنوان</th>
+                                <th>مشتری</th>
+                                <th>کارشناس</th>
+                                <th>وضعیت</th>
+                                <th>اولویت</th>
+                                <th>دسته‌بندی</th>
+                                <th>تاریخ ایجاد</th>
+                                <th>تاریخ حل</th>
+                                <th>مدت حل (ساعت)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody">
+                            <!-- Data will be loaded via JavaScript -->
+                            <tr>
+                                <td colspan="10" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">در حال بارگذاری...</span>
+                                    </div>
+                                    <p class="mt-2">در حال بارگذاری اطلاعات...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sample data - should be replaced with real API calls
+        let sampleTickets = [
+            { id: 1, title: "مشکل در سیستم پرداخت", customer: "علی احمدی", agent: "محمد رضایی", status: "Open", priority: "High", category: "فنی", createdAt: "2024/01/01", resolvedAt: null, hours: null },
+            { id: 2, title: "درخواست تغییر رمز عبور", customer: "فاطمه کریمی", agent: "سارا محمدی", status: "Closed", priority: "Normal", category: "پشتیبانی", createdAt: "2024/01/02", resolvedAt: "2024/01/02", hours: 2 },
+            { id: 3, title: "خرابی در داشبورد", customer: "حسن علوی", agent: "امیر حسینی", status: "InProgress", priority: "Critical", category: "فنی", createdAt: "2024/01/03", resolvedAt: null, hours: null },
+        ];
+
+        function loadTicketReport() {
+            // Show loading
+            document.getElementById('ticketsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">در حال بارگذاری...</span>
+                        </div>
+                        <p class="mt-2">در حال بارگذاری اطلاعات...</p>
+                    </td>
+                </tr>
+            `;
+
+            // Simulate API call
+            setTimeout(() => {
+                updateSummaryCards();
+                loadTicketsTable();
+                updateCharts();
+            }, 1000);
+        }
+
+        function updateSummaryCards() {
+            document.getElementById('totalTickets').textContent = sampleTickets.length;
+            document.getElementById('openTickets').textContent = sampleTickets.filter(t => t.status === 'Open').length;
+            document.getElementById('closedTickets').textContent = sampleTickets.filter(t => t.status === 'Closed').length;
+            document.getElementById('criticalTickets').textContent = sampleTickets.filter(t => t.priority === 'Critical').length;
+        }
+
+        function loadTicketsTable() {
+            const tbody = document.getElementById('ticketsTableBody');
+            tbody.innerHTML = '';
+
+            sampleTickets.forEach(ticket => {
+                const row = `
+                    <tr>
+                        <td><strong>#${ticket.id}</strong></td>
+                        <td>${ticket.title}</td>
+                        <td>${ticket.customer}</td>
+                        <td>${ticket.agent || '<span class="text-muted">تخصیص نداده شده</span>'}</td>
+                        <td><span class="badge bg-${getStatusColor(ticket.status)}">${getStatusText(ticket.status)}</span></td>
+                        <td><span class="badge bg-${getPriorityColor(ticket.priority)}">${getPriorityText(ticket.priority)}</span></td>
+                        <td>${ticket.category}</td>
+                        <td>${ticket.createdAt}</td>
+                        <td>${ticket.resolvedAt || '<span class="text-muted">-</span>'}</td>
+                        <td>${ticket.hours || '<span class="text-muted">-</span>'}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Open': return 'warning';
+                case 'InProgress': return 'primary';
+                case 'Resolved': return 'info';
+                case 'Closed': return 'success';
+                default: return 'secondary';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'Open': return 'باز';
+                case 'InProgress': return 'در حال بررسی';
+                case 'Resolved': return 'حل شده';
+                case 'Closed': return 'بسته';
+                default: return status;
+            }
+        }
+
+        function getPriorityColor(priority) {
+            switch(priority) {
+                case 'Low': return 'secondary';
+                case 'Normal': return 'primary';
+                case 'High': return 'warning';
+                case 'Critical': return 'danger';
+                default: return 'secondary';
+            }
+        }
+
+        function getPriorityText(priority) {
+            switch(priority) {
+                case 'Low': return 'کم';
+                case 'Normal': return 'عادی';
+                case 'High': return 'بالا';
+                case 'Critical': return 'بحرانی';
+                default: return priority;
+            }
+        }
+
+        function updateCharts() {
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['باز', 'در حال بررسی', 'حل شده', 'بسته'],
+                    datasets: [{
+                        data: [1, 1, 0, 1],
+                        backgroundColor: ['#ffc107', '#0d6efd', '#17a2b8', '#198754']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Priority Chart
+            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+            new Chart(priorityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['کم', 'عادی', 'بالا', 'بحرانی'],
+                    datasets: [{
+                        label: 'تعداد تیکت',
+                        data: [0, 1, 1, 1],
+                        backgroundColor: ['#6c757d', '#0d6efd', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportToExcel() {
+            alert('قابلیت خروجی Excel در حال توسعه است');
+        }
+
+        function exportToPDF() {
+            alert('قابلیت خروجی PDF در حال توسعه است');
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTicketReport();
+        });
+    </script>
+}

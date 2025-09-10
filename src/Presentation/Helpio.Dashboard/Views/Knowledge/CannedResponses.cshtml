@@ -1,0 +1,340 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Knowledge.CannedResponse>
+@{
+    ViewData["Title"] = "پاسخ‌های آماده";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">پاسخ‌های آماده</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="CreateCannedResponse" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus"></i> پاسخ آماده جدید
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search and Filters -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="جستجو در پاسخ‌های آماده..." id="searchResponses">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchResponses()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="sortFilter">
+                            <option value="name">نام (الفبایی)</option>
+                            <option value="usage">بیشترین استفاده</option>
+                            <option value="newest">جدیدترین</option>
+                            <option value="oldest">قدیمی‌ترین</option>
+                        </select>
+                    </div>
+                </div>
+
+                @if (Model.Any())
+                {
+                    <div class="row" id="responsesContainer">
+                        @foreach (var response in Model)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-4 response-card" data-name="@response.Name.ToLower()">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h6 class="card-title mb-0">@response.Name</h6>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="copyToClipboard('@response.Id')">
+                                                            <i class="bi bi-clipboard"></i> کپی
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="useResponse('@response.Id')">
+                                                            <i class="bi bi-check-circle"></i> استفاده
+                                                        </a>
+                                                    </li>
+                                                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                                    {
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#">
+                                                                <i class="bi bi-pencil"></i> ویرایش
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger" href="#">
+                                                                <i class="bi bi-trash"></i> حذف
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(response.Description))
+                                        {
+                                            <small class="text-muted">@response.Description</small>
+                                        }
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="response-content mb-3" style="max-height: 150px; overflow-y: auto;">
+                                            @Html.Raw(response.Content.Replace("\n", "<br>"))
+                                        </div>
+                                        
+                                        @if (!string.IsNullOrEmpty(response.Tags))
+                                        {
+                                            <div class="mb-3">
+                                                @foreach (var tag in response.Tags.Split(',').Take(4))
+                                                {
+                                                    <span class="badge bg-info me-1 mb-1">@tag.Trim()</span>
+                                                }
+                                            </div>
+                                        }
+                                        
+                                        <div class="d-flex justify-content-between align-items-center text-muted small">
+                                            <div>
+                                                <i class="bi bi-graph-up"></i> @response.UsageCount استفاده
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-@(response.IsActive ? "success" : "danger")">
+                                                    @(response.IsActive ? "فعال" : "غیرفعال")
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-muted small mt-2">
+                                            <i class="bi bi-calendar"></i> @response.CreatedAt.ToString("yyyy/MM/dd")
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="previewResponse('@response.Id')">
+                                                <i class="bi bi-eye"></i> پیش‌نمایش
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="copyToClipboard('@response.Id')">
+                                                <i class="bi bi-clipboard"></i> کپی
+                                            </button>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="useResponse('@response.Id')">
+                                                <i class="bi bi-check"></i> استفاده
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="صفحه‌بندی پاسخ‌های آماده">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">قبلی</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">بعدی</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-quote" style="font-size: 4rem; color: #ccc;"></i>
+                        <h4 class="text-muted mt-3">هیچ پاسخ آماده‌ای یافت نشد</h4>
+                        <p class="text-muted">در حال حاضر پاسخ آماده‌ای تعریف نشده است.</p>
+                        @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                        {
+                            <a asp-action="CreateCannedResponse" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> ایجاد اولین پاسخ آماده
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+@if (Model.Any())
+{
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="bi bi-chat-quote"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">کل پاسخ‌ها</span>
+                    <span class="info-box-number">@Model.Count</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">فعال</span>
+                    <span class="info-box-number">@Model.Count(r => r.IsActive)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-warning"><i class="bi bi-graph-up"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">کل استفاده</span>
+                    <span class="info-box-number">@Model.Sum(r => r.UsageCount)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-primary"><i class="bi bi-star"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">محبوب‌ترین</span>
+                    <span class="info-box-number">@(Model.Any() ? Model.Max(r => r.UsageCount) : 0)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">پیش‌نمایش پاسخ آماده</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-primary" onclick="copyPreviewContent()">
+                    <i class="bi bi-clipboard"></i> کپی
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function searchResponses() {
+            const searchTerm = document.getElementById('searchResponses').value.toLowerCase();
+            const responses = document.querySelectorAll('.response-card');
+
+            responses.forEach(response => {
+                const name = response.dataset.name;
+                const content = response.querySelector('.response-content').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || content.includes(searchTerm)) {
+                    response.style.display = 'block';
+                } else {
+                    response.style.display = 'none';
+                }
+            });
+        }
+
+        function copyToClipboard(responseId) {
+            // Find the response content
+            const responseCard = document.querySelector(`[data-response-id="${responseId}"]`);
+            if (responseCard) {
+                const content = responseCard.querySelector('.response-content').textContent;
+                navigator.clipboard.writeText(content).then(() => {
+                    // Show success message
+                    showToast('پاسخ با موفقیت کپی شد', 'success');
+                });
+            }
+        }
+
+        function useResponse(responseId) {
+            // This would typically open a ticket or send the response
+            showToast('پاسخ آماده اعمال شد', 'success');
+            
+            // Update usage count (should be done via API)
+            // incrementUsageCount(responseId);
+        }
+
+        function previewResponse(responseId) {
+            // Find and show the response in modal
+            const responseCard = document.querySelector(`[data-response-id="${responseId}"]`);
+            if (responseCard) {
+                const content = responseCard.querySelector('.response-content').innerHTML;
+                document.getElementById('previewContent').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('previewModal')).show();
+            }
+        }
+
+        function copyPreviewContent() {
+            const content = document.getElementById('previewContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('محتوا کپی شد', 'success');
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            // Simple toast implementation
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+            toast.style.zIndex = '9999';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Real-time search
+        document.getElementById('searchResponses').addEventListener('input', searchResponses);
+
+        // Sort functionality
+        document.getElementById('sortFilter').addEventListener('change', function() {
+            const sortBy = this.value;
+            const container = document.getElementById('responsesContainer');
+            const responses = Array.from(container.children);
+
+            responses.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.dataset.name.localeCompare(b.dataset.name);
+                    case 'usage':
+                        return parseInt(b.dataset.usage || '0') - parseInt(a.dataset.usage || '0');
+                    case 'oldest':
+                        return new Date(a.dataset.created) - new Date(b.dataset.created);
+                    case 'newest':
+                    default:
+                        return new Date(b.dataset.created) - new Date(a.dataset.created);
+                }
+            });
+
+            responses.forEach(response => container.appendChild(response));
+        });
+
+        // Add data attributes for sorting (this should be done in the server-side code)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.response-card').forEach((card, index) => {
+                card.setAttribute('data-response-id', index + 1);
+                card.setAttribute('data-usage', Math.floor(Math.random() * 100));
+                card.setAttribute('data-created', new Date().toISOString());
+            });
+        });
+    </script>
+}

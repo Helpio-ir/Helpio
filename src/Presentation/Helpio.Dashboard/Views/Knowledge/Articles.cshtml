@@ -1,0 +1,263 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Knowledge.Articles>
+@{
+    ViewData["Title"] = "مقالات پایگاه دانش";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">مقالات پایگاه دانش</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="CreateArticle" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus"></i> مقاله جدید
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Search and Filters -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="جستجو در مقالات..." id="searchArticles">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchArticles()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">همه دسته‌بندی‌ها</option>
+                            <option value="technical">فنی</option>
+                            <option value="support">پشتیبانی</option>
+                            <option value="billing">مالی</option>
+                            <option value="general">عمومی</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="sortFilter">
+                            <option value="newest">جدیدترین</option>
+                            <option value="oldest">قدیمی‌ترین</option>
+                            <option value="title">عنوان (الفبایی)</option>
+                            <option value="views">بیشترین بازدید</option>
+                        </select>
+                    </div>
+                </div>
+
+                @if (Model.Any())
+                {
+                    <div class="row" id="articlesContainer">
+                        @foreach (var article in Model)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-4 article-card" data-category="general">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h5 class="card-title mb-0">@article.Name</h5>
+                                            @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                            {
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="#"><i class="bi bi-pencil"></i> ویرایش</a></li>
+                                                        <li><a class="dropdown-item" href="#"><i class="bi bi-files"></i> کپی</a></li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash"></i> حذف</a></li>
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            @if (!string.IsNullOrEmpty(article.Description))
+                                            {
+                                                @(article.Description.Length > 150 ? article.Description.Substring(0, 150) + "..." : article.Description)
+                                            }
+                                            else
+                                            {
+                                                @(article.Content.Length > 150 ? article.Content.Substring(0, 150) + "..." : article.Content)
+                                            }
+                                        </p>
+                                        
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(article.Tags))
+                                            {
+                                                @foreach (var tag in article.Tags.Split(',').Take(3))
+                                                {
+                                                    <span class="badge bg-secondary me-1">@tag.Trim()</span>
+                                                }
+                                            }
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center text-muted small">
+                                            <div>
+                                                <i class="bi bi-person"></i> @(article.Author?.FirstName ?? "نامشخص") @(article.Author?.LastName ?? "")
+                                            </div>
+                                            <div>
+                                                <i class="bi bi-eye"></i> @article.ViewCount
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-muted small mt-2">
+                                            <i class="bi bi-calendar"></i> @article.CreatedAt.ToString("yyyy/MM/dd")
+                                            @if (article.UpdatedAt.HasValue)
+                                            {
+                                                <br><i class="bi bi-pencil"></i> 
+                                                <span>بروزرسانی: @article.UpdatedAt.Value.ToString("yyyy/MM/dd")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="d-flex justify-content-between">
+                                            <a asp-action="ArticleDetails" asp-route-id="@article.Id" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> مطالعه
+                                            </a>
+                                            <div>
+                                                <span class="badge bg-@(article.IsPublished ? "success" : "warning")">
+                                                    @(article.IsPublished ? "منتشر شده" : "پیش‌نویس")
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="صفحه‌بندی مقالات">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">قبلی</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">بعدی</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-bookmark" style="font-size: 4rem; color: #ccc;"></i>
+                        <h4 class="text-muted mt-3">هیچ مقاله‌ای یافت نشد</h4>
+                        <p class="text-muted">در حال حاضر مقاله‌ای در پایگاه دانش وجود ندارد.</p>
+                        @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                        {
+                            <a asp-action="CreateArticle" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> ایجاد اولین مقاله
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+@if (Model.Any())
+{
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="bi bi-journal-bookmark"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">کل مقالات</span>
+                    <span class="info-box-number">@Model.Count</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">منتشر شده</span>
+                    <span class="info-box-number">@Model.Count(a => a.IsPublished)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-warning"><i class="bi bi-clock"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">پیش‌نویس</span>
+                    <span class="info-box-number">@Model.Count(a => !a.IsPublished)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon bg-primary"><i class="bi bi-eye"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">کل بازدیدها</span>
+                    <span class="info-box-number">@Model.Sum(a => a.ViewCount)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function searchArticles() {
+            const searchTerm = document.getElementById('searchArticles').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const articles = document.querySelectorAll('.article-card');
+
+            articles.forEach(article => {
+                const title = article.querySelector('.card-title').textContent.toLowerCase();
+                const content = article.querySelector('.card-text').textContent.toLowerCase();
+                
+                const matchesSearch = searchTerm === '' || title.includes(searchTerm) || content.includes(searchTerm);
+                const matchesCategory = category === '' || article.dataset.category === category;
+
+                if (matchesSearch && matchesCategory) {
+                    article.style.display = 'block';
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+        }
+
+        // Real-time search
+        document.getElementById('searchArticles').addEventListener('input', searchArticles);
+        document.getElementById('categoryFilter').addEventListener('change', searchArticles);
+
+        // Sort functionality
+        document.getElementById('sortFilter').addEventListener('change', function() {
+            const sortBy = this.value;
+            const container = document.getElementById('articlesContainer');
+            const articles = Array.from(container.children);
+
+            articles.sort((a, b) => {
+                switch (sortBy) {
+                    case 'title':
+                        return a.querySelector('.card-title').textContent.localeCompare(b.querySelector('.card-title').textContent);
+                    case 'oldest':
+                        return new Date(a.dataset.created) - new Date(b.dataset.created);
+                    case 'newest':
+                    default:
+                        return new Date(b.dataset.created) - new Date(a.dataset.created);
+                }
+            });
+
+            articles.forEach(article => container.appendChild(article));
+        });
+    </script>
+}
