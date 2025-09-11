@@ -144,6 +144,34 @@
           </ul>
         </li>
 
+        <!-- Support Agents Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-person-badge"></i>
+            <p>
+              مدیریت کارشناسان
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a asp-controller="SupportAgents" asp-action="Index" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>لیست کارشناسان</p>
+              </a>
+            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="SupportAgents" asp-action="Create" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>افزودن کارشناس</p>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+
         <!-- Organizations Section - Admin Only -->
         @if (UserContext.IsAdmin)
         {

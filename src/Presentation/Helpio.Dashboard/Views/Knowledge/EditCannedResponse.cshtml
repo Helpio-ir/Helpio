@@ -1,0 +1,450 @@
+﻿@model Helpio.Ir.Application.DTOs.Knowledge.UpdateCannedResponseDto
+@{
+    ViewData["Title"] = "ویرایش پاسخ آماده";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش پاسخ آماده: @Model.Name</h3>
+                <div class="card-tools">
+                    <a asp-action="CannedResponses" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="EditCannedResponse" method="post">
+                <input name="id" type="hidden" value="@ViewBag.Id" />
+                
+                <div class="card-body">
+                    <!-- Organization Selection (only for admins) -->
+                    @if (ViewBag.IsAdmin == true && ViewBag.Organizations != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">سازمان <span class="text-danger">*</span></label>
+                                    <select name="OrganizationId" class="form-select" disabled>
+                                        @foreach (var org in ViewBag.Organizations as List<Helpio.Ir.Domain.Entities.Core.Organization>)
+                                        {
+                                            <option value="@org.Id" selected="@(org.Id == ViewBag.OrganizationId)">@org.Name</option>
+                                        }
+                                    </select>
+                                    <small class="form-text text-muted">سازمان پاسخ آماده قابل تغییر نیست</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label">نام پاسخ آماده <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <small class="form-text text-muted">نامی کوتاه و توصیفی برای پاسخ آماده</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="form-label">وضعیت</label>
+                                <div class="form-check">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsActive" class="form-check-label">
+                                        پاسخ فعال باشد
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">پاسخ‌های غیرفعال در لیست نمایش داده نمی‌شوند</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">توضیحات</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="توضیح کوتاهی در مورد کاربرد این پاسخ"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Content" class="form-label">محتوای پاسخ <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="10" required id="responseContent" 
+                                  placeholder="محتوای پاسخ آماده را اینجا وارد کنید..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                        
+                        <div class="mt-2">
+                            <small class="text-muted">متغیرهای قابل استفاده:</small>
+                            <div class="btn-group btn-group-sm mt-1 flex-wrap" role="group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_مشتری}')">
+                                    نام مشتری
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{شماره_تیکت}')">
+                                    شماره تیکت
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_شرکت}')">
+                                    نام شرکت
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{تاریخ_امروز}')">
+                                    تاریخ امروز
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_کارشناس}')">
+                                    نام کارشناس
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Tags" class="form-label">برچسب‌ها</label>
+                        <input asp-for="Tags" class="form-control" placeholder="پشتیبانی, فنی, مالی, عمومی" />
+                        <span asp-validation-for="Tags" class="text-danger"></span>
+                        <small class="form-text text-muted">برچسب‌ها را با کاما از هم جدا کنید</small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check"></i> ذخیره تغییرات
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="testResponse()">
+                                <i class="bi bi-play"></i> تست پاسخ
+                            </button>
+                            <a asp-action="CannedResponses" class="btn btn-secondary">
+                                انصراف
+                            </a>
+                        </div>
+                        <div>
+                            @if (ViewBag.IsAdmin == true)
+                            {
+                                <button type="button" class="btn btn-danger" onclick="confirmDelete(@ViewBag.Id)">
+                                    <i class="bi bi-trash"></i> حذف پاسخ
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Usage Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">آمار استفاده</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th>تعداد استفاده:</th>
+                        <td><span class="badge bg-primary">@ViewBag.UsageCount</span></td>
+                    </tr>
+                    <tr>
+                        <th>وضعیت:</th>
+                        <td>
+                            <span class="badge bg-@(Model.IsActive ? "success" : "warning")">
+                                @(Model.IsActive ? "فعال" : "غیرفعال")
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>ایجاد شده:</th>
+                        <td>@((DateTime)ViewBag.CreatedAt).ToString("yyyy/MM/dd")</td>
+                    </tr>
+                    @if (ViewBag.UpdatedAt != null)
+                    {
+                        <tr>
+                            <th>آخرین ویرایش:</th>
+                            <td>@((DateTime)ViewBag.UpdatedAt).ToString("yyyy/MM/dd")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">پیش‌نمایش زنده</h3>
+            </div>
+            <div class="card-body">
+                <div id="previewContent" class="border rounded p-3 bg-light min-height-200">
+                    <div class="text-muted text-center">
+                        <i class="bi bi-eye" style="font-size: 2rem;"></i>
+                        <br>
+                        پیش‌نمایش پاسخ در اینجا نمایش داده می‌شود
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-info w-100 mt-2" onclick="updatePreview()">
+                    <i class="bi bi-arrow-clockwise"></i> بروزرسانی پیش‌نمایش
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Templates -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">قالب‌های آماده</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('greeting')">
+                        <i class="bi bi-hand-wave"></i> سلام و احوالپرسی
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('closing')">
+                        <i class="bi bi-door-open"></i> پایان مکالمه
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('investigation')">
+                        <i class="bi bi-search"></i> درخواست اطلاعات
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('solution')">
+                        <i class="bi bi-lightbulb"></i> ارائه راه‌حل
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variables Help -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">راهنمای متغیرها</h3>
+            </div>
+            <div class="card-body">
+                <small>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><code>{نام_مشتری}</code></td>
+                            <td>نام کامل مشتری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{شماره_تیکت}</code></td>
+                            <td>شماره تیکت</td>
+                        </tr>
+                        <tr>
+                            <td><code>{نام_شرکت}</code></td>
+                            <td>نام شرکت مشتری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{تاریخ_امروز}</code></td>
+                            <td>تاریخ جاری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{نام_کارشناس}</code></td>
+                            <td>نام کارشناس پاسخ‌دهنده</td>
+                        </tr>
+                    </table>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <script>
+        // Global scope variables and functions for Edit page
+        window.cannedResponseEditApp = window.cannedResponseEditApp || {};
+        
+        // Templates data
+        window.cannedResponseEditApp.templates = {
+            greeting: "سلام {نام_مشتری} عزیز،\n\nامیدوارم حال شما خوب باشد. با تشکر از تماس شما با تیم پشتیبانی ما.",
+            closing: "در صورت داشتن سوال اضافی، لطفاً با ما در تماس باشید.\n\nبا تشکر،\n{نام_کارشناس}\nتیم پشتیبانی",
+            investigation: "سلام {نام_مشتری} عزیز،\n\nبرای بررسی بهتر مشکل شما، لطفاً اطلاعات زیر را ارسال کنید:\n\n- ...\n- ...\n\nبا تشکر",
+            solution: "سلام {نام_مشتری} عزیز،\n\nراه‌حل مشکل شما:\n\n1. ...\n2. ...\n3. ...\n\nدر صورت عدم حل مشکل، لطفاً مجدداً تماس بگیرید."
+        };
+
+        // Global functions - accessible from onclick handlers
+        window.insertVariable = function(variable) {
+            console.log('insertVariable called with:', variable);
+            const textarea = document.getElementById('responseContent');
+            if (!textarea) {
+                console.error('Response content textarea not found');
+                alert('خطا: فیلد محتوا یافت نشد');
+                return;
+            }
+            
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + variable.length, start + variable.length);
+            
+            if (window.updatePreview) {
+                window.updatePreview();
+            }
+        };
+
+        window.useTemplate = function(templateName) {
+            console.log('useTemplate called with:', templateName);
+            const templates = window.cannedResponseEditApp.templates;
+            
+            if (!templates[templateName]) {
+                console.error('Template not found:', templateName);
+                alert('قالب یافت نشد: ' + templateName);
+                return;
+            }
+            
+            const textarea = document.getElementById('responseContent');
+            if (!textarea) {
+                console.error('Response content textarea not found');
+                return;
+            }
+            
+            if (textarea.value.trim() && 
+                !confirm('آیا می‌خواهید محتوای فعلی جایگزین شود؟')) {
+                return;
+            }
+            textarea.value = templates[templateName];
+            
+            if (window.updatePreview) {
+                window.updatePreview();
+            }
+        };
+
+        window.updatePreview = function() {
+            const textarea = document.getElementById('responseContent');
+            const previewDiv = document.getElementById('previewContent');
+            
+            if (!textarea || !previewDiv) {
+                console.error('Required elements not found for preview');
+                return;
+            }
+            
+            const content = textarea.value;
+            
+            if (content.trim()) {
+                let preview = content
+                    .replace(/{نام_مشتری}/g, '<span class="text-primary fw-bold">احمد محمدی</span>')
+                    .replace(/{شماره_تیکت}/g, '<span class="text-info fw-bold">#12345</span>')
+                    .replace(/{نام_شرکت}/g, '<span class="text-success fw-bold">شرکت نمونه</span>')
+                    .replace(/{تاریخ_امروز}/g, '<span class="text-warning fw-bold">' + new Date().toLocaleDateString('fa-IR') + '</span>')
+                    .replace(/{نام_کارشناس}/g, '<span class="text-secondary fw-bold">علی رضایی</span>')
+                    .replace(/\n/g, '<br>');
+                
+                previewDiv.innerHTML = '<div class="text-start">' + preview + '</div>';
+            } else {
+                previewDiv.innerHTML = '<div class="text-muted text-center"><i class="bi bi-eye"></i><br>پیش‌نمایش پاسخ در اینجا نمایش داده می‌شود</div>';
+            }
+        };
+
+        window.testResponse = function() {
+            console.log('testResponse called');
+            const textarea = document.getElementById('responseContent');
+            if (!textarea) {
+                alert('خطا: فیلد محتوا یافت نشد');
+                return;
+            }
+            
+            const content = textarea.value;
+            if (!content.trim()) {
+                alert('لطفاً ابتدا محتوای پاسخ را وارد کنید');
+                return;
+            }
+            
+            const testWindow = window.open('', '_blank', 'width=600,height=400');
+            if (!testWindow) {
+                alert('لطفاً popup blocker را غیرفعال کنید');
+                return;
+            }
+            
+            // Use string concatenation instead of template literals
+            const htmlContent = 
+                '<html dir="rtl">' +
+                '<head>' +
+                    '<title>تست پاسخ آماده</title>' +
+                    '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">' +
+                '</head>' +
+                '<body>' +
+                    '<div class="container mt-4">' +
+                        '<h4>تست پاسخ آماده</h4>' +
+                        '<div class="card">' +
+                            '<div class="card-body">' +
+                                content.replace(/\n/g, '<br>') +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="mt-3 text-center">' +
+                            '<button class="btn btn-secondary" onclick="window.close()">بستن</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</body>' +
+                '</html>';
+            
+            testWindow.document.write(htmlContent);
+            testWindow.document.close();
+        };
+
+        window.confirmDelete = function(responseId) {
+            if (confirm('آیا از حذف این پاسخ آماده مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                window.location.href = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+            }
+        };
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('EditCannedResponse - DOM Content Loaded');
+            
+            try {
+                // Setup preview updater
+                const textarea = document.getElementById('responseContent');
+                if (textarea) {
+                    textarea.addEventListener('input', window.updatePreview);
+                    console.log('Preview updater setup for edit page');
+                }
+                
+                // Initialize preview
+                if (window.updatePreview) {
+                    window.updatePreview();
+                }
+                
+                // Visual indicator
+                if (textarea) {
+                    textarea.style.borderColor = '#28a745';
+                    textarea.placeholder += ' (JS Active ✓)';
+                }
+                
+                console.log('EditCannedResponse initialization complete');
+                
+            } catch (error) {
+                console.error('Error during EditCannedResponse initialization:', error);
+            }
+        });
+    </script>
+
+    <style>
+        .min-height-200 {
+            min-height: 200px;
+        }
+        
+        .btn-group .btn {
+            white-space: nowrap;
+        }
+        
+        .btn-group.flex-wrap {
+            flex-wrap: wrap;
+        }
+        
+        .btn-group.flex-wrap .btn {
+            margin-bottom: 0.25rem;
+            margin-left: 0.125rem;
+        }
+        
+        .btn-outline-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #previewContent {
+            transition: all 0.3s ease;
+            border: 2px dashed #dee2e6;
+        }
+        
+        #previewContent:not(:empty) {
+            border-style: solid;
+            border-color: #0d6efd;
+        }
+    </style>
+}

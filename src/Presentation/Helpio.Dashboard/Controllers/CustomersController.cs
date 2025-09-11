@@ -1,5 +1,6 @@
 ﻿using Helpio.Dashboard.Services;
 using Helpio.Ir.Domain.Entities.Core;
+using Helpio.Ir.Domain.Entities.Ticketing;
 using Helpio.Ir.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,8 +26,6 @@ namespace Helpio.Dashboard.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var customer = await _context.Customers
-                .Include(c => c.Tickets)
-                    .ThenInclude(t => t.TicketState)
                 .Include(c => c.Orders)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -34,6 +33,20 @@ namespace Helpio.Dashboard.Controllers
             {
                 return NotFound();
             }
+
+            // Get accessible tickets for this customer separately with proper filtering
+            var accessibleTickets = await GetAccessibleTicketsForCustomerAsync(id);
+            
+            // Manually set the tickets to only accessible ones
+            customer.Tickets = accessibleTickets;
+
+            // Get all ticket states for statistics
+            var ticketStates = await _context.TicketStates
+                .OrderBy(ts => ts.Order)
+                .ToListAsync();
+
+            // Pass ticket states to view for dynamic statistics
+            ViewBag.TicketStates = ticketStates;
 
             return View(customer);
         }
@@ -167,6 +180,43 @@ namespace Helpio.Dashboard.Controllers
 
             // For now, use simple logic. In real scenario, check if customer has tickets in user's organization/team
             return true;
+        }
+
+        private async Task<List<Helpio.Ir.Domain.Entities.Ticketing.Ticket>> GetAccessibleTicketsForCustomerAsync(int customerId)
+        {
+            var query = _context.Tickets
+                .Include(t => t.TicketState)
+                .Include(t => t.TicketCategory)
+                .Include(t => t.SupportAgent)
+                    .ThenInclude(sa => sa.User)
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
+                .Where(t => t.CustomerId == customerId)
+                .AsQueryable();
+
+            if (IsCurrentUserAdmin)
+            {
+                // Admin sees all tickets for this customer
+                return await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+            }
+            else if (IsCurrentUserManager && CurrentOrganizationId.HasValue)
+            {
+                // Manager sees customer tickets from their organization
+                query = query.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
+            else if (IsCurrentUserAgent)
+            {
+                // Agent sees only tickets assigned to them or their team
+                query = query.Where(t =>
+                    t.SupportAgentId == UserContext.CurrentSupportAgent!.Id ||
+                    (t.TeamId == CurrentTeamId && t.SupportAgentId == null));
+            }
+            else
+            {
+                return new List<Helpio.Ir.Domain.Entities.Ticketing.Ticket>();
+            }
+
+            return await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
         }
     }
 }

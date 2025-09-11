@@ -1,0 +1,321 @@
+﻿@model Helpio.Dashboard.Models.CreateTeamDto
+@{
+    ViewData["Title"] = "ایجاد تیم جدید";
+    var branches = ViewBag.Branches as List<Helpio.Ir.Domain.Entities.Core.Branch>;
+    var supportAgents = ViewBag.SupportAgents as List<Helpio.Ir.Domain.Entities.Core.SupportAgent>;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ایجاد تیم جدید</h3>
+                <div class="card-tools">
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> لطفا خطاهای زیر را برطرف کنید:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    @if (TempData["Debug"] != null)
+                    {
+                        <div class="alert alert-warning">
+                            <h6>Debug Information:</h6>
+                            <small>@TempData["Debug"]</small>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label">نام تیم <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" placeholder="نام تیم را وارد کنید" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="BranchId" class="form-label">شاخه <span class="text-danger">*</span></label>
+                                <select asp-for="BranchId" class="form-select" required>
+                                    <option value="">انتخاب شاخه</option>
+                                    @if (branches != null)
+                                    {
+                                        @foreach (var branch in branches)
+                                        {
+                                            <option value="@branch.Id">@branch.Name (@branch.Organization?.Name)</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="BranchId" class="text-danger"></span>
+                                @if (branches == null || !branches.Any())
+                                {
+                                    <small class="text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        هیچ شاخه‌ای یافت نشد. ابتدا شاخه ایجاد کنید.
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">توضیحات</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="توضیحات مربوط به تیم را وارد کنید"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TeamLeadId" class="form-label">تیم لید</label>
+                                <div class="input-group">
+                                    <select asp-for="TeamLeadId" class="form-select">
+                                        <option value="">انتخاب تیم لید</option>
+                                        @if (supportAgents != null)
+                                        {
+                                            @foreach (var agent in supportAgents)
+                                            {
+                                                <option value="@agent.Id">@agent.User.FirstName @agent.User.LastName (@agent.AgentCode)</option>
+                                            }
+                                        }
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" onclick="openCreateAgentModal('TeamLead')">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="TeamLeadId" class="text-danger"></span>
+                                <small class="form-text text-muted">تیم لید می‌تواند بعداً تعیین شود</small>
+                                @if (supportAgents == null || !supportAgents.Any())
+                                {
+                                    <small class="text-warning d-block">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        هیچ کارشناسی یافت نشد. 
+                                        <a asp-controller="SupportAgents" asp-action="Create" class="text-primary">
+                                            <u>کارشناس جدید ایجاد کنید</u>
+                                        </a>
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="SupervisorId" class="form-label">سرپرست</label>
+                                <div class="input-group">
+                                    <select asp-for="SupervisorId" class="form-select">
+                                        <option value="">انتخاب سرپرست</option>
+                                        @if (supportAgents != null)
+                                        {
+                                            @foreach (var agent in supportAgents)
+                                            {
+                                                <option value="@agent.Id">@agent.User.FirstName @agent.User.LastName (@agent.AgentCode)</option>
+                                            }
+                                        }
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" onclick="openCreateAgentModal('Supervisor')">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="SupervisorId" class="text-danger"></span>
+                                <small class="form-text text-muted">سرپرست می‌تواند بعداً تعیین شود</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                        <label asp-for="IsActive" class="form-check-label">
+                            تیم فعال باشد
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            تیم‌های غیرفعال در انتخاب‌ها نمایش داده نمی‌شوند
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ایجاد تیم
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Help Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">راهنما</h3>
+            </div>
+            <div class="card-body">
+                <h6>نکات مهم:</h6>
+                <ul class="small">
+                    <li>نام تیم باید منحصر به فرد باشد</li>
+                    <li>هر تیم باید به یک شاخه متعلق باشد</li>
+                    <li>تیم لید و سرپرست می‌توانند بعداً تعیین شوند</li>
+                    <li>کارشناسان بعد از ایجاد تیم قابل اضافه شدن هستند</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>مراحل بعدی:</h6>
+                <ol class="small">
+                    <li>ایجاد تیم</li>
+                    <li>اضافه کردن کارشناسان</li>
+                    <li>تعیین تیم لید و سرپرست</li>
+                    <li>تنظیم دسترسی‌ها</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Organization Info -->
+        @{
+            var currentOrg = ViewBag.CurrentOrganization as Helpio.Ir.Domain.Entities.Core.Organization;
+        }
+        
+        @if (currentOrg != null)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">اطلاعات سازمان</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <th>سازمان:</th>
+                            <td>@currentOrg.Name</td>
+                        </tr>
+                        <tr>
+                            <th>تعداد شاخه‌ها:</th>
+                            <td>@(branches?.Count ?? 0)</td>
+                        </tr>
+                        <tr>
+                            <th>کارشناسان موجود:</th>
+                            <td>@(supportAgents?.Count ?? 0)</td>
+                        </tr>
+                    </table>
+
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <hr>
+                        <details class="mt-2">
+                            <summary class="text-muted small">Debug Info</summary>
+                            <div class="mt-2 small">
+                                <table class="table table-sm">
+                                    <tr><td>Current Org:</td><td>@(currentOrg?.Name ?? "NULL")</td></tr>
+                                    <tr><td>Branches Count:</td><td>@(branches?.Count ?? 0)</td></tr>
+                                    <tr><td>Agents Count:</td><td>@(supportAgents?.Count ?? 0)</td></tr>
+                                    <tr><td>ViewBag Type:</td><td>@ViewBag.CurrentOrganization?.GetType().Name</td></tr>
+                                </table>
+                            </div>
+                        </details>
+                    }
+                </div>
+            </div>
+        }
+        else if (ViewBag.IsAdmin == true)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Debug Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6>CurrentOrganization is NULL</h6>
+                        <small>
+                            ViewBag.CurrentOrganization Type: @ViewBag.CurrentOrganization?.GetType().Name<br>
+                            UserContext Available: @(ViewBag.UserContext != null)<br>
+                            Branches Count: @(branches?.Count ?? 0)<br>
+                            Agents Count: @(supportAgents?.Count ?? 0)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Quick Add Agent Modal -->
+<div class="modal fade" id="quickAddAgentModal" tabindex="-1" aria-labelledby="quickAddAgentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickAddAgentModalLabel">افزودن سریع کارشناس</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    برای افزودن کارشناس جدید، به صفحه مدیریت کارشناسان منتقل می‌شوید.
+                </div>
+                <p>آیا می‌خواهید به صفحه ایجاد کارشناس جدید بروید؟</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <a href="@Url.Action("Create", "SupportAgents")" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> ایجاد کارشناس جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        function openCreateAgentModal(role) {
+            // Show the quick add agent modal
+            const modal = new bootstrap.Modal(document.getElementById('quickAddAgentModal'));
+            modal.show();
+        }
+
+        // Dynamic loading of agents based on branch selection
+        document.getElementById('BranchId').addEventListener('change', function() {
+            const branchId = this.value;
+            if (branchId) {
+                // Here you would typically make an AJAX call to get agents for the selected branch
+                console.log('Selected branch:', branchId);
+                // You can add AJAX call to filter agents by branch
+                loadAgentsByBranch(branchId);
+            }
+        });
+
+        function loadAgentsByBranch(branchId) {
+            // AJAX call to get agents for specific branch
+            // This would be implemented to filter the agent dropdowns
+            console.log('Loading agents for branch:', branchId);
+        }
+
+        // Form validation enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const teamName = document.querySelector('input[name="Name"]').value.trim();
+                const branchId = document.querySelector('select[name="BranchId"]').value;
+
+                if (!teamName) {
+                    e.preventDefault();
+                    alert('لطفا نام تیم را وارد کنید.');
+                    return false;
+                }
+
+                if (!branchId) {
+                    e.preventDefault();
+                    alert('لطفا شاخه را انتخاب کنید.');
+                    return false;
+                }
+            });
+        });
+    </script>
+}

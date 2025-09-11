@@ -67,12 +67,12 @@
                                                     {
                                                         <li><hr class="dropdown-divider"></li>
                                                         <li>
-                                                            <a class="dropdown-item" href="#">
+                                                            <a class="dropdown-item" asp-action="EditCannedResponse" asp-route-id="@response.Id">
                                                                 <i class="bi bi-pencil"></i> ویرایش
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item text-danger" href="#">
+                                                            <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteResponse(@response.Id)">
                                                                 <i class="bi bi-trash"></i> حذف
                                                             </a>
                                                         </li>
@@ -116,16 +116,23 @@
                                         </div>
                                     </div>
                                     <div class="card-footer">
-                                        <div class="btn-group w-100" role="group">
-                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="previewResponse('@response.Id')">
-                                                <i class="bi bi-eye"></i> پیش‌نمایش
-                                            </button>
-                                            <button type="button" class="btn btn-primary btn-sm" onclick="copyToClipboard('@response.Id')">
-                                                <i class="bi bi-clipboard"></i> کپی
-                                            </button>
-                                            <button type="button" class="btn btn-success btn-sm" onclick="useResponse('@response.Id')">
-                                                <i class="bi bi-check"></i> استفاده
-                                            </button>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="previewResponse('@response.Id')">
+                                                    <i class="bi bi-eye"></i> پیش‌نمایش
+                                                </button>
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="copyToClipboard('@response.Id')">
+                                                    <i class="bi bi-clipboard"></i> کپی
+                                                </button>
+                                            </div>
+                                            @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                            {
+                                                <div>
+                                                    <a asp-action="EditCannedResponse" asp-route-id="@response.Id" class="btn btn-warning btn-sm">
+                                                        <i class="bi bi-pencil"></i> ویرایش
+                                                    </a>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -250,6 +257,12 @@
                     response.style.display = 'none';
                 }
             });
+        }
+
+        function confirmDeleteResponse(responseId) {
+            if (confirm('آیا از حذف این پاسخ آماده مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                window.location.href = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+            }
         }
 
         function copyToClipboard(responseId) {

@@ -1,0 +1,193 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.Customer
+@{
+    ViewData["Title"] = "ویرایش مشتری";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش اطلاعات مشتری</h3>
+                <div class="card-tools">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Edit" method="post">
+                <input asp-for="Id" type="hidden" />
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="FirstName" class="form-label">نام <span class="text-danger">*</span></label>
+                                <input asp-for="FirstName" class="form-control" required />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="LastName" class="form-label">نام خانوادگی <span class="text-danger">*</span></label>
+                                <input asp-for="LastName" class="form-control" required />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Email" class="form-label">ایمیل <span class="text-danger">*</span></label>
+                                <input asp-for="Email" type="email" class="form-control" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="PhoneNumber" class="form-label">شماره تلفن</label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="CompanyName" class="form-label">نام شرکت</label>
+                        <input asp-for="CompanyName" class="form-control" />
+                        <span asp-validation-for="CompanyName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Address" class="form-label">آدرس</label>
+                        <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsDeleted" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsDeleted" class="form-check-label">
+                            غیرفعال کردن مشتری
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            با فعال کردن این گزینه، مشتری در لیست‌ها نمایش داده نخواهد شد
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ذخیره تغییرات
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <button type="button" class="btn btn-danger float-end" onclick="confirmDelete(@Model.Id)">
+                            <i class="bi bi-trash"></i> حذف مشتری
+                        </button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Customer Stats -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">آمار مشتری</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@Model.Tickets.Count</h4>
+                        <small class="text-muted">کل تیکت‌ها</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@Model.Orders.Count</h4>
+                        <small class="text-muted">سفارشات</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">
+                        عضو از: @Model.CreatedAt.ToString("yyyy/MM/dd")
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="mailto:@Model.Email" class="btn btn-outline-primary">
+                        <i class="bi bi-envelope"></i> ارسال ایمیل
+                    </a>
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <a href="tel:@Model.PhoneNumber" class="btn btn-outline-success">
+                            <i class="bi bi-telephone"></i> تماس تلفنی
+                        </a>
+                    }
+                    <a asp-controller="Tickets" asp-action="Create" asp-route-customerId="@Model.Id" class="btn btn-primary">
+                        <i class="bi bi-plus"></i> ایجاد تیکت جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">تیکت‌های اخیر</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Tickets.Any())
+                {
+                    @foreach (var ticket in Model.Tickets.OrderByDescending(t => t.CreatedAt).Take(3))
+                    {
+                        <div class="d-flex mb-2">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-@(ticket.TicketState?.Name == "Open" ? "warning" : "success")">
+                                    #@ticket.Id
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                <small>
+                                    @ticket.Title
+                                    <br>
+                                    <span class="text-muted">@ticket.CreatedAt.ToString("yyyy/MM/dd")</span>
+                                </small>
+                            </div>
+                        </div>
+                    }
+                    <div class="text-center mt-2">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                            مشاهده همه
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">هیچ تیکتی وجود ندارد</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        function confirmDelete(customerId) {
+            if (confirm('آیا از حذف این مشتری مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                // Implementation for delete action
+                window.location.href = '@Url.Action("Delete", "Customers")/' + customerId;
+            }
+        }
+    </script>
+}

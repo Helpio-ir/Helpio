@@ -1,19 +1,53 @@
-﻿@model Helpio.Ir.Domain.Entities.Ticketing.Ticket
+﻿@model Helpio.Dashboard.Models.CreateTicketDto
 @{
     ViewData["Title"] = "ایجاد تیکت جدید";
 }
 
 <div class="row">
     <div class="col-md-8">
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show">
+                <h6><i class="bi bi-exclamation-triangle"></i> هشدار</h6>
+                @TempData["Warning"]
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <hr>
+                    <form asp-action="CreateSampleData" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-warning">
+                            <i class="bi bi-database"></i> ایجاد داده‌های نمونه برای تست
+                        </button>
+                    </form>
+                }
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">اطلاعات تیکت جدید</h3>
             </div>
             <form asp-action="Create" method="post">
                 <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> لطفا خطاهای زیر را برطرف کنید:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    @if (TempData["Debug"] != null)
+                    {
+                        <div class="alert alert-info">
+                            <h6>Debug Information:</h6>
+                            <pre>@TempData["Debug"]</pre>
+                        </div>
+                    }
+
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="form-label">عنوان تیکت <span class="text-danger">*</span></label>
-                        <input asp-for="Title" class="form-control" placeholder="عنوان مختصر و واضح تیکت" />
+                        <input asp-for="Title" class="form-control" placeholder="عنوان مختصر و واضح تیکت" required />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
                     
@@ -21,8 +55,8 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label asp-for="CustomerId" class="form-label">مشتری <span class="text-danger">*</span></label>
-                                <select asp-for="CustomerId" class="form-select">
-                                    <option value="">انتخاب مشتری...</option>
+                                <select asp-for="CustomerId" class="form-select" required>
+                                    <option value="0">انتخاب مشتری...</option>
                                     @if (ViewBag.Customers != null)
                                     {
                                         @foreach (var customer in (List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers)
@@ -32,13 +66,23 @@
                                     }
                                 </select>
                                 <span asp-validation-for="CustomerId" class="text-danger"></span>
+                                @if (ViewBag.Customers == null || !((List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers).Any())
+                                {
+                                    <small class="text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        هیچ مشتری یافت نشد. 
+                                        <a asp-controller="Customers" asp-action="Create" class="text-warning">
+                                            <u>ایجاد مشتری جدید</u>
+                                        </a>
+                                    </small>
+                                }
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label asp-for="TicketCategoryId" class="form-label">دسته‌بندی <span class="text-danger">*</span></label>
-                                <select asp-for="TicketCategoryId" class="form-select">
-                                    <option value="">انتخاب دسته‌بندی...</option>
+                                <select asp-for="TicketCategoryId" class="form-select" required>
+                                    <option value="0">انتخاب دسته‌بندی...</option>
                                     @if (ViewBag.Categories != null)
                                     {
                                         @foreach (var category in (List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories)
@@ -48,6 +92,13 @@
                                     }
                                 </select>
                                 <span asp-validation-for="TicketCategoryId" class="text-danger"></span>
+                                @if (ViewBag.Categories == null || !((List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories).Any())
+                                {
+                                    <small class="text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        هیچ دسته‌بندی یافت نشد. دسته‌بندی باید توسط مدیر سیستم ایجاد شود.
+                                    </small>
+                                }
                             </div>
                         </div>
                     </div>
@@ -70,26 +121,71 @@
                                 <label asp-for="DueDate" class="form-label">تاریخ مقرر</label>
                                 <input asp-for="DueDate" type="datetime-local" class="form-control" />
                                 <span asp-validation-for="DueDate" class="text-danger"></span>
+                                <small class="form-text text-muted">اختیاری - تاریخ مورد انتظار برای حل مسئله</small>
                             </div>
                         </div>
                     </div>
                     
                     <div class="form-group mb-3">
                         <label asp-for="Description" class="form-label">شرح مسئله <span class="text-danger">*</span></label>
-                        <textarea asp-for="Description" class="form-control" rows="6" 
+                        <textarea asp-for="Description" class="form-control" rows="6" required
                                   placeholder="شرح کاملی از مسئله، مراحل بازتولید و هر اطلاعات مفید دیگر را وارد کنید..."></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
+                        <small class="form-text text-muted">حداکثر 5000 کاراکتر</small>
                     </div>
                     
                     <div class="form-group mb-3">
                         <label asp-for="EstimatedHours" class="form-label">زمان تخمینی (ساعت)</label>
-                        <input asp-for="EstimatedHours" type="number" step="0.5" min="0" class="form-control" placeholder="0" />
+                        <input asp-for="EstimatedHours" type="number" step="0.5" min="0" max="1000" class="form-control" placeholder="0" />
                         <span asp-validation-for="EstimatedHours" class="text-danger"></span>
+                        <small class="form-text text-muted">اختیاری - تخمین زمان مورد نیاز برای حل مسئله</small>
                     </div>
+                    
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <div class="form-group mb-3">
+                            <label asp-for="TeamId" class="form-label">تیم مسئول</label>
+                            <select asp-for="TeamId" class="form-select">
+                                <option value="">انتخاب خودکار</option>
+                                @if (ViewBag.Teams != null)
+                                {
+                                    @foreach (var team in (List<Helpio.Ir.Domain.Entities.Core.Team>)ViewBag.Teams)
+                                    {
+                                        <option value="@team.Id">@team.Name</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="TeamId" class="text-danger"></span>
+                            <small class="form-text text-muted">در صورت عدم انتخاب، تیم به صورت خودکار تعیین می‌شود</small>
+                        </div>
+                    }
+
+                    <!-- Debug Information -->
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <div class="form-group mb-3">
+                            <details>
+                                <summary class="text-muted">Debug Information (Admin Only)</summary>
+                                <div class="mt-2 small">
+                                    <table class="table table-sm">
+                                        <tr><td>Customers Count:</td><td>@(ViewBag.Customers != null ? ((List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers).Count : 0)</td></tr>
+                                        <tr><td>Categories Count:</td><td>@(ViewBag.Categories != null ? ((List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories).Count : 0)</td></tr>
+                                        <tr><td>Teams Count:</td><td>@(ViewBag.Teams != null ? ((List<Helpio.Ir.Domain.Entities.Core.Team>)ViewBag.Teams).Count : 0)</td></tr>
+                                        <tr><td>Current CustomerId:</td><td>@Model.CustomerId</td></tr>
+                                        <tr><td>Current TicketCategoryId:</td><td>@Model.TicketCategoryId</td></tr>
+                                        <tr><td>Current TeamId:</td><td>@Model.TeamId</td></tr>
+                                        <tr><td>ModelState Valid:</td><td>@ViewData.ModelState.IsValid</td></tr>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    }
                 </div>
                 
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" 
+                            @((ViewBag.Customers == null || !((List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers).Any() ||
+                               ViewBag.Categories == null || !((List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories).Any()) ? "disabled" : "")>
                         <i class="bi bi-check"></i> ایجاد تیکت
                     </button>
                     <a asp-action="Index" class="btn btn-secondary">
@@ -106,12 +202,12 @@
                 <h3 class="card-title">راهنمای ایجاد تیکت</h3>
             </div>
             <div class="card-body">
-                <h6>نکات مهم:</h6>
+                <h6>فیلدهای الزامی:</h6>
                 <ul class="list-unstyled">
-                    <li><i class="bi bi-exclamation-triangle text-warning"></i> عنوان واضح و مختصر انتخاب کنید</li>
-                    <li><i class="bi bi-person-check text-info"></i> مشتری مربوطه را دقیق انتخاب کنید</li>
-                    <li><i class="bi bi-tag text-primary"></i> دسته‌بندی صحیح را انتخاب کنید</li>
-                    <li><i class="bi bi-clock text-success"></i> اولویت متناسب با اهمیت مسئله</li>
+                    <li><i class="bi bi-exclamation-triangle text-danger"></i> عنوان تیکت</li>
+                    <li><i class="bi bi-person-check text-danger"></i> انتخاب مشتری</li>
+                    <li><i class="bi bi-tag text-danger"></i> انتخاب دسته‌بندی</li>
+                    <li><i class="bi bi-file-text text-danger"></i> شرح مسئله</li>
                 </ul>
                 
                 <hr>
@@ -130,6 +226,26 @@
                     <i class="bi bi-lightbulb"></i>
                     <strong>نکته:</strong> شرح کامل مسئله باعث حل سریع‌تر تیکت می‌شود.
                 </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>توجه:</strong> تمام فیلدهای ستاره‌دار (*) الزامی هستند.
+                </div>
+
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <div class="alert alert-secondary">
+                        <h6><i class="bi bi-tools"></i> ابزارهای مدیریت</h6>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Customers" asp-action="Create" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-person-plus"></i> ایجاد مشتری
+                            </a>
+                            <a asp-controller="Teams" asp-action="Create" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-people"></i> ایجاد تیم
+                            </a>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -137,4 +253,51 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Real-time validation feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add character counter for description
+            const descriptionField = document.querySelector('textarea[name="Description"]');
+            if (descriptionField) {
+                const charCounter = document.createElement('small');
+                charCounter.className = 'form-text text-muted';
+                charCounter.id = 'description-counter';
+                descriptionField.parentNode.appendChild(charCounter);
+                
+                function updateCounter() {
+                    const count = descriptionField.value.length;
+                    charCounter.textContent = `${count}/5000 کاراکتر`;
+                    charCounter.className = count > 5000 ? 'form-text text-danger' : 'form-text text-muted';
+                }
+                
+                descriptionField.addEventListener('input', updateCounter);
+                updateCounter();
+            }
+            
+            // Validate required fields on submit
+            const form = document.querySelector('form[asp-action="Create"]');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const requiredFields = form.querySelectorAll('[required]');
+                    let hasErrors = false;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim() || field.value === "0") {
+                            field.classList.add('is-invalid');
+                            hasErrors = true;
+                        } else {
+                            field.classList.remove('is-invalid');
+                            field.classList.add('is-valid');
+                        }
+                    });
+                    
+                    if (hasErrors) {
+                        e.preventDefault();
+                        alert('لطفا تمام فیلدهای الزامی را پر کنید.');
+                    }
+                });
+            }
+        });
+    </script>
 }

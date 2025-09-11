@@ -1,0 +1,871 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.Team
+@{
+    ViewData["Title"] = "ویرایش تیم";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش تیم: @Model.Name</h3>
+                <div class="card-tools">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Edit" method="post">
+                <input asp-for="Id" type="hidden" />
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label">نام تیم <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="BranchId" class="form-label">شاخه <span class="text-danger">*</span></label>
+                                <select asp-for="BranchId" class="form-select" required>
+                                    <option value="">انتخاب شاخه</option>
+                                    @foreach (var branch in ViewBag.Branches as List<Helpio.Ir.Domain.Entities.Core.Branch>)
+                                    {
+                                        <option value="@branch.Id" selected="@(branch.Id == Model.BranchId)">
+                                            @branch.Name (@branch.Organization?.Name)
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="BranchId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">توضیحات</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TeamLeadId" class="form-label">تیم لید</label>
+                                <select asp-for="TeamLeadId" class="form-select">
+                                    <option value="">انتخاب تیم لید</option>
+                                    @foreach (var agent in ViewBag.SupportAgents as List<Helpio.Ir.Domain.Entities.Core.SupportAgent>)
+                                    {
+                                        <option value="@agent.Id" selected="@(agent.Id == Model.TeamLeadId)">
+                                            @agent.User.FirstName @agent.User.LastName (@agent.AgentCode)
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="TeamLeadId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="SupervisorId" class="form-label">سرپرست</label>
+                                <select asp-for="SupervisorId" class="form-select">
+                                    <option value="">انتخاب سرپرست</option>
+                                    @foreach (var agent in ViewBag.SupportAgents as List<Helpio.Ir.Domain.Entities.Core.SupportAgent>)
+                                    {
+                                        <option value="@agent.Id" selected="@(agent.Id == Model.SupervisorId)">
+                                            @agent.User.FirstName @agent.User.LastName (@agent.AgentCode)
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SupervisorId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive" class="form-check-label">
+                            تیم فعال باشد
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            تیم‌های غیرفعال در انتخاب‌ها نمایش داده نمی‌شوند
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ذخیره تغییرات
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <button type="button" class="btn btn-danger float-end" onclick="confirmDelete(@Model.Id)">
+                            <i class="bi bi-trash"></i> حذف تیم
+                        </button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Team Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">آمار تیم</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@Model.SupportAgents.Count</h4>
+                        <small class="text-muted">اعضای تیم</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@Model.Tickets.Count</h4>
+                        <small class="text-muted">کل تیکت‌ها</small>
+                    </div>
+                </div>
+                <div class="row text-center mt-3">
+                    <div class="col-6">
+                        <h4 class="text-warning">@Model.Tickets.Count(t => t.TicketState.Name == "Open")</h4>
+                        <small class="text-muted">تیکت‌های باز</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info">@Model.Tickets.Count(t => t.TicketState.Name == "Closed")</h4>
+                        <small class="text-muted">تیکت‌های بسته</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">
+                        ایجاد شده: @Model.CreatedAt.ToString("yyyy/MM/dd")
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Members -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">اعضای تیم</h3>
+                <div class="card-tools">
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                        <i class="bi bi-plus"></i> افزودن عضو
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.SupportAgents.Any())
+                {
+                    <div id="team-members-list">
+                        @foreach (var agent in Model.SupportAgents)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded" id="member-@agent.Id">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 40px; height: 40px;">
+                                        <span class="text-white fw-bold">
+                                            @(agent.User.FirstName?.Substring(0, 1).ToUpper())@(agent.User.LastName?.Substring(0, 1).ToUpper())
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <strong>@agent.User.FirstName @agent.User.LastName</strong>
+                                        <br>
+                                        <small class="text-muted">@agent.Position • @agent.AgentCode</small>
+                                        <div class="mt-1">
+                                            @if (agent.Id == Model.TeamLeadId)
+                                            {
+                                                <span class="badge bg-primary me-1">تیم لید</span>
+                                            }
+                                            @if (agent.Id == Model.SupervisorId)
+                                            {
+                                                <span class="badge bg-warning me-1">سرپرست</span>
+                                            }
+                                            @if (agent.IsActive)
+                                            {
+                                                <span class="badge bg-success me-1">فعال</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary me-1">غیرفعال</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="mailto:@agent.User.Email" class="btn btn-sm btn-outline-primary" title="ارسال ایمیل">
+                                        <i class="bi bi-envelope"></i>
+                                    </a>
+                                    @if (!string.IsNullOrEmpty(agent.User.PhoneNumber))
+                                    {
+                                        <a href="tel:@agent.User.PhoneNumber" class="btn btn-sm btn-outline-success" title="تماس">
+                                            <i class="bi bi-telephone"></i>
+                                        </a>
+                                    }
+                                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" onclick="removeMember(@agent.Id, '@agent.User.FirstName @agent.User.LastName')" title="حذف از تیم">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4" id="no-members">
+                        <i class="bi bi-people" style="font-size: 3rem; color: #ccc;"></i>
+                        <h5 class="text-muted mt-3">هیچ عضوی در این تیم نیست</h5>
+                        <p class="text-muted">برای شروع، اولین عضو را به تیم اضافه کنید</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Team Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">عملیات تیم</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-controller="Tickets" asp-action="Index" asp-route-teamId="@Model.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-ticket"></i> مشاهده تیکت‌ها
+                    </a>
+                    <a asp-controller="Reports" asp-action="TeamReport" asp-route-teamId="@Model.Id" class="btn btn-outline-info">
+                        <i class="bi bi-bar-chart"></i> گزارش تیم
+                    </a>
+                    <button class="btn btn-outline-warning" onclick="exportTeamData(@Model.Id)">
+                        <i class="bi bi-download"></i> خروجی اطلاعات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMemberModalLabel">افزودن عضو جدید به تیم</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMemberForm">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="branchFilter" class="form-label">فیلتر بر اساس شاخه:</label>
+                            <select id="branchFilter" class="form-select">
+                                <option value="">همه شاخه‌ها</option>
+                                @foreach (var branch in ViewBag.Branches as List<Helpio.Ir.Domain.Entities.Core.Branch>)
+                                {
+                                    <option value="@branch.Id">@branch.Name (@branch.Organization?.Name)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchAgent" class="form-label">جستجو:</label>
+                            <input type="text" id="searchAgent" class="form-control" placeholder="نام یا کد کارشناس">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">عملیات:</label>
+                            <button type="button" class="btn btn-success btn-sm w-100" onclick="openCreateAgentModal()">
+                                <i class="bi bi-person-plus"></i> کارشناس جدید
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">کارشناسان موجود:</label>
+                        <div id="availableAgents" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center text-muted py-4">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                در حال بارگذاری...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="selectedAgent" class="alert alert-info" style="display: none;">
+                        <h6>کارشناس انتخاب شده:</h6>
+                        <div id="selectedAgentInfo"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" id="confirmAddMember" disabled>
+                    <i class="bi bi-plus"></i> افزودن به تیم
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Create Agent Modal -->
+<div class="modal fade" id="createAgentModal" tabindex="-1" aria-labelledby="createAgentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createAgentModalLabel">ایجاد کارشناس جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickCreateAgentForm">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>ایجاد سریع کارشناس</strong><br>
+                        بعد از ایجاد، کارشناس به لیست اضافه می‌شود و می‌توانید آن را انتخاب کنید.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentFirstName" class="form-label">نام <span class="text-danger">*</span></label>
+                                <input type="text" id="newAgentFirstName" class="form-control" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentLastName" class="form-label">نام خانوادگی <span class="text-danger">*</span></label>
+                                <input type="text" id="newAgentLastName" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentEmail" class="form-label">ایمیل <span class="text-danger">*</span></label>
+                                <input type="email" id="newAgentEmail" class="form-control" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentPhone" class="form-label">تلفن</label>
+                                <input type="tel" id="newAgentPhone" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentPosition" class="form-label">مقام</label>
+                                <select id="newAgentPosition" class="form-select">
+                                    <option value="">انتخاب مقام</option>
+                                    <option value="کارشناس">کارشناس</option>
+                                    <option value="کارشناس ارشد">کارشناس ارشد</option>
+                                    <option value="سرپرست">سرپرست</option>
+                                    <option value="مدیر تیم">مدیر تیم</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentSpecialization" class="form-label">تخصص</label>
+                                <select id="newAgentSpecialization" class="form-select">
+                                    <option value="">انتخاب تخصص</option>
+                                    <option value="Technical">فنی</option>
+                                    <option value="Billing">مالی</option>
+                                    <option value="Sales">فروش</option>
+                                    <option value="General">عمومی</option>
+                                    <option value="Customer Service">خدمات مشتری</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentLevel" class="form-label">سطح پشتیبانی</label>
+                                <select id="newAgentLevel" class="form-select">
+                                    <option value="1">L1 - پایه</option>
+                                    <option value="2">L2 - متوسط</option>
+                                    <option value="3">L3 - پیشرفته</option>
+                                    <option value="4">L4 - متخصص</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="newAgentMaxTickets" class="form-label">حداکثر تیکت همزمان</label>
+                                <input type="number" id="newAgentMaxTickets" class="form-control" value="10" min="1" max="50" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="newAgentAddToTeam" class="form-check-input" checked />
+                        <label for="newAgentAddToTeam" class="form-check-label">
+                            بلافاصله به این تیم اضافه شود
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-success" id="createAgentBtn">
+                        <i class="bi bi-person-plus"></i> ایجاد کارشناس
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Member Form (Hidden) -->
+<form id="removeMemberForm" method="post" asp-action="RemoveMember" style="display: none;">
+    <input type="hidden" name="teamId" value="@Model.Id" />
+    <input type="hidden" name="agentId" id="removeAgentId" />
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <script>
+        let selectedAgentId = null;
+        let availableAgents = [];
+
+        function confirmDelete(teamId) {
+            if (confirm('آیا از حذف این تیم مطمئن هستید؟ تمام تیکت‌های مرتبط نیز تحت تأثیر قرار خواهند گرفت.')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("Delete", "Teams")';
+                
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+                
+                var idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = teamId;
+                form.appendChild(idInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function removeMember(agentId, agentName) {
+            if (confirm('آیا از حذف "' + agentName + '" از تیم مطمئن هستید؟')) {
+                document.getElementById('removeAgentId').value = agentId;
+                document.getElementById('removeMemberForm').submit();
+            }
+        }
+
+        function exportTeamData(teamId) {
+            alert('قابلیت خروجی گیری در نسخه بعدی اضافه خواهد شد');
+        }
+
+        function openCreateAgentModal() {
+            const addMemberModal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
+            if (addMemberModal) {
+                addMemberModal.hide();
+            }
+            
+            document.getElementById('quickCreateAgentForm').reset();
+            document.getElementById('newAgentLevel').value = '1';
+            document.getElementById('newAgentMaxTickets').value = '10';
+            document.getElementById('newAgentAddToTeam').checked = true;
+            
+            const createAgentModal = new bootstrap.Modal(document.getElementById('createAgentModal'));
+            createAgentModal.show();
+        }
+
+        document.getElementById('quickCreateAgentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createNewAgent();
+        });
+
+        function createNewAgent() {
+            const agentData = {
+                firstName: document.getElementById('newAgentFirstName').value.trim(),
+                lastName: document.getElementById('newAgentLastName').value.trim(),
+                email: document.getElementById('newAgentEmail').value.trim(),
+                phoneNumber: document.getElementById('newAgentPhone').value.trim(),
+                position: document.getElementById('newAgentPosition').value,
+                specialization: document.getElementById('newAgentSpecialization').value,
+                supportLevel: parseInt(document.getElementById('newAgentLevel').value),
+                maxConcurrentTickets: parseInt(document.getElementById('newAgentMaxTickets').value),
+                addToTeam: document.getElementById('newAgentAddToTeam').checked
+            };
+
+            if (!agentData.firstName || !agentData.lastName || !agentData.email) {
+                alert('لطفا فیلدهای اجباری را پر کنید.');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = new RegExp('^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$');
+            if (!emailRegex.test(agentData.email)) {
+                alert('لطفا ایمیل معتبر وارد کنید.');
+                return;
+            }
+
+            const createBtn = document.getElementById('createAgentBtn');
+            const originalText = createBtn.innerHTML;
+            createBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>در حال ایجاد...';
+            createBtn.disabled = true;
+
+            const url = '@Url.Action("QuickCreateAgent", "Teams")';
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    firstName: agentData.firstName,
+                    lastName: agentData.lastName,
+                    email: agentData.email,
+                    phoneNumber: agentData.phoneNumber,
+                    position: agentData.position,
+                    specialization: agentData.specialization,
+                    supportLevel: agentData.supportLevel,
+                    maxConcurrentTickets: agentData.maxConcurrentTickets,
+                    addToTeam: agentData.addToTeam,
+                    teamId: @Model.Id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const createAgentModal = bootstrap.Modal.getInstance(document.getElementById('createAgentModal'));
+                    createAgentModal.hide();
+                    
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show';
+                    alert.innerHTML = '<i class="bi bi-check-circle"></i><strong>موفق!</strong> کارشناس "' + agentData.firstName + ' ' + agentData.lastName + '" ایجاد شد.' + (agentData.addToTeam ? ' و به تیم اضافه شد.' : '') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    document.querySelector('.row').insertAdjacentElement('beforebegin', alert);
+                    
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.remove();
+                        }
+                    }, 5000);
+
+                    if (agentData.addToTeam) {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        loadAvailableAgents();
+                        setTimeout(() => {
+                            const addMemberModal = new bootstrap.Modal(document.getElementById('addMemberModal'));
+                            addMemberModal.show();
+                        }, 1000);
+                    }
+                } else {
+                    alert('خطا در ایجاد کارشناس: ' + (data.message || 'خطای نامشخص'));
+                }
+            })
+            .catch(error => {
+                console.error('Error creating agent:', error);
+                alert('خطا در ایجاد کارشناس. لطفا مجدداً تلاش کنید.');
+            })
+            .finally(() => {
+                createBtn.innerHTML = originalText;
+                createBtn.disabled = false;
+            });
+        }
+
+        document.getElementById('addMemberModal').addEventListener('show.bs.modal', function () {
+            selectedAgentId = null;
+            document.getElementById('selectedAgent').style.display = 'none';
+            document.getElementById('confirmAddMember').disabled = true;
+            loadAvailableAgents();
+        });
+
+        document.getElementById('branchFilter').addEventListener('change', function() {
+            loadAvailableAgents();
+        });
+
+        document.getElementById('confirmAddMember').addEventListener('click', function() {
+            if (selectedAgentId) {
+                addMemberToTeam(selectedAgentId);
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            const agentItem = e.target.closest('.selectable-agent[data-selectable="true"]');
+            
+            if (agentItem) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const agentId = parseInt(agentItem.getAttribute('data-agent-id'));
+                selectAgent(agentId);
+            }
+        });
+
+        document.getElementById('searchAgent').addEventListener('input', function() {
+            filterAgents();
+        });
+
+        function loadAvailableAgents() {
+            const branchId = document.getElementById('branchFilter').value;
+            const url = '@Url.Action("GetAvailableAgents", "Teams")' + '?teamId=' + @Model.Id + (branchId ? '&branchId=' + branchId : '');
+
+            document.getElementById('availableAgents').innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2" role="status"></div>در حال بارگذاری...</div>';
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                availableAgents = data;
+                renderAvailableAgents(data);
+            })
+            .catch(error => {
+                console.error('Error loading agents:', error);
+                document.getElementById('availableAgents').innerHTML = '<div class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle"></i><p class="mt-2">خطا در بارگذاری کارشناسان</p><small>' + error.message + '</small><br><button class="btn btn-sm btn-outline-primary mt-2" onclick="loadAvailableAgents()"><i class="bi bi-arrow-clockwise"></i> تلاش مجدد</button></div>';
+            });
+        }
+
+        function renderAvailableAgents(agents) {
+            const container = document.getElementById('availableAgents');
+            
+            if (!agents || agents.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-people" style="font-size: 2rem;"></i><p class="mt-2">هیچ کارشناس موجودی یافت نشد</p><small class="text-muted">احتمالاً همه کارشناسان به تیم‌های دیگر اختصاص داده شده‌اند.</small><br><a href="@Url.Action("Create", "SupportAgents")" class="btn btn-sm btn-primary mt-2" target="_blank"><i class="bi bi-plus"></i> ایجاد کارشناس جدید</a></div>';
+                return;
+            }
+
+            let html = '';
+            agents.forEach((agent, index) => {
+                const isInCurrentTeam = agent.isInCurrentTeam;
+                const isAvailable = agent.isAvailable;
+                
+                let statusBadge = '';
+                if (isInCurrentTeam) {
+                    statusBadge = '<span class="badge bg-success me-1">عضو تیم</span>';
+                } else if (agent.currentTeam) {
+                    statusBadge = '<span class="badge bg-warning me-1">عضو ' + agent.currentTeam + '</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-secondary me-1">آزاد</span>';
+                }
+
+                const canSelect = isAvailable && !isInCurrentTeam;
+
+                html += '<div class="agent-item border rounded p-3 mb-2 ' + (isInCurrentTeam ? 'bg-light' : (canSelect ? 'cursor-pointer selectable-agent' : 'opacity-75')) + '" data-agent-id="' + agent.id + '" data-selectable="' + (canSelect ? 'true' : 'false') + '">';
+                html += '<div class="d-flex justify-content-between align-items-center">';
+                html += '<div>';
+                html += '<strong>' + agent.name + '</strong><br>';
+                html += '<small class="text-muted">' + agent.position + ' • ' + agent.agentCode;
+                if (agent.specialization) html += ' • ' + agent.specialization;
+                if (agent.supportLevel) html += ' • L' + agent.supportLevel;
+                html += '</small>';
+                html += '<div class="mt-1">' + statusBadge;
+                if (canSelect) html += '<small class="text-primary d-block"><i class="bi bi-hand-index"></i> برای انتخاب کلیک کنید</small>';
+                if (isInCurrentTeam) html += '<small class="text-success d-block"><i class="bi bi-check"></i> عضو فعلی تیم</small>';
+                if (agent.canTransfer) html += '<small class="text-warning d-block"><i class="bi bi-arrow-right"></i> قابل انتقال از تیم دیگر</small>';
+                html += '</div></div>';
+                html += '<div>';
+                if (isInCurrentTeam) {
+                    html += '<i class="bi bi-check-circle text-success fs-4" title="عضو فعلی تیم"></i>';
+                } else if (canSelect) {
+                    html += '<i class="bi bi-plus-circle text-primary fs-4" title="افزودن به تیم"></i>';
+                } else {
+                    html += '<i class="bi bi-info-circle text-info fs-4" title="اطلاعات بیشتر"></i>';
+                }
+                html += '</div></div></div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function selectAgent(agentId) {
+            document.querySelectorAll('.agent-item').forEach(item => {
+                item.classList.remove('border-primary', 'bg-primary', 'text-white');
+                item.style.borderWidth = '1px';
+            });
+
+            const selectedItem = document.querySelector('[data-agent-id="' + agentId + '"]');
+            if (selectedItem) {
+                selectedItem.classList.add('border-primary', 'bg-primary', 'text-white');
+                selectedItem.style.borderWidth = '3px';
+                selectedItem.style.borderStyle = 'solid';
+
+                const agent = availableAgents.find(a => a.id === agentId);
+                if (agent) {
+                    selectedAgentId = agentId;
+                    document.getElementById('selectedAgentInfo').innerHTML = '<div class="d-flex align-items-center"><div class="avatar bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;"><span class="text-white fw-bold">' + agent.name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2) + '</span></div><div><strong>' + agent.name + '</strong><br><small>' + (agent.position || 'نامشخص') + ' • ' + agent.agentCode + '</small>' + (agent.specialization ? '<br><small class="text-muted">' + agent.specialization + '</small>' : '') + '</div></div>';
+                    document.getElementById('selectedAgent').style.display = 'block';
+                    document.getElementById('confirmAddMember').disabled = false;
+                }
+            }
+        }
+
+        function filterAgents() {
+            const searchTerm = document.getElementById('searchAgent').value.toLowerCase();
+            const filteredAgents = availableAgents.filter(agent => 
+                agent.name.toLowerCase().includes(searchTerm) ||
+                agent.agentCode.toLowerCase().includes(searchTerm) ||
+                (agent.position && agent.position.toLowerCase().includes(searchTerm))
+            );
+            renderAvailableAgents(filteredAgents);
+        }
+
+        function addMemberToTeam(agentId) {
+            const agent = availableAgents.find(a => a.id === agentId);
+            if (!agent) {
+                alert('خطا: اطلاعات کارشناس یافت نشد');
+                return;
+            }
+
+            let confirmMessage = 'آیا می‌خواهید "' + agent.name + '" را به تیم اضافه کنید؟';
+            
+            if (agent.currentTeam && !agent.isInCurrentTeam) {
+                confirmMessage = 'آیا می‌خواهید "' + agent.name + '" را از تیم "' + agent.currentTeam + '" به این تیم منتقل کنید؟\n\n⚠️ توجه: این کارشناس از تیم قبلی حذف و به تیم فعلی اضافه خواهد شد.';
+            }
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmAddMember');
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>در حال افزودن...';
+            confirmBtn.disabled = true;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("AddMember", "Teams")';
+            
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            form.appendChild(tokenInput);
+            
+            const teamIdInput = document.createElement('input');
+            teamIdInput.type = 'hidden';
+            teamIdInput.name = 'teamId';
+            teamIdInput.value = '@Model.Id';
+            form.appendChild(teamIdInput);
+            
+            const agentIdInput = document.createElement('input');
+            agentIdInput.type = 'hidden';
+            agentIdInput.name = 'agentId';
+            agentIdInput.value = agentId;
+            form.appendChild(agentIdInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .selectable-agent {
+            transition: all 0.3s ease;
+            cursor: pointer !important;
+        }
+        
+        .selectable-agent:hover {
+            background-color: #f8f9fa !important;
+            border-color: #0d6efd !important;
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .agent-item.border-primary {
+            border-width: 3px !important;
+            border-style: solid !important;
+        }
+        
+        .agent-item.bg-primary .text-muted {
+            color: rgba(255,255,255,0.8) !important;
+        }
+        
+        .agent-item.bg-primary .badge {
+            opacity: 0.9;
+        }
+        
+        .avatar {
+            transition: all 0.2s ease;
+        }
+        
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .agent-item[data-selectable="true"] {
+            border: 2px dashed #dee2e6;
+            cursor: pointer !important;
+        }
+        
+        .agent-item[data-selectable="true"]:hover {
+            border: 2px solid #0d6efd;
+            transform: scale(1.02);
+        }
+        
+        .agent-item[data-selectable="false"] {
+            opacity: 0.75;
+            cursor: not-allowed;
+        }
+        
+        .agent-item.border-primary {
+            border: 3px solid #0d6efd !important;
+        }
+
+        .fs-4 {
+            font-size: 1.5rem !important;
+        }
+
+        #createAgentModal .form-control:focus,
+        #createAgentModal .form-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+
+        #createAgentModal .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        #createAgentModal .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .alert-success {
+            border-left: 4px solid #28a745;
+        }
+
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+
+        .form-control, .form-select {
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+    </style>
+}

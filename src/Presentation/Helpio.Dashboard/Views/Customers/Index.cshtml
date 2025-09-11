@@ -26,8 +26,9 @@
                                 <tr>
                                     <th>نام</th>
                                     <th>ایمیل</th>
-                                    <th>تلفن</th>
+                                    <th>شرکت</th>
                                     <th>تعداد تیکت‌ها</th>
+                                    <th>تاریخ ثبت</th>
                                     <th>وضعیت</th>
                                     <th>عملیات</th>
                                 </tr>
@@ -38,13 +39,31 @@
                                     <tr>
                                         <td>
                                             <a asp-action="Details" asp-route-id="@customer.Id" class="text-decoration-none">
-                                                @customer.FirstName @customer.LastName
+                                                <strong>@customer.FirstName @customer.LastName</strong>
                                             </a>
+                                            @if (!string.IsNullOrEmpty(customer.PhoneNumber))
+                                            {
+                                                <br><small class="text-muted">@customer.PhoneNumber</small>
+                                            }
                                         </td>
-                                        <td>@customer.Email</td>
-                                        <td>@customer.PhoneNumber</td>
+                                        <td>
+                                            <a href="mailto:@customer.Email">@customer.Email</a>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(customer.CompanyName))
+                                            {
+                                                @customer.CompanyName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
                                         <td>
                                             <span class="badge bg-info">@customer.Tickets.Count</span>
+                                        </td>
+                                        <td>
+                                            @customer.CreatedAt.ToString("yyyy/MM/dd")
                                         </td>
                                         <td>
                                             <span class="badge bg-@(!customer.IsDeleted ? "success" : "danger")">
@@ -52,15 +71,20 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-info">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
-                                            {
-                                                <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">
-                                                    <i class="bi bi-pencil"></i>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
-                                            }
+                                                @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                                {
+                                                    <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a asp-controller="Tickets" asp-action="Create" asp-route-customerId="@customer.Id" class="btn btn-sm btn-success">
+                                                        <i class="bi bi-plus"></i>
+                                                    </a>
+                                                }
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -77,7 +101,7 @@
                         @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
                         {
                             <a asp-action="Create" class="btn btn-primary">
-                                <i class="bi bi-plus"></i> افزودن اولین مشتری
+                                <i class="bi bi-plus"></i> ایجاد اولین مشتری
                             </a>
                         }
                     </div>

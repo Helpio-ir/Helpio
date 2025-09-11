@@ -1,0 +1,365 @@
+﻿@model Helpio.Ir.Application.DTOs.Knowledge.CreateCannedResponseDto
+@{
+    ViewData["Title"] = "ایجاد پاسخ آماده جدید";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ایجاد پاسخ آماده جدید</h3>
+                <div class="card-tools">
+                    <a asp-action="CannedResponses" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="CreateCannedResponse" method="post">
+                <div class="card-body">
+                    <!-- Organization Selection (only for admins) -->
+                    @if (ViewBag.IsAdmin == true && ViewBag.Organizations != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label asp-for="OrganizationId" class="form-label">سازمان <span class="text-danger">*</span></label>
+                                    <select asp-for="OrganizationId" class="form-select" required>
+                                        <option value="">انتخاب سازمان</option>
+                                        @foreach (var org in ViewBag.Organizations as List<Helpio.Ir.Domain.Entities.Core.Organization>)
+                                        {
+                                            <option value="@org.Id" selected="@(org.Id == Model.OrganizationId)">@org.Name</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="OrganizationId" class="text-danger"></span>
+                                    <small class="form-text text-muted">این پاسخ آماده برای کدام سازمان تعریف می‌شود</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Hidden field for non-admin users -->
+                        <input asp-for="OrganizationId" type="hidden" />
+                    }
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label">نام پاسخ آماده <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" required placeholder="نام کوتاه و توصیفی برای پاسخ" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <small class="form-text text-muted">مثال: سلام احوالپرسی، راهنمای ورود، تشکر از مشتری</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="form-label">وضعیت</label>
+                                <div class="form-check">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                    <label asp-for="IsActive" class="form-check-label">
+                                        پاسخ فعال باشد
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">پاسخ‌های غیرفعال در لیست نمایش داده نمی‌شوند</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">توضیحات</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="توضیح کوتاهی در مورد کاربرد این پاسخ"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Content" class="form-label">محتوای پاسخ <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="10" required id="responseContent" 
+                                  placeholder="محتوای پاسخ آماده را اینجا وارد کنید..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                        
+                        <div class="mt-2">
+                            <small class="text-muted">متغیرهای قابل استفاده:</small>
+                            <div class="btn-group btn-group-sm mt-1 flex-wrap" role="group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_مشتری}')">
+                                    نام مشتری
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{شماره_تیکت}')">
+                                    شماره تیکت
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_شرکت}')">
+                                    نام شرکت
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{تاریخ_امروز}')">
+                                    تاریخ امروز
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_کارشناس}')">
+                                    نام کارشناس
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Tags" class="form-label">برچسب‌ها</label>
+                        <input asp-for="Tags" class="form-control" id="tagsInput" placeholder="پشتیبانی, فنی, مالی, عمومی" />
+                        <span asp-validation-for="Tags" class="text-danger"></span>
+                        <small class="form-text text-muted">برچسب‌ها را با کاما از هم جدا کنید. این برچسب‌ها برای جستجوی سریع استفاده می‌شوند.</small>
+                    </div>
+
+                    <!-- Popular Tags -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">برچسب‌های پرکاربرد:</label>
+                        <div class="mt-1">
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('پشتیبانی')" data-tag="پشتیبانی">پشتیبانی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('فنی')" data-tag="فنی">فنی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('مالی')" data-tag="مالی">مالی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('فروش')" data-tag="فروش">فروش</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('عمومی')" data-tag="عمومی">عمومی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('ورود')" data-tag="ورود">ورود</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('تشکر')" data-tag="تشکر">تشکر</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('راهنمایی')" data-tag="راهنمایی">راهنمایی</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check"></i> ایجاد پاسخ آماده
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="testResponse()">
+                                <i class="bi bi-play"></i> تست پاسخ
+                            </button>
+                            <a asp-action="CannedResponses" class="btn btn-secondary">
+                                انصراف
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-warning" onclick="clearForm()">
+                                <i class="bi bi-x-circle"></i> پاک کردن فرم
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="debugElements()" title="Debug - Remove in production">
+                                <i class="bi bi-bug"></i> Debug
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Preview Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">پیش‌نمایش زنده</h3>
+            </div>
+            <div class="card-body">
+                <div id="previewContent" class="border rounded p-3 bg-light min-height-200">
+                    <div class="text-muted text-center">
+                        <i class="bi bi-eye" style="font-size: 2rem;"></i>
+                        <br>
+                        شروع به نوشتن کنید تا پیش‌نمایش نمایش داده شود
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-info w-100 mt-2" onclick="updatePreview()">
+                    <i class="bi bi-arrow-clockwise"></i> بروزرسانی پیش‌نمایش
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Templates -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">قالب‌های آماده</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('greeting')">
+                        <i class="bi bi-hand-wave"></i> سلام و احوالپرسی
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('closing')">
+                        <i class="bi bi-door-open"></i> پایان مکالمه
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('investigation')">
+                        <i class="bi bi-search"></i> درخواست اطلاعات
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('solution')">
+                        <i class="bi bi-lightbulb"></i> ارائه راه‌حل
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('follow_up')">
+                        <i class="bi bi-telephone"></i> پیگیری
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('apologize')">
+                        <i class="bi bi-emoji-frown"></i> عذرخواهی
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variables Help -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">راهنمای متغیرها</h3>
+            </div>
+            <div class="card-body">
+                <small>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><code>{نام_مشتری}</code></td>
+                            <td>نام کامل مشتری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{شماره_تیکت}</code></td>
+                            <td>شماره تیکت</td>
+                        </tr>
+                        <tr>
+                            <td><code>{نام_شرکت}</code></td>
+                            <td>نام شرکت مشتری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{تاریخ_امروز}</code></td>
+                            <td>تاریخ جاری</td>
+                        </tr>
+                        <tr>
+                            <td><code>{نام_کارشناس}</code></td>
+                            <td>نام کارشناس پاسخ‌دهنده</td>
+                        </tr>
+                    </table>
+                </small>
+                <div class="alert alert-info mt-2">
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        متغیرها هنگام استفاده از پاسخ آماده به صورت خودکار جایگزین می‌شوند.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">نکات کاربردی</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        نام پاسخ را کوتاه و قابل تشخیص انتخاب کنید
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        از برچسب‌ها برای دسته‌بندی استفاده کنید
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        متغیرها را برای شخصی‌سازی به کار ببرید
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        پاسخ را قبل از ذخیره تست کنید
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <!-- Load our external JavaScript file -->
+    <script src="~/js/create-canned-response.js" asp-append-version="true"></script>
+    
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .cursor-pointer:hover {
+            background-color: #e9ecef !important;
+            transform: scale(1.05);
+        }
+        
+        .min-height-200 {
+            min-height: 200px;
+        }
+        
+        .response-content {
+            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.875em;
+        }
+        
+        .badge.cursor-pointer {
+            transition: all 0.2s ease;
+        }
+        
+        .badge.cursor-pointer:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .btn-group .btn {
+            white-space: nowrap;
+        }
+        
+        .btn-group.flex-wrap {
+            flex-wrap: wrap;
+        }
+        
+        .btn-group.flex-wrap .btn {
+            margin-bottom: 0.25rem;
+            margin-left: 0.125rem;
+        }
+        
+        /* Button hover effects */
+        .btn-outline-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Preview content styling */
+        #previewContent {
+            transition: all 0.3s ease;
+            border: 2px dashed #dee2e6;
+        }
+        
+        #previewContent:not(:empty) {
+            border-style: solid;
+            border-color: #0d6efd;
+        }
+        
+        /* Character counter styling */
+        #char-counter {
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        /* Form focus effects */
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            border-color: #86b7fe;
+        }
+        
+        /* Loading state for buttons */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Debug helper - remove in production */
+        .debug-highlight {
+            border: 2px solid red !important;
+            background-color: rgba(255, 0, 0, 0.1) !important;
+        }
+    </style>
+}

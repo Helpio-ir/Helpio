@@ -1,0 +1,276 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.SupportAgent
+@{
+    ViewData["Title"] = "ویرایش کارشناس";
+    var users = ViewBag.Users as List<Helpio.Ir.Domain.Entities.Core.User>;
+    var teams = ViewBag.Teams as List<Helpio.Ir.Domain.Entities.Core.Team>;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش کارشناس: @Model.User.FirstName @Model.User.LastName</h3>
+                <div class="card-tools">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Edit" method="post">
+                <input asp-for="Id" type="hidden" />
+                <input asp-for="UserId" type="hidden" />
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> لطفا خطاهای زیر را برطرف کنید:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <!-- User Info (Read-only) -->
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-person"></i> اطلاعات کاربر:</h6>
+                        <strong>@Model.User.FirstName @Model.User.LastName</strong><br>
+                        <small>@Model.User.Email • @Model.User.PhoneNumber</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="AgentCode" class="form-label">کد کارشناس <span class="text-danger">*</span></label>
+                                <input asp-for="AgentCode" class="form-control" required />
+                                <span asp-validation-for="AgentCode" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TeamId" class="form-label">تیم</label>
+                                <select asp-for="TeamId" class="form-select">
+                                    <option value="">بدون تیم</option>
+                                    @if (teams != null)
+                                    {
+                                        @foreach (var team in teams)
+                                        {
+                                            <option value="@team.Id" selected="@(team.Id == Model.TeamId)">
+                                                @team.Name (@team.Branch?.Name)
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="TeamId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="SupportLevel" class="form-label">سطح پشتیبانی</label>
+                                <select asp-for="SupportLevel" class="form-select">
+                                    <option value="1" selected="@(Model.SupportLevel == 1)">L1 - پایه</option>
+                                    <option value="2" selected="@(Model.SupportLevel == 2)">L2 - متوسط</option>
+                                    <option value="3" selected="@(Model.SupportLevel == 3)">L3 - پیشرفته</option>
+                                    <option value="4" selected="@(Model.SupportLevel == 4)">L4 - متخصص</option>
+                                </select>
+                                <span asp-validation-for="SupportLevel" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Department" class="form-label">بخش</label>
+                                <input asp-for="Department" class="form-control" />
+                                <span asp-validation-for="Department" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Position" class="form-label">مقام</label>
+                                <input asp-for="Position" class="form-control" />
+                                <span asp-validation-for="Position" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Specialization" class="form-label">تخصص</label>
+                                <select asp-for="Specialization" class="form-select">
+                                    <option value="">انتخاب تخصص</option>
+                                    <option value="Technical" selected="@(Model.Specialization == "Technical")">فنی</option>
+                                    <option value="Billing" selected="@(Model.Specialization == "Billing")">مالی</option>
+                                    <option value="Sales" selected="@(Model.Specialization == "Sales")">فروش</option>
+                                    <option value="General" selected="@(Model.Specialization == "General")">عمومی</option>
+                                    <option value="Customer Service" selected="@(Model.Specialization == "Customer Service")">خدمات مشتری</option>
+                                </select>
+                                <span asp-validation-for="Specialization" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="MaxConcurrentTickets" class="form-label">حداکثر تیکت همزمان</label>
+                                <input asp-for="MaxConcurrentTickets" type="number" min="1" max="50" class="form-control" />
+                                <span asp-validation-for="MaxConcurrentTickets" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Salary" class="form-label">حقوق (ریال)</label>
+                                <input asp-for="Salary" type="number" min="0" class="form-control" />
+                                <span asp-validation-for="Salary" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                            <label asp-for="IsActive" class="form-check-label">
+                                                فعال
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input asp-for="IsAvailable" class="form-check-input" type="checkbox" />
+                                            <label asp-for="IsAvailable" class="form-check-label">
+                                                در دسترس
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ذخیره تغییرات
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                    @if (ViewBag.IsAdmin == true)
+                    {
+                        <button type="button" class="btn btn-danger float-end" onclick="confirmDelete(@Model.Id)">
+                            <i class="bi bi-trash"></i> حذف کارشناس
+                        </button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Current Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">آمار فعلی</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@Model.CurrentTicketCount</h4>
+                        <small class="text-muted">تیکت فعال</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@Model.AssignedTickets.Count</h4>
+                        <small class="text-muted">کل تیکت‌ها</small>
+                    </div>
+                </div>
+                <div class="progress mt-3">
+                    @{
+                        var workload = Model.MaxConcurrentTickets > 0 ? (Model.CurrentTicketCount * 100 / Model.MaxConcurrentTickets) : 0;
+                        var progressClass = workload < 50 ? "bg-success" : workload < 80 ? "bg-warning" : "bg-danger";
+                    }
+                    <div class="progress-bar @progressClass" role="progressbar" style="width: @workload%">
+                        @workload% بارکاری
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Summary -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">خلاصه فعالیت</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between">
+                        <span>تاریخ استخدام:</span>
+                        <strong>@Model.HireDate.ToString("yyyy/MM/dd")</strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>سطح:</span>
+                        <span class="badge bg-primary">L@Model.SupportLevel</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>تخصص:</span>
+                        <strong>@Model.Specialization</strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>وضعیت:</span>
+                        <span class="badge bg-@(Model.IsActive ? "success" : "danger")">
+                            @(Model.IsActive ? "فعال" : "غیرفعال")
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        function confirmDelete(agentId) {
+            if (confirm('آیا از حذف این کارشناس مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("Delete", "SupportAgents")';
+                
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(tokenInput);
+                
+                var idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = agentId;
+                form.appendChild(idInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Format salary field
+        document.addEventListener('DOMContentLoaded', function() {
+            const salaryField = document.querySelector('input[name="Salary"]');
+            if (salaryField) {
+                // Initial format
+                if (salaryField.value) {
+                    salaryField.value = parseInt(salaryField.value).toLocaleString();
+                }
+
+                salaryField.addEventListener('input', function() {
+                    let value = this.value.replace(/,/g, '');
+                    if (!isNaN(value) && value !== '') {
+                        this.value = parseInt(value).toLocaleString();
+                    }
+                });
+            }
+        });
+    </script>
+}

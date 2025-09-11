@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -6,9 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>9ccec292-8c48-4d46-8428-7c1b34dd5431</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    
+    <!-- Disable Hot Reload and Browser Refresh -->
+    <DisableBrowserRefresh>true</DisableBrowserRefresh>
+    <EnableHotReload>false</EnableHotReload>
+    <EnableHotReloadWatcher>false</EnableHotReloadWatcher>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
@@ -19,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\Helpio.Infrastructure\Helpio.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Core\Helpio.Application\Helpio.Application.csproj" />
   </ItemGroup>
 
 </Project>

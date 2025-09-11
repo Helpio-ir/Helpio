@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Ticket Details Canned Responses</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .test-result { margin: 5px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+        .cursor-pointer { cursor: pointer; transition: all 0.2s ease; }
+        .cursor-pointer:hover { background-color: #e9ecef !important; transform: scale(1.05); }
+        .canned-response-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .canned-response-item:hover {
+            border-color: #0d6efd !important;
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="container mt-4">
+    <!-- Anti-forgery token for testing -->
+    <input name="__RequestVerificationToken" type="hidden" value="test-token-12345" />
+    
+    <div class="row">
+        <div class="col-12">
+            <h2>Test - Ticket Details Canned Responses</h2>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                این صفحه برای تست عملکرد پاسخ‌های آماده در جزئیات تیکت طراحی شده است.
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>شبیه‌سازی فرم پاسخ تیکت</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Response Form -->
+                    <form id="responseForm">
+                        <div class="form-group mb-3">
+                            <label for="responseContent" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text"></i> افزودن پاسخ:
+                            </label>
+                            <textarea id="responseContent" class="form-control" rows="6" 
+                                      placeholder="پاسخ خود را اینجا بنویسید..." required></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <div class="response-actions mb-2">
+                                <button type="button" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> ارسال پاسخ (تست)
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" onclick="clearResponse()">
+                                    <i class="bi bi-x-circle"></i> پاک کردن
+                                </button>
+                            </div>
+                            <div class="response-options mb-2">
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="loadCannedResponses()">
+                                    <i class="bi bi-bookmarks"></i> پاسخ‌های آماده
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="insertVariable()">
+                                    <i class="bi bi-person"></i> متغیرها
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Test Results -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>نتایج تست</h5>
+                    <button class="btn btn-sm btn-primary" onclick="runTests()">اجرای تست‌ها</button>
+                </div>
+                <div class="card-body">
+                    <div id="testResults" style="max-height: 400px; overflow-y: auto;">
+                        <div class="text-muted">نتایج تست اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- API Test -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>تست API</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="testGetCannedResponses()">
+                            تست GetCannedResponses
+                        </button>
+                        <button class="btn btn-outline-success" onclick="testIncrementUsage()">
+                            تست IncrementUsage
+                        </button>
+                        <button class="btn btn-outline-info" onclick="testModalOpen()">
+                            تست باز کردن Modal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulated Canned Responses Modal -->
+    <div class="modal fade" id="cannedResponsesModal" tabindex="-1" aria-labelledby="cannedResponsesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cannedResponsesModalLabel">
+                        <i class="bi bi-bookmarks"></i> انتخاب پاسخ آماده
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Search and Filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cannedResponseSearch" 
+                                       placeholder="جستجو در پاسخ‌های آماده...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchCannedResponses()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="cannedResponseCategory" onchange="filterCannedResponses()">
+                                <option value="">همه دسته‌ها</option>
+                                <option value="پشتیبانی">پشتیبانی</option>
+                                <option value="فنی">فنی</option>
+                                <option value="مالی">مالی</option>
+                                <option value="عمومی">عمومی</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="cannedResponsesLoading" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        در حال بارگذاری پاسخ‌های آماده...
+                    </div>
+
+                    <!-- Canned Responses List -->
+                    <div id="cannedResponsesList" class="canned-responses-container" style="display: none; max-height: 400px; overflow-y: auto;">
+                        <!-- Content will be loaded here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="cannedResponsesEmpty" class="text-center py-4 text-muted" style="display: none;">
+                        <i class="bi bi-chat-quote" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <h5 class="mt-3">هیچ پاسخ آماده‌ای یافت نشد</h5>
+                        <p>پاسخ آماده‌ای با این مشخصات موجود نیست</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Variables Modal -->
+    <div class="modal fade" id="variablesModal" tabindex="-1" aria-labelledby="variablesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="variablesModalLabel">
+                        <i class="bi bi-code-slash"></i> متغیرهای قابل استفاده
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">روی هر متغیر کلیک کنید تا به متن پاسخ اضافه شود:</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_مشتری}'); closeVariablesModal();">
+                            <code>{نام_مشتری}</code> - نام کامل مشتری
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{شماره_تیکت}'); closeVariablesModal();">
+                            <code>{شماره_تیکت}</code> - شماره تیکت فعلی
+                        </button>
+                        <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_کارشناس}'); closeVariablesModal();">
+                            <code>{نام_کارشناس}</code> - نام کارشناس پاسخ‌دهنده
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Load our external JavaScript -->
+    <script src="/js/ticket-details.js"></script>
+    
+    <script>
+        // Test functions
+        function logTest(name, result, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            resultsDiv.innerHTML += '<div class="test-result ' + className + '">[' + time + '] <strong>' + name + ':</strong> ' + result + '</div>';
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function runTests() {
+            document.getElementById('testResults').innerHTML = '<h6>Running Tests...</h6>';
+            
+            // Function availability test
+            const functions = [
+                'loadCannedResponses', 'selectCannedResponse', 'previewCannedResponse', 
+                'searchCannedResponses', 'insertVariable', 'insertVariableIntoResponse',
+                'clearResponse', 'closeVariablesModal'
+            ];
+            
+            functions.forEach(function(funcName) {
+                const available = typeof window[funcName] === 'function';
+                logTest(funcName + ' Function', available ? 'Available ✅' : 'Missing ❌', available ? 'success' : 'error');
+            });
+            
+            // Element availability test
+            const elements = {
+                'responseContent': document.getElementById('responseContent'),
+                'cannedResponsesModal': document.getElementById('cannedResponsesModal'),
+                'variablesModal': document.getElementById('variablesModal'),
+                'cannedResponsesLoading': document.getElementById('cannedResponsesLoading'),
+                'cannedResponsesList': document.getElementById('cannedResponsesList'),
+                'cannedResponsesEmpty': document.getElementById('cannedResponsesEmpty')
+            };
+            
+            for (const name in elements) {
+                logTest(name + ' Element', elements[name] ? 'Found ✅' : 'Missing ❌', elements[name] ? 'success' : 'error');
+            }
+            
+            // Test global state
+            logTest('allCannedResponses State', typeof window.allCannedResponses, 'info');
+        }
+        
+        function testGetCannedResponses() {
+            logTest('API Test', 'Starting GetCannedResponses...', 'info');
+            
+            fetch('/Knowledge/GetCannedResponses', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                logTest('API Response', `Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                return response.json();
+            })
+            .then(data => {
+                logTest('API Data', `Received ${Array.isArray(data) ? data.length : 'non-array'} items`, 'success');
+                console.log('API Response Data:', data);
+            })
+            .catch(error => {
+                logTest('API Error', error.message, 'error');
+                console.error('API Error:', error);
+            });
+        }
+        
+        function testIncrementUsage() {
+            logTest('Usage Test', 'Testing increment usage for ID: 1', 'info');
+            
+            const formData = new FormData();
+            formData.append('id', '1');
+            formData.append('__RequestVerificationToken', 'test-token-12345');
+            
+            fetch('/Knowledge/IncrementCannedResponseUsage', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                logTest('Usage Response', `Success: ${data.success}, Message: ${data.message || 'N/A'}`, data.success ? 'success' : 'error');
+            })
+            .catch(error => {
+                logTest('Usage Error', error.message, 'error');
+            });
+        }
+        
+        function testModalOpen() {
+            logTest('Modal Test', 'Opening canned responses modal...', 'info');
+            try {
+                if (typeof window.loadCannedResponses === 'function') {
+                    window.loadCannedResponses();
+                    logTest('Modal Open', 'Success ✅', 'success');
+                } else {
+                    logTest('Modal Open', 'Function not found ❌', 'error');
+                }
+            } catch (error) {
+                logTest('Modal Error', error.message, 'error');
+            }
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', function() {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+</body>
+</html>

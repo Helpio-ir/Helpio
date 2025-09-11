@@ -1,0 +1,285 @@
+﻿@model Helpio.Ir.Domain.Entities.Knowledge.Articles
+@{
+    ViewData["Title"] = "ویرایش مقاله";
+}
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش مقاله: @Model.Name</h3>
+                <div class="card-tools">
+                    <a asp-action="ArticleDetails" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="EditArticle" method="post">
+                <input asp-for="Id" type="hidden" />
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label">عنوان مقاله <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="form-label">وضعیت انتشار</label>
+                                <div class="form-check">
+                                    <input asp-for="IsPublished" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsPublished" class="form-check-label">
+                                        مقاله منتشر شود
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">خلاصه مقاله</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="خلاصه‌ای کوتاه از محتوای مقاله"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                        <small class="form-text text-muted">این متن در لیست مقالات و نتایج جستجو نمایش داده می‌شود</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Content" class="form-label">محتوای مقاله <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="15" required id="articleContent"></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Tags" class="form-label">برچسب‌ها</label>
+                                <input asp-for="Tags" class="form-control" placeholder="برچسب1, برچسب2, برچسب3" />
+                                <span asp-validation-for="Tags" class="text-danger"></span>
+                                <small class="form-text text-muted">برچسب‌ها را با کاما از هم جدا کنید</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">نویسنده</label>
+                                <input value="@(Model.Author?.FirstName ?? User.Identity?.Name ?? "نامشخص") @(Model.Author?.LastName ?? "")" 
+                                       class="form-control" readonly />
+                                <small class="form-text text-muted">نویسنده به صورت خودکار تعیین می‌شود</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive" class="form-check-label">
+                            مقاله فعال باشد
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            مقالات غیرفعال در جستجو و فهرست نمایش داده نمی‌شوند
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" name="action" value="save" class="btn btn-primary">
+                                <i class="bi bi-check"></i> ذخیره تغییرات
+                            </button>
+                            <button type="submit" name="action" value="saveAndPublish" class="btn btn-success">
+                                <i class="bi bi-upload"></i> ذخیره و انتشار
+                            </button>
+                            <a asp-action="ArticleDetails" asp-route-id="@Model.Id" class="btn btn-secondary">
+                                انصراف
+                            </a>
+                        </div>
+                        <div>
+                            @if (ViewBag.IsAdmin == true)
+                            {
+                                <button type="button" class="btn btn-danger" onclick="confirmDelete(@Model.Id)">
+                                    <i class="bi bi-trash"></i> حذف مقاله
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <!-- Article Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">آمار مقاله</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th>بازدیدها:</th>
+                        <td><span class="badge bg-primary">@Model.ViewCount</span></td>
+                    </tr>
+                    <tr>
+                        <th>وضعیت:</th>
+                        <td>
+                            <span class="badge bg-@(Model.IsPublished ? "success" : "warning")">
+                                @(Model.IsPublished ? "منتشر شده" : "پیش‌نویس")
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>ایجاد شده:</th>
+                        <td>@Model.CreatedAt.ToString("yyyy/MM/dd")</td>
+                    </tr>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <tr>
+                            <th>آخرین ویرایش:</th>
+                            <td>@Model.UpdatedAt.Value.ToString("yyyy/MM/dd")</td>
+                        </tr>
+                    }
+                    @if (Model.PublishedAt.HasValue)
+                    {
+                        <tr>
+                            <th>تاریخ انتشار:</th>
+                            <td>@Model.PublishedAt.Value.ToString("yyyy/MM/dd")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">پیش‌نمایش</h3>
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-outline-info w-100 mb-2" onclick="previewArticle()">
+                    <i class="bi bi-eye"></i> پیش‌نمایش در پنجره جدید
+                </button>
+                <small class="text-muted">
+                    پیش‌نمایش مقاله را قبل از انتشار مشاهده کنید
+                </small>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">راهنما</h3>
+            </div>
+            <div class="card-body">
+                <h6>نکات مفید:</h6>
+                <ul class="small">
+                    <li>از عناوین واضح و توصیفی استفاده کنید</li>
+                    <li>برچسب‌های مرتبط اضافه کنید</li>
+                    <li>خلاصه مقاله را کامل کنید</li>
+                    <li>محتوا را قبل از انتشار بررسی کنید</li>
+                </ul>
+                
+                <h6 class="mt-3">فرمت‌بندی:</h6>
+                <ul class="small">
+                    <li>از markdown برای فرمت‌بندی استفاده کنید</li>
+                    <li>**متن پررنگ**</li>
+                    <li>*متن کج*</li>
+                    <li># عنوان اصلی</li>
+                    <li>## عنوان فرعی</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Related Articles -->
+        @if (ViewBag.RelatedArticles != null)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">مقالات مرتبط</h3>
+                </div>
+                <div class="card-body">
+                    @foreach (var article in ViewBag.RelatedArticles as List<Helpio.Ir.Domain.Entities.Knowledge.Articles>)
+                    {
+                        <div class="mb-2">
+                            <a asp-action="ArticleDetails" asp-route-id="@article.Id" class="text-decoration-none">
+                                <small>@article.Name</small>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <!-- Rich Text Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script>
+        function confirmDelete(articleId) {
+            if (confirm('آیا از حذف این مقاله مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                window.location.href = '@Url.Action("DeleteArticle", "Knowledge")/' + articleId;
+            }
+        }
+
+        function previewArticle() {
+            const content = document.getElementById('articleContent').value;
+            const title = document.querySelector('input[name="Name"]').value;
+            
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>پیش‌نمایش: ${title}</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                        .preview-header { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="preview-header">
+                            <h1>${title}</h1>
+                            <small class="text-muted">پیش‌نمایش مقاله</small>
+                        </div>
+                        <div class="content">
+                            ${marked.parse(content)}
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+
+        // Auto-save functionality
+        let autoSaveInterval;
+        
+        function startAutoSave() {
+            autoSaveInterval = setInterval(() => {
+                // Auto-save implementation
+                console.log('Auto-saving article...');
+            }, 30000); // Auto-save every 30 seconds
+        }
+
+        // Start auto-save when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoSave();
+        });
+
+        // Save before leaving page
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        function hasUnsavedChanges() {
+            // Implementation to check for unsaved changes
+            return false;
+        }
+    </script>
+}

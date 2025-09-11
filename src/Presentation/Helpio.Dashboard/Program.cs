@@ -1,5 +1,6 @@
-using Helpio.Dashboard.Middleware;
+﻿using Helpio.Dashboard.Middleware;
 using Helpio.Dashboard.Services;
+using Helpio.Ir.Application.Mappings;
 using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,8 @@ public class Program
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -62,6 +65,9 @@ public class Program
         builder.Services.AddScoped<IOrganizationService, OrganizationService>();
         builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
+        // Add AutoMapper
+        builder.Services.AddAutoMapper(typeof(MappingProfile)); // Add AutoMapper
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -71,8 +77,14 @@ public class Program
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
+        else
+        {
+            // Use developer exception page without hot reload
+            app.UseDeveloperExceptionPage();
+        }
 
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
         app.UseRouting();
 
         app.UseAuthentication();
@@ -81,11 +93,9 @@ public class Program
         // Add user context middleware AFTER authentication
         app.UseUserContext();
 
-        app.MapStaticAssets();
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Dashboard}/{action=Index}/{id?}")
-            .WithStaticAssets();
+            pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
         // Initialize database with default users
         await DatabaseInitializer.SeedDefaultUsersAsync(app.Services);

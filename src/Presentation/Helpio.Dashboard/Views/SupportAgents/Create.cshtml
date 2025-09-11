@@ -1,0 +1,278 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.SupportAgent
+@{
+    ViewData["Title"] = "ایجاد کارشناس جدید";
+    var users = ViewBag.Users as List<Helpio.Ir.Domain.Entities.Core.User>;
+    var teams = ViewBag.Teams as List<Helpio.Ir.Domain.Entities.Core.Team>;
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ایجاد کارشناس جدید</h3>
+                <div class="card-tools">
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h6><i class="bi bi-exclamation-triangle"></i> لطفا خطاهای زیر را برطرف کنید:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="UserId" class="form-label">کاربر <span class="text-danger">*</span></label>
+                                <select asp-for="UserId" class="form-select" required>
+                                    <option value="">انتخاب کاربر</option>
+                                    @if (users != null)
+                                    {
+                                        @foreach (var user in users)
+                                        {
+                                            <option value="@user.Id">@user.FirstName @user.LastName (@user.Email)</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="UserId" class="text-danger"></span>
+                                @if (users == null || !users.Any())
+                                {
+                                    <small class="text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        هیچ کاربری برای تبدیل به کارشناس یافت نشد.
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="AgentCode" class="form-label">کد کارشناس</label>
+                                <input asp-for="AgentCode" class="form-control" placeholder="خودکار تولید می‌شود" />
+                                <span asp-validation-for="AgentCode" class="text-danger"></span>
+                                <small class="form-text text-muted">در صورت خالی گذاشتن، خودکار تولید می‌شود</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TeamId" class="form-label">تیم</label>
+                                <select asp-for="TeamId" class="form-select">
+                                    <option value="">بدون تیم</option>
+                                    @if (teams != null)
+                                    {
+                                        @foreach (var team in teams)
+                                        {
+                                            <option value="@team.Id">@team.Name (@team.Branch?.Name)</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="TeamId" class="text-danger"></span>
+                                <small class="form-text text-muted">تیم می‌تواند بعداً تعیین شود</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Department" class="form-label">بخش</label>
+                                <input asp-for="Department" class="form-control" placeholder="مثال: فنی، فروش، پشتیبانی" />
+                                <span asp-validation-for="Department" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Position" class="form-label">مقام</label>
+                                <input asp-for="Position" class="form-control" placeholder="مثال: کارشناس ارشد، کارشناس" />
+                                <span asp-validation-for="Position" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Specialization" class="form-label">تخصص</label>
+                                <select asp-for="Specialization" class="form-select">
+                                    <option value="">انتخاب تخصص</option>
+                                    <option value="Technical">فنی</option>
+                                    <option value="Billing">مالی</option>
+                                    <option value="Sales">فروش</option>
+                                    <option value="General">عمومی</option>
+                                    <option value="Customer Service">خدمات مشتری</option>
+                                </select>
+                                <span asp-validation-for="Specialization" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="SupportLevel" class="form-label">سطح پشتیبانی</label>
+                                <select asp-for="SupportLevel" class="form-select">
+                                    <option value="1">L1 - پایه</option>
+                                    <option value="2">L2 - متوسط</option>
+                                    <option value="3">L3 - پیشرفته</option>
+                                    <option value="4">L4 - متخصص</option>
+                                </select>
+                                <span asp-validation-for="SupportLevel" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="HireDate" class="form-label">تاریخ استخدام</label>
+                                <input asp-for="HireDate" type="date" class="form-control" />
+                                <span asp-validation-for="HireDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="MaxConcurrentTickets" class="form-label">حداکثر تیکت همزمان</label>
+                                <input asp-for="MaxConcurrentTickets" type="number" min="1" max="50" class="form-control" value="10" />
+                                <span asp-validation-for="MaxConcurrentTickets" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Salary" class="form-label">حقوق (ریال)</label>
+                                <input asp-for="Salary" type="number" min="0" class="form-control" placeholder="0" />
+                                <span asp-validation-for="Salary" class="text-danger"></span>
+                                <small class="form-text text-muted">اختیاری</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                            <label asp-for="IsActive" class="form-check-label">
+                                                فعال
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input asp-for="IsAvailable" class="form-check-input" type="checkbox" checked />
+                                            <label asp-for="IsAvailable" class="form-check-label">
+                                                در دسترس
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted d-block">
+                                    کارشناسان غیرفعال قابل اختصاص تیکت نیستند
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ایجاد کارشناس
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Help Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">راهنما</h3>
+            </div>
+            <div class="card-body">
+                <h6>نکات مهم:</h6>
+                <ul class="small">
+                    <li>هر کاربر فقط یک بار می‌تواند کارشناس شود</li>
+                    <li>کد کارشناس باید منحصر به فرد باشد</li>
+                    <li>تیم می‌تواند بعداً تعیین شود</li>
+                    <li>سطح پشتیبانی تعیین‌کننده نوع تیکت‌های قابل اختصاص است</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>سطوح پشتیبانی:</h6>
+                <ul class="small">
+                    <li><strong>L1:</strong> مسائل ساده و پایه</li>
+                    <li><strong>L2:</strong> مسائل متوسط و تخصصی</li>
+                    <li><strong>L3:</strong> مسائل پیچیده</li>
+                    <li><strong>L4:</strong> مسائل بحرانی و متخصصانه</li>
+                </ul>
+
+                <hr>
+
+                <h6>تخصص‌ها:</h6>
+                <ul class="small">
+                    <li><strong>فنی:</strong> مسائل تکنیکال</li>
+                    <li><strong>مالی:</strong> مسائل صورتحساب و پرداخت</li>
+                    <li><strong>فروش:</strong> پرسش‌های فروش</li>
+                    <li><strong>عمومی:</strong> سایر موارد</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        @if (ViewBag.IsAdmin == true)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">آمار سیستم</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">@(users?.Count ?? 0)</h4>
+                            <small class="text-muted">کاربر موجود</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">@(teams?.Count ?? 0)</h4>
+                            <small class="text-muted">تیم فعال</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        // Set default hire date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const hireDateField = document.querySelector('input[name="HireDate"]');
+            if (hireDateField && !hireDateField.value) {
+                const today = new Date().toISOString().split('T')[0];
+                hireDateField.value = today;
+            }
+
+            // Format salary field
+            const salaryField = document.querySelector('input[name="Salary"]');
+            if (salaryField) {
+                salaryField.addEventListener('input', function() {
+                    let value = this.value.replace(/,/g, '');
+                    if (!isNaN(value) && value !== '') {
+                        this.value = parseInt(value).toLocaleString();
+                    }
+                });
+            }
+        });
+    </script>
+}

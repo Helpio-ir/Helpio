@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using System.Text.RegularExpressions;
 using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Domain.Entities.Ticketing;
@@ -271,7 +271,8 @@ namespace Helpio.Ir.Application.Mappings
             // CannedResponse mappings
             CreateMap<CannedResponse, CannedResponseDto>();
             CreateMap<CreateCannedResponseDto, CannedResponse>()
-                .ForMember(dest => dest.UsageCount, opt => opt.MapFrom(src => 0));
+                .ForMember(dest => dest.UsageCount, opt => opt.MapFrom(src => 0))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
             CreateMap<UpdateCannedResponseDto, CannedResponse>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())

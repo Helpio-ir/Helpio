@@ -98,10 +98,42 @@
         <div class="card mt-3">
             <div class="card-header">
                 <h3 class="card-title">آمار مشتری</h3>
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <div class="card-tools">
+                        <button class="btn btn-sm btn-outline-info" onclick="toggleDebugInfo()">
+                            <i class="bi bi-bug"></i> Debug
+                        </button>
+                    </div>
+                }
             </div>
             <div class="card-body">
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <div id="debugInfo" class="alert alert-info" style="display: none;">
+                        <h6>Debug Information:</h6>
+                        <small>
+                            Total Tickets in Collection: @Model.Tickets.Count<br>
+                            @if (ViewBag.TicketStates != null)
+                            {
+                                @foreach (var state in (List<Helpio.Ir.Domain.Entities.Ticketing.TicketState>)ViewBag.TicketStates)
+                                {
+                                    var stateCount = Model.Tickets.Count(t => t.TicketStateId == state.Id);
+                                    @($"{state.Description} ({state.Name}): {stateCount} tickets")<br>
+                                }
+                            }
+                            Current User Role: @(ViewBag.IsAdmin == true ? "Admin" : ViewBag.IsManager == true ? "Manager" : ViewBag.IsAgent == true ? "Agent" : "Unknown")<br>
+                            Customer ID: @Model.Id<br>
+                            Organization ID: @(ViewBag.CurrentOrganizationId ?? "None")<br>
+                            Team ID: @(ViewBag.CurrentTeamId ?? "None")<br>
+                            Available Ticket States: @(ViewBag.TicketStates != null ? ((List<Helpio.Ir.Domain.Entities.Ticketing.TicketState>)ViewBag.TicketStates).Count : 0)
+                        </small>
+                    </div>
+                }
+                
                 <div class="row">
-                    <div class="col-md-3">
+                    <!-- کل تیکت‌ها -->
+                    <div class="col-xl-3 col-md-6 mb-3">
                         <div class="info-box">
                             <span class="info-box-icon bg-info"><i class="bi bi-ticket-detailed"></i></span>
                             <div class="info-box-content">
@@ -110,25 +142,61 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-warning"><i class="bi bi-exclamation-triangle"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">تیکت‌های باز</span>
-                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Open")</span>
+                    
+                    @if (ViewBag.TicketStates != null)
+                    {
+                        @foreach (var state in (List<Helpio.Ir.Domain.Entities.Ticketing.TicketState>)ViewBag.TicketStates)
+                        {
+                            var stateCount = Model.Tickets.Count(t => t.TicketStateId == state.Id);
+                            
+                            // Skip states with 0 tickets to save space (optional)
+                            if (stateCount == 0 && !ViewBag.IsAdmin) { continue; }
+                            
+                            var iconClass = state.IsFinal ? "bi-check-circle" : state.IsDefault ? "bi-exclamation-triangle" : "bi-clock";
+                            var badgeColor = state.IsFinal ? "success" : state.IsDefault ? "warning" : "primary";
+                            
+                            <div class="col-xl-3 col-md-6 mb-3">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-@badgeColor" style="background-color: @state.ColorCode !important;">
+                                        <i class="bi @iconClass"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@(state.Description ?? state.Name)</span>
+                                        <span class="info-box-number">@stateCount</span>
+                                        @if (ViewBag.IsAdmin == true)
+                                        {
+                                            <small class="text-muted d-block">@state.Name</small>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback for when TicketStates are not available -->
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="bi bi-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">تیکت‌های باز</span>
+                                    <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Open")</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">تیکت‌های بسته</span>
-                                <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Closed")</span>
+                        <div class="col-xl-3 col-md-6 mb-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">تیکت‌های بسته</span>
+                                    <span class="info-box-number">@Model.Tickets.Count(t => t.TicketState.Name == "Closed")</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
+                    }
+                    
+                    <!-- سفارشات -->
+                    <div class="col-xl-3 col-md-6 mb-3">
                         <div class="info-box">
                             <span class="info-box-icon bg-secondary"><i class="bi bi-cart"></i></span>
                             <div class="info-box-content">
@@ -299,3 +367,14 @@
         </div>
     </div>
 </div>
+
+<script>
+    function toggleDebugInfo() {
+        var debugInfo = document.getElementById('debugInfo');
+        if (debugInfo.style.display === 'none' || debugInfo.style.display === '') {
+            debugInfo.style.display = 'block';
+        } else {
+            debugInfo.style.display = 'none';
+        }
+    }
+</script>

@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Helpio.Ir.Domain.Entities.Core
 {
     public class SupportAgent : BaseEntity
     {
-        public int TeamId { get; set; }
+        public int? TeamId { get; set; }  // Changed to nullable
         public int UserId { get; set; }
         public int ProfileId { get; set; }
         public string AgentCode { get; set; } = string.Empty;
@@ -21,7 +21,7 @@ namespace Helpio.Ir.Domain.Entities.Core
         public int CurrentTicketCount { get; set; } = 0;
         
         // Navigation properties
-        public virtual Team Team { get; set; } = null!;
+        public virtual Team? Team { get; set; }  // Changed to nullable
         public virtual User User { get; set; } = null!;
         public virtual Profile Profile { get; set; } = null!;
         public virtual ICollection<Team> ManagedTeams { get; set; } = new List<Team>();

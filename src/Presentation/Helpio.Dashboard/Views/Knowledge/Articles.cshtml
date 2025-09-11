@@ -64,10 +64,10 @@
                                                         <i class="bi bi-three-dots"></i>
                                                     </button>
                                                     <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item" href="#"><i class="bi bi-pencil"></i> ویرایش</a></li>
-                                                        <li><a class="dropdown-item" href="#"><i class="bi bi-files"></i> کپی</a></li>
+                                                        <li><a class="dropdown-item" asp-action="EditArticle" asp-route-id="@article.Id"><i class="bi bi-pencil"></i> ویرایش</a></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="copyArticle(@article.Id)"><i class="bi bi-files"></i> کپی</a></li>
                                                         <li><hr class="dropdown-divider"></li>
-                                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash"></i> حذف</a></li>
+                                                        <li><a class="dropdown-item text-danger" href="#" onclick="confirmDeleteArticle(@article.Id)"><i class="bi bi-trash"></i> حذف</a></li>
                                                     </ul>
                                                 </div>
                                             }
@@ -115,9 +115,17 @@
                                     </div>
                                     <div class="card-footer">
                                         <div class="d-flex justify-content-between">
-                                            <a asp-action="ArticleDetails" asp-route-id="@article.Id" class="btn btn-primary btn-sm">
-                                                <i class="bi bi-eye"></i> مطالعه
-                                            </a>
+                                            <div>
+                                                <a asp-action="ArticleDetails" asp-route-id="@article.Id" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-eye"></i> مطالعه
+                                                </a>
+                                                @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                                {
+                                                    <a asp-action="EditArticle" asp-route-id="@article.Id" class="btn btn-warning btn-sm">
+                                                        <i class="bi bi-pencil"></i> ویرایش
+                                                    </a>
+                                                }
+                                            </div>
                                             <div>
                                                 <span class="badge bg-@(article.IsPublished ? "success" : "warning")">
                                                     @(article.IsPublished ? "منتشر شده" : "پیش‌نویس")
@@ -233,6 +241,18 @@
                     article.style.display = 'none';
                 }
             });
+        }
+
+        function confirmDeleteArticle(articleId) {
+            if (confirm('آیا از حذف این مقاله مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+                window.location.href = '@Url.Action("DeleteArticle", "Knowledge")/' + articleId;
+            }
+        }
+
+        function copyArticle(articleId) {
+            if (confirm('آیا می‌خواهید یک کپی از این مقاله ایجاد کنید؟')) {
+                window.location.href = '@Url.Action("CopyArticle", "Knowledge")/' + articleId;
+            }
         }
 
         // Real-time search

@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug JavaScript Functions - CreateCannedResponse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .debug-container {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .test-button {
+            margin: 2px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Test Elements (Simulating CreateCannedResponse page)</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Simulate form elements -->
+                        <div class="mb-3">
+                            <label>Name</label>
+                            <input name="Name" class="form-control" value="Test Response">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Content</label>
+                            <textarea id="responseContent" class="form-control" rows="5" placeholder="Test content here...">سلام {نام_مشتری} عزیز، چطور می‌توانم کمک کنم؟</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Tags</label>
+                            <input id="tagsInput" name="Tags" class="form-control" value="">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Preview</label>
+                            <div id="previewContent" class="border p-3 bg-white" style="min-height: 100px;">
+                                Preview will appear here...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Function Tests</h5>
+                        <button class="btn btn-sm btn-primary" onclick="runAllTests()">Run All Tests</button>
+                        <button class="btn btn-sm btn-secondary" onclick="clearLog()">Clear Log</button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Test buttons -->
+                        <div class="mb-3">
+                            <h6>Variable Tests:</h6>
+                            <button class="btn btn-sm btn-outline-primary test-button" onclick="testInsertVariable('{نام_مشتری}')">Test نام_مشتری</button>
+                            <button class="btn btn-sm btn-outline-primary test-button" onclick="testInsertVariable('{شماره_تیکت}')">Test شماره_تیکت</button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Tag Tests:</h6>
+                            <button class="btn btn-sm btn-outline-success test-button" onclick="testAddTag('پشتیبانی')">Test Add پشتیبانی</button>
+                            <button class="btn btn-sm btn-outline-success test-button" onclick="testAddTag('فنی')">Test Add فنی</button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Template Tests:</h6>
+                            <button class="btn btn-sm btn-outline-info test-button" onclick="testUseTemplate('greeting')">Test Greeting</button>
+                            <button class="btn btn-sm btn-outline-info test-button" onclick="testUseTemplate('closing')">Test Closing</button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Other Tests:</h6>
+                            <button class="btn btn-sm btn-outline-warning test-button" onclick="testUpdatePreview()">Test Update Preview</button>
+                            <button class="btn btn-sm btn-outline-danger test-button" onclick="testTestResponse()">Test Response Window</button>
+                        </div>
+                        
+                        <div class="debug-container border p-2" id="debugLog">
+                            <div class="text-muted">Debug log will appear here...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('debugLog');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logDiv.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = '<div class="text-muted">Debug log cleared...</div>';
+        }
+
+        // Copy the functions from CreateCannedResponse
+        window.cannedResponseApp = {
+            templates: {
+                greeting: "سلام {نام_مشتری} عزیز،\n\nامیدوارم حال شما خوب باشد.",
+                closing: "با تشکر،\n{نام_کارشناس}\nتیم پشتیبانی"
+            }
+        };
+
+        window.insertVariable = function(variable) {
+            log(`insertVariable called with: ${variable}`);
+            try {
+                const textarea = document.getElementById('responseContent');
+                if (!textarea) {
+                    throw new Error('Response content textarea not found');
+                }
+                
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                
+                textarea.value = text.substring(0, start) + variable + text.substring(end);
+                textarea.focus();
+                textarea.setSelectionRange(start + variable.length, start + variable.length);
+                
+                log(`Variable ${variable} inserted successfully`, 'success');
+                if (window.updatePreview) window.updatePreview();
+            } catch (error) {
+                log(`Error in insertVariable: ${error.message}`, 'error');
+            }
+        };
+
+        window.addTag = function(tag) {
+            log(`addTag called with: ${tag}`);
+            try {
+                const tagsInput = document.getElementById('tagsInput');
+                if (!tagsInput) {
+                    throw new Error('Tags input not found');
+                }
+                
+                const currentTags = tagsInput.value.trim();
+                if (currentTags) {
+                    const tagsArray = currentTags.split(',').map(t => t.trim());
+                    if (!tagsArray.includes(tag)) {
+                        tagsInput.value = currentTags + ', ' + tag;
+                    } else {
+                        log(`Tag ${tag} already exists`, 'info');
+                        return;
+                    }
+                } else {
+                    tagsInput.value = tag;
+                }
+                
+                log(`Tag ${tag} added successfully`, 'success');
+            } catch (error) {
+                log(`Error in addTag: ${error.message}`, 'error');
+            }
+        };
+
+        window.useTemplate = function(templateName) {
+            log(`useTemplate called with: ${templateName}`);
+            try {
+                const templates = window.cannedResponseApp.templates;
+                if (!templates[templateName]) {
+                    throw new Error(`Template ${templateName} not found`);
+                }
+                
+                const textarea = document.getElementById('responseContent');
+                if (!textarea) {
+                    throw new Error('Response content textarea not found');
+                }
+                
+                textarea.value = templates[templateName];
+                log(`Template ${templateName} applied successfully`, 'success');
+                if (window.updatePreview) window.updatePreview();
+            } catch (error) {
+                log(`Error in useTemplate: ${error.message}`, 'error');
+            }
+        };
+
+        window.updatePreview = function() {
+            log('updatePreview called');
+            try {
+                const textarea = document.getElementById('responseContent');
+                const previewDiv = document.getElementById('previewContent');
+                
+                if (!textarea || !previewDiv) {
+                    throw new Error('Required elements not found');
+                }
+                
+                const content = textarea.value;
+                if (content.trim()) {
+                    let preview = content
+                        .replace(/{نام_مشتری}/g, '<span class="text-primary fw-bold">احمد محمدی</span>')
+                        .replace(/{شماره_تیکت}/g, '<span class="text-info fw-bold">#12345</span>')
+                        .replace(/{نام_شرکت}/g, '<span class="text-success fw-bold">شرکت نمونه</span>')
+                        .replace(/{تاریخ_امروز}/g, '<span class="text-warning fw-bold">' + new Date().toLocaleDateString('fa-IR') + '</span>')
+                        .replace(/{نام_کارشناس}/g, '<span class="text-secondary fw-bold">علی رضایی</span>')
+                        .replace(/\n/g, '<br>');
+                    
+                    previewDiv.innerHTML = preview;
+                } else {
+                    previewDiv.innerHTML = '<div class="text-muted">Preview will appear here...</div>';
+                }
+                
+                log('Preview updated successfully', 'success');
+            } catch (error) {
+                log(`Error in updatePreview: ${error.message}`, 'error');
+            }
+        };
+
+        window.testResponse = function() {
+            log('testResponse called');
+            try {
+                const textarea = document.getElementById('responseContent');
+                const content = textarea.value;
+                
+                if (!content.trim()) {
+                    throw new Error('No content to test');
+                }
+                
+                const testWindow = window.open('', '_blank', 'width=600,height=400');
+                if (!testWindow) {
+                    throw new Error('Popup blocked');
+                }
+                
+                const htmlContent = 
+                    '<html dir="rtl"><head><title>Test Response</title>' +
+                    '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">' +
+                    '</head><body><div class="container mt-4"><h4>Test Response</h4>' +
+                    '<div class="card"><div class="card-body">' + content.replace(/\n/g, '<br>') + '</div></div>' +
+                    '<div class="mt-3 text-center"><button class="btn btn-secondary" onclick="window.close()">Close</button></div>' +
+                    '</div></body></html>';
+                
+                testWindow.document.write(htmlContent);
+                testWindow.document.close();
+                
+                log('Test window opened successfully', 'success');
+            } catch (error) {
+                log(`Error in testResponse: ${error.message}`, 'error');
+            }
+        };
+
+        // Test functions
+        function testInsertVariable(variable) {
+            if (window.insertVariable) {
+                window.insertVariable(variable);
+            } else {
+                log('insertVariable function not found', 'error');
+            }
+        }
+
+        function testAddTag(tag) {
+            if (window.addTag) {
+                window.addTag(tag);
+            } else {
+                log('addTag function not found', 'error');
+            }
+        }
+
+        function testUseTemplate(template) {
+            if (window.useTemplate) {
+                window.useTemplate(template);
+            } else {
+                log('useTemplate function not found', 'error');
+            }
+        }
+
+        function testUpdatePreview() {
+            if (window.updatePreview) {
+                window.updatePreview();
+            } else {
+                log('updatePreview function not found', 'error');
+            }
+        }
+
+        function testTestResponse() {
+            if (window.testResponse) {
+                window.testResponse();
+            } else {
+                log('testResponse function not found', 'error');
+            }
+        }
+
+        function runAllTests() {
+            log('=== RUNNING ALL TESTS ===', 'info');
+            
+            // Test function existence
+            const functions = ['insertVariable', 'addTag', 'useTemplate', 'updatePreview', 'testResponse'];
+            functions.forEach(func => {
+                if (window[func]) {
+                    log(`✅ ${func}: Available`, 'success');
+                } else {
+                    log(`❌ ${func}: NOT FOUND`, 'error');
+                }
+            });
+            
+            // Test actual functionality
+            setTimeout(() => {
+                testUpdatePreview();
+                setTimeout(() => testInsertVariable('{نام_مشتری}'), 500);
+                setTimeout(() => testAddTag('تست'), 1000);
+                setTimeout(() => testUseTemplate('greeting'), 1500);
+            }, 200);
+            
+            log('=== TESTS COMPLETED ===', 'info');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Debug page loaded', 'success');
+            
+            // Setup auto-update preview
+            document.getElementById('responseContent').addEventListener('input', function() {
+                if (window.updatePreview) {
+                    window.updatePreview();
+                }
+            });
+            
+            // Initial preview update
+            setTimeout(testUpdatePreview, 100);
+        });
+    </script>
+</body>
+</html>

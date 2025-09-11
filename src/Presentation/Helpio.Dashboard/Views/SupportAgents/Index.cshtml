@@ -1,0 +1,301 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Core.SupportAgent>
+@{
+    ViewData["Title"] = "لیست کارشناسان";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-people"></i> کارشناسان پشتیبانی
+                    <span class="badge bg-primary ms-2">@Model.Count</span>
+                </h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="Create" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus"></i> کارشناس جدید
+                        </a>
+                    }
+                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleFilters()">
+                        <i class="bi bi-funnel"></i> فیلترها
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div id="filtersSection" class="card-body border-bottom" style="display: none;">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select id="teamFilter" class="form-select form-select-sm">
+                            <option value="">همه تیم‌ها</option>
+                            @foreach (var team in Model.Where(a => a.Team != null).Select(a => a.Team).Distinct())
+                            {
+                                <option value="@team.Id">@team.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="">همه وضعیت‌ها</option>
+                            <option value="active">فعال</option>
+                            <option value="inactive">غیرفعال</option>
+                            <option value="available">در دسترس</option>
+                            <option value="busy">مشغول</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="levelFilter" class="form-select form-select-sm">
+                            <option value="">همه سطوح</option>
+                            <option value="1">L1 - پایه</option>
+                            <option value="2">L2 - متوسط</option>
+                            <option value="3">L3 - پیشرفته</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="searchFilter" class="form-control form-control-sm" placeholder="جستجو در نام، کد...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                @if (Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="agentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>کارشناس</th>
+                                    <th>تیم</th>
+                                    <th>سطح</th>
+                                    <th>وضعیت</th>
+                                    <th>تیکت‌ها</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var agent in Model)
+                                {
+                                    <tr data-team="@agent.TeamId" data-status="@(agent.IsActive ? "active" : "inactive")" data-level="@agent.SupportLevel" data-search="@(agent.User.FirstName + " " + agent.User.LastName + " " + agent.AgentCode + " " + agent.Position)">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <span class="text-white fw-bold">
+                                                        @(agent.User.FirstName?.Substring(0, 1).ToUpper())@(agent.User.LastName?.Substring(0, 1).ToUpper())
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <strong>@agent.User.FirstName @agent.User.LastName</strong>
+                                                    <br>
+                                                    <small class="text-muted">@agent.AgentCode • @agent.Position</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (agent.Team != null)
+                                            {
+                                                <a asp-controller="Teams" asp-action="Details" asp-route-id="@agent.TeamId" class="text-decoration-none">
+                                                    @agent.Team.Name
+                                                </a>
+                                                <br>
+                                                <small class="text-muted">@agent.Team.Branch?.Name</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">بدون تیم</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(agent.SupportLevel == 1 ? "secondary" : agent.SupportLevel == 2 ? "primary" : "success")">
+                                                L@agent.SupportLevel
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">@agent.Specialization</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                @if (agent.IsActive)
+                                                {
+                                                    <span class="badge bg-success mb-1">فعال</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger mb-1">غیرفعال</span>
+                                                }
+                                                
+                                                @if (agent.IsAvailable)
+                                                {
+                                                    <span class="badge bg-info">در دسترس</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">مشغول</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-center">
+                                                <h6 class="mb-1">@agent.CurrentTicketCount/@agent.MaxConcurrentTickets</h6>
+                                                <div class="progress" style="height: 5px;">
+                                                    @{
+                                                        var percentage = agent.MaxConcurrentTickets > 0 ? (agent.CurrentTicketCount * 100 / agent.MaxConcurrentTickets) : 0;
+                                                        var progressClass = percentage < 50 ? "bg-success" : percentage < 80 ? "bg-warning" : "bg-danger";
+                                                    }
+                                                    <div class="progress-bar @progressClass" role="progressbar" style="width: @percentage%"></div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    @agent.AssignedTickets.Count(t => t.TicketState.Name == "Open") باز
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@agent.Id" class="btn btn-sm btn-outline-primary" title="جزئیات">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                                {
+                                                    <a asp-action="Edit" asp-route-id="@agent.Id" class="btn btn-sm btn-outline-warning" title="ویرایش">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                }
+                                                <a href="mailto:@agent.User.Email" class="btn btn-sm btn-outline-success" title="ایمیل">
+                                                    <i class="bi bi-envelope"></i>
+                                                </a>
+                                                @if (!string.IsNullOrEmpty(agent.User.PhoneNumber))
+                                                {
+                                                    <a href="tel:@agent.User.PhoneNumber" class="btn btn-sm btn-outline-info" title="تماس">
+                                                        <i class="bi bi-telephone"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Info -->
+                    <div class="card-footer">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    نمایش <span id="showingCount">@Model.Count</span> از @Model.Count کارشناس
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportAgents()">
+                                    <i class="bi bi-download"></i> خروجی Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+                        <h4 class="text-muted mt-3">هیچ کارشناسی یافت نشد</h4>
+                        <p class="text-muted">برای شروع، اولین کارشناس را ایجاد کنید</p>
+                        @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                        {
+                            <a asp-action="Create" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> ایجاد کارشناس جدید
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleFilters() {
+            const filtersSection = document.getElementById('filtersSection');
+            filtersSection.style.display = filtersSection.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function applyFilters() {
+            const teamFilter = document.getElementById('teamFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const levelFilter = document.getElementById('levelFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#agentsTable tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                let show = true;
+
+                // Team filter
+                if (teamFilter && row.dataset.team !== teamFilter) {
+                    show = false;
+                }
+
+                // Status filter
+                if (statusFilter) {
+                    const isActive = row.dataset.status === 'active';
+                    const isAvailable = row.querySelector('.badge.bg-info') !== null;
+                    
+                    if (statusFilter === 'active' && !isActive) show = false;
+                    if (statusFilter === 'inactive' && isActive) show = false;
+                    if (statusFilter === 'available' && !isAvailable) show = false;
+                    if (statusFilter === 'busy' && isAvailable) show = false;
+                }
+
+                // Level filter
+                if (levelFilter && row.dataset.level !== levelFilter) {
+                    show = false;
+                }
+
+                // Search filter
+                if (searchFilter && !row.dataset.search.toLowerCase().includes(searchFilter)) {
+                    show = false;
+                }
+
+                row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            document.getElementById('showingCount').textContent = visibleCount;
+        }
+
+        function exportAgents() {
+            alert('قابلیت خروجی Excel در نسخه بعدی اضافه خواهد شد');
+        }
+
+        // Event listeners
+        document.getElementById('teamFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('levelFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchFilter').addEventListener('input', applyFilters);
+    </script>
+
+    <style>
+        .avatar {
+            transition: all 0.2s ease;
+        }
+        
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .progress {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-group .btn {
+            border-radius: 4px !important;
+            margin-right: 2px;
+        }
+    </style>
+}

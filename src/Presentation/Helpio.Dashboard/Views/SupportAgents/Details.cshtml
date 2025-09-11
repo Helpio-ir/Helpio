@@ -1,0 +1,319 @@
+﻿@model Helpio.Ir.Domain.Entities.Core.SupportAgent
+@{
+    ViewData["Title"] = "جزئیات کارشناس";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">@Model.User.FirstName @Model.User.LastName</h3>
+                <div class="card-tools">
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> ویرایش
+                        </a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>نام:</th>
+                                <td>@Model.User.FirstName</td>
+                            </tr>
+                            <tr>
+                                <th>نام خانوادگی:</th>
+                                <td>@Model.User.LastName</td>
+                            </tr>
+                            <tr>
+                                <th>ایمیل:</th>
+                                <td>
+                                    <a href="mailto:@Model.User.Email">@Model.User.Email</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تلفن:</th>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(Model.User.PhoneNumber))
+                                    {
+                                        <a href="tel:@Model.User.PhoneNumber">@Model.User.PhoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">ثبت نشده</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>کد کارشناس:</th>
+                                <td><strong>@Model.AgentCode</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>تیم:</th>
+                                <td>
+                                    @if (Model.Team != null)
+                                    {
+                                        <a asp-controller="Teams" asp-action="Details" asp-route-id="@Model.TeamId">
+                                            @Model.Team.Name
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">@Model.Team.Branch?.Name</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">بدون تیم</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>مقام:</th>
+                                <td>@Model.Position</td>
+                            </tr>
+                            <tr>
+                                <th>بخش:</th>
+                                <td>@Model.Department</td>
+                            </tr>
+                            <tr>
+                                <th>تخصص:</th>
+                                <td>@Model.Specialization</td>
+                            </tr>
+                            <tr>
+                                <th>سطح پشتیبانی:</th>
+                                <td>
+                                    <span class="badge bg-@(Model.SupportLevel == 1 ? "secondary" : Model.SupportLevel == 2 ? "primary" : "success")">
+                                        L@Model.SupportLevel
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">آمار عملکرد</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">@Model.CurrentTicketCount</h4>
+                        <small class="text-muted">تیکت فعال</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">@Model.AssignedTickets.Count</h4>
+                        <small class="text-muted">کل تیکت‌ها</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">@Model.AssignedTickets.Count(t => t.TicketState.Name == "Open")</h4>
+                        <small class="text-muted">تیکت‌های باز</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">@Model.AssignedTickets.Count(t => t.TicketState.Name == "Closed")</h4>
+                        <small class="text-muted">تیکت‌های حل شده</small>
+                    </div>
+                </div>
+                
+                <!-- Workload Progress -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between">
+                        <span>بارکاری فعلی:</span>
+                        <span>@Model.CurrentTicketCount / @Model.MaxConcurrentTickets</span>
+                    </div>
+                    <div class="progress mt-2">
+                        @{
+                            var workload = Model.MaxConcurrentTickets > 0 ? (Model.CurrentTicketCount * 100 / Model.MaxConcurrentTickets) : 0;
+                            var progressClass = workload < 50 ? "bg-success" : workload < 80 ? "bg-warning" : "bg-danger";
+                        }
+                        <div class="progress-bar @progressClass" role="progressbar" style="width: @workload%">
+                            @workload%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">تیکت‌های اخیر</h3>
+                <div class="card-tools">
+                    <a asp-controller="Tickets" asp-action="Index" asp-route-agentId="@Model.Id" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-ticket"></i> همه تیکت‌ها
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.AssignedTickets.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>شماره</th>
+                                    <th>عنوان</th>
+                                    <th>مشتری</th>
+                                    <th>وضعیت</th>
+                                    <th>تاریخ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ticket in Model.AssignedTickets.OrderByDescending(t => t.CreatedAt).Take(5))
+                                {
+                                    <tr>
+                                        <td><strong>#@ticket.Id</strong></td>
+                                        <td>
+                                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@ticket.Id">
+                                                @ticket.Title
+                                            </a>
+                                        </td>
+                                        <td>@ticket.Customer.FirstName @ticket.Customer.LastName</td>
+                                        <td>
+                                            <span class="badge bg-@(ticket.TicketState.Name == "Open" ? "warning" : "success")">
+                                                @ticket.TicketState.Name
+                                            </span>
+                                        </td>
+                                        <td>@ticket.CreatedAt.ToString("yyyy/MM/dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="bi bi-ticket" style="font-size: 2rem; color: #ccc;"></i>
+                        <p class="text-muted mt-2">هیچ تیکتی اختصاص داده نشده</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Status Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">وضعیت کارشناس</h3>
+            </div>
+            <div class="card-body text-center">
+                @if (Model.IsActive)
+                {
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        <h5 class="text-success mt-2">فعال</h5>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <i class="bi bi-x-circle text-danger" style="font-size: 3rem;"></i>
+                        <h5 class="text-danger mt-2">غیرفعال</h5>
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-6">
+                        @if (Model.IsAvailable)
+                        {
+                            <span class="badge bg-success">در دسترس</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">مشغول</span>
+                        }
+                    </div>
+                    <div class="col-6">
+                        <span class="badge bg-info">L@Model.SupportLevel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">عملیات سریع</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="mailto:@Model.User.Email" class="btn btn-outline-primary">
+                        <i class="bi bi-envelope"></i> ارسال ایمیل
+                    </a>
+                    @if (!string.IsNullOrEmpty(Model.User.PhoneNumber))
+                    {
+                        <a href="tel:@Model.User.PhoneNumber" class="btn btn-outline-success">
+                            <i class="bi bi-telephone"></i> تماس تلفنی
+                        </a>
+                    }
+                    <a asp-controller="Tickets" asp-action="Create" asp-route-agentId="@Model.Id" class="btn btn-outline-info">
+                        <i class="bi bi-plus"></i> اختصاص تیکت جدید
+                    </a>
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <button class="btn btn-outline-warning" onclick="toggleAvailability(@Model.Id, @Model.IsAvailable.ToString().ToLower())">
+                            <i class="bi bi-@(Model.IsAvailable ? "pause" : "play")"></i>
+                            @(Model.IsAvailable ? "غیرفعال کردن" : "فعال کردن")
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Employment Info -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات استخدام</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between">
+                        <span>تاریخ استخدام:</span>
+                        <strong>@Model.HireDate.ToString("yyyy/MM/dd")</strong>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span>سابقه کار:</span>
+                        <strong>@((DateTime.Now - Model.HireDate).Days) روز</strong>
+                    </li>
+                    @if (Model.Salary > 0)
+                    {
+                        <li class="d-flex justify-content-between">
+                            <span>حقوق:</span>
+                            <strong>@Model.Salary.ToString("N0") ریال</strong>
+                        </li>
+                    }
+                    <li class="d-flex justify-content-between">
+                        <span>حداکثر تیکت همزمان:</span>
+                        <strong>@Model.MaxConcurrentTickets</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleAvailability(agentId, currentStatus) {
+            const action = currentStatus ? 'غیرفعال' : 'فعال';
+            if (confirm(`آیا می‌خواهید کارشناس را ${action} کنید؟`)) {
+                // Implementation for toggling availability
+                alert('قابلیت تغییر وضعیت در نسخه بعدی اضافه خواهد شد');
+            }
+        }
+    </script>
+}

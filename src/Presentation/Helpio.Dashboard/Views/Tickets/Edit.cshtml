@@ -1,0 +1,189 @@
+﻿@model Helpio.Ir.Domain.Entities.Ticketing.Ticket
+@{
+    ViewData["Title"] = "ویرایش تیکت";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">ویرایش تیکت #@Model.Id</h3>
+                <div class="card-tools">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> بازگشت
+                    </a>
+                </div>
+            </div>
+            <form asp-action="Edit" method="post">
+                <input asp-for="Id" type="hidden" />
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Title" class="form-label">عنوان تیکت <span class="text-danger">*</span></label>
+                                <input asp-for="Title" class="form-control" required />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Priority" class="form-label">اولویت</label>
+                                <select asp-for="Priority" class="form-select">
+                                    <option value="1">کم</option>
+                                    <option value="2">عادی</option>
+                                    <option value="3">بالا</option>
+                                    <option value="4">بحرانی</option>
+                                </select>
+                                <span asp-validation-for="Priority" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="TicketCategoryId" class="form-label">دسته‌بندی</label>
+                                <select asp-for="TicketCategoryId" class="form-select">
+                                    <option value="">انتخاب دسته‌بندی</option>
+                                    @foreach (var category in ViewBag.Categories as List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="TicketCategoryId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="SupportAgentId" class="form-label">کارشناس مسئول</label>
+                                <select asp-for="SupportAgentId" class="form-select">
+                                    <option value="">عدم تخصیص</option>
+                                    @foreach (var agent in ViewBag.Agents as List<Helpio.Ir.Domain.Entities.Core.SupportAgent>)
+                                    {
+                                        <option value="@agent.Id">@agent.User.FirstName @agent.User.LastName</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SupportAgentId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="DueDate" class="form-label">تاریخ مقرر</label>
+                                <input asp-for="DueDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="DueDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="EstimatedHours" class="form-label">ساعت تخمینی</label>
+                                <input asp-for="EstimatedHours" type="number" step="0.5" class="form-control" />
+                                <span asp-validation-for="EstimatedHours" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label">شرح مسئله <span class="text-danger">*</span></label>
+                        <textarea asp-for="Description" class="form-control" rows="5" required></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Resolution))
+                    {
+                        <div class="form-group mb-3">
+                            <label asp-for="Resolution" class="form-label">راه‌حل</label>
+                            <textarea asp-for="Resolution" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Resolution" class="text-danger"></span>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check"></i> ذخیره تغییرات
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Ticket Info -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات تیکت</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th>شماره تیکت:</th>
+                        <td>#@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <th>مشتری:</th>
+                        <td>@Model.Customer?.FirstName @Model.Customer?.LastName</td>
+                    </tr>
+                    <tr>
+                        <th>وضعیت فعلی:</th>
+                        <td>
+                            <span class="badge bg-@(Model.TicketState?.Name == "Open" ? "warning" : Model.TicketState?.Name == "Closed" ? "success" : "primary")">
+                                @Model.TicketState?.Name
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>تاریخ ایجاد:</th>
+                        <td>@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                    </tr>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <tr>
+                            <th>آخرین بروزرسانی:</th>
+                            <td>@Model.UpdatedAt.Value.ToString("yyyy/MM/dd HH:mm")</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">آخرین فعالیت‌ها</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Responses.Any())
+                {
+                    @foreach (var response in Model.Responses.OrderByDescending(r => r.CreatedAt).Take(3))
+                    {
+                        <div class="d-flex mb-2">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-chat text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                <small>
+                                    <strong>@response.User.FirstName @response.User.LastName</strong>
+                                    <br>
+                                    <span class="text-muted">@response.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                                </small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">هیچ فعالیتی ثبت نشده</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

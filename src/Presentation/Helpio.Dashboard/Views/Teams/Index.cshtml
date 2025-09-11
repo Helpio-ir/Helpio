@@ -77,15 +77,17 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-sm btn-info">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
-                                            {
-                                                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">
-                                                    <i class="bi bi-pencil"></i>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
-                                            }
+                                                @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                                                {
+                                                    <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                }
+                                            </div>
                                         </td>
                                     </tr>
                                 }

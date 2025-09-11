@@ -163,58 +163,125 @@
         <!-- Responses -->
         <div class="card mt-3">
             <div class="card-header">
-                <h3 class="card-title">پاسخ‌ها و گفت‌وگو</h3>
+                <h3 class="card-title">
+                    <i class="bi bi-chat-dots"></i> پاسخ‌ها و گفت‌وگو
+                    <span class="badge bg-primary ms-2">@Model.Responses.Count</span>
+                </h3>
             </div>
             <div class="card-body">
                 @if (Model.Responses.Any())
                 {
-                    @foreach (var response in Model.Responses.OrderBy(r => r.CreatedAt))
-                    {
-                        <div class="d-flex mb-4">
-                            <div class="flex-shrink-0">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
-                                     style="width: 40px; height: 40px;">
-                                    <i class="bi bi-person text-white"></i>
+                    <div class="conversation-thread">
+                        @foreach (var response in Model.Responses.OrderBy(r => r.CreatedAt))
+                        {
+                            <div class="response-item mb-4">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 45px; height: 45px;">
+                                            <span class="text-white fw-bold">
+                                                @(response.User.FirstName?.Substring(0, 1).ToUpper())@(response.User.LastName?.Substring(0, 1).ToUpper())
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="response-bubble">
+                                            <div class="response-header d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong class="text-primary">@response.User.FirstName @response.User.LastName</strong>
+                                                    <small class="text-muted ms-2">
+                                                        <i class="bi bi-clock"></i> 
+                                                        @response.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    @if (response.UserId == ViewBag.CurrentUserId)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-secondary" onclick="editResponse(@response.Id)">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="response-content bg-light rounded p-3">
+                                                @Html.Raw(response.Content.Replace("\n", "<br>"))
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <div class="card">
-                                    <div class="card-header py-2">
-                                        <small>
-                                            <strong>@response.User.FirstName @response.User.LastName</strong>
-                                            <span class="text-muted">- @response.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
-                                        </small>
-                                    </div>
-                                    <div class="card-body py-2">
-                                        @Html.Raw(response.Content.Replace("\n", "<br>"))
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 }
                 else
                 {
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-chat" style="font-size: 2rem;"></i>
-                        <p>هنوز پاسخی ثبت نشده است</p>
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-chat-square-dots" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <h5 class="mt-3">هنوز پاسخی ثبت نشده است</h5>
+                        <p>اولین نفری باشید که پاسخ می‌دهد</p>
                     </div>
                 }
                 
                 <!-- Add Response Form -->
-                @if (ViewBag.IsAgent == true || ViewBag.IsManager == true)
+                @if (ViewBag.IsAgent == true || ViewBag.IsManager == true || ViewBag.IsAdmin == true)
                 {
-                    <hr>
-                    <form method="post" asp-action="AddResponse" asp-route-id="@Model.Id">
-                        <div class="form-group mb-3">
-                            <label for="responseContent" class="form-label">افزودن پاسخ:</label>
-                            <textarea name="content" id="responseContent" class="form-control" rows="4" 
-                                      placeholder="پاسخ خود را اینجا بنویسید..." required></textarea>
+                    <div class="add-response-section mt-4">
+                        <hr>
+                        <div class="response-form-container">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar bg-success rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 45px; height: 45px;">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <form method="post" asp-action="AddResponse" asp-route-id="@Model.Id" id="responseForm">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group mb-3">
+                                            <label for="responseContent" class="form-label fw-bold">
+                                                <i class="bi bi-chat-left-text"></i> افزودن پاسخ:
+                                            </label>
+                                            <textarea name="content" id="responseContent" class="form-control" rows="4" 
+                                                      placeholder="پاسخ خود را اینجا بنویسید..." required></textarea>
+                                            <div class="form-text">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-info-circle"></i> 
+                                                    پاسخ شما برای مشتری قابل مشاهده خواهد بود
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                            <div class="response-actions mb-2">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-send"></i> ارسال پاسخ
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary ms-2" onclick="clearResponse()">
+                                                    <i class="bi bi-x-circle"></i> پاک کردن
+                                                </button>
+                                            </div>
+                                            <div class="response-options mb-2">
+                                                <button type="button" class="btn btn-outline-info btn-sm" onclick="loadCannedResponses()">
+                                                    <i class="bi bi-bookmarks"></i> پاسخ‌های آماده
+                                                </button>
+                                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="insertVariable()">
+                                                    <i class="bi bi-person"></i> متغیرها
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send"></i> ارسال پاسخ
-                        </button>
-                    </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mt-4">
+                        <i class="bi bi-info-circle"></i>
+                        فقط کارشناسان و مدیران می‌توانند پاسخ ارسال کنند.
+                    </div>
                 }
             </div>
         </div>
@@ -224,38 +291,81 @@
         {
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">یادداشت‌های داخلی</h3>
+                    <h3 class="card-title">
+                        <i class="bi bi-sticky"></i> یادداشت‌های داخلی
+                        <span class="badge bg-warning ms-2">@Model.Notes.Count</span>
+                    </h3>
+                    <small class="text-muted">فقط برای تیم قابل مشاهده</small>
                 </div>
                 <div class="card-body">
                     @if (Model.Notes.Any())
                     {
-                        @foreach (var note in Model.Notes.OrderBy(n => n.CreatedAt))
-                        {
-                            <div class="alert alert-info">
-                                <div class="d-flex justify-content-between">
-                                    <strong>@note.SupportAgent?.User?.FirstName @note.SupportAgent?.User?.LastName</strong>
-                                    <small>@note.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small>
+                        <div class="notes-container">
+                            @foreach (var note in Model.Notes.OrderByDescending(n => n.CreatedAt))
+                            {
+                                <div class="alert alert-warning border-start border-warning border-4">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="note-info">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-person-badge text-warning me-2"></i>
+                                                <strong>@note.SupportAgent?.User?.FirstName @note.SupportAgent?.User?.LastName</strong>
+                                                <small class="text-muted ms-2">
+                                                    <i class="bi bi-clock"></i> 
+                                                    @note.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                                                </small>
+                                            </div>
+                                            <div class="note-content">
+                                                @Html.Raw(note.Description.Replace("\n", "<br>"))
+                                            </div>
+                                        </div>
+                                        @if (note.SupportAgentId == ViewBag.CurrentSupportAgentId)
+                                        {
+                                            <div class="note-actions">
+                                                <button class="btn btn-sm btn-outline-warning" onclick="editNote(@note.Id)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
-                                <p class="mb-0 mt-2">@Html.Raw(note.Description.Replace("\n", "<br>"))</p>
-                            </div>
-                        }
+                            }
+                        </div>
                     }
                     else
                     {
-                        <p class="text-muted">هیچ یادداشت داخلی وجود ندارد</p>
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-sticky" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p class="mt-2">هیچ یادداشت داخلی وجود ندارد</p>
+                        </div>
                     }
                     
                     <!-- Add Note Form -->
-                    <form method="post" asp-action="AddNote" asp-route-id="@Model.Id">
-                        <div class="form-group mb-3">
-                            <label for="noteContent" class="form-label">افزودن یادداشت داخلی:</label>
-                            <textarea name="content" id="noteContent" class="form-control" rows="3" 
-                                      placeholder="یادداشت داخلی (فقط برای تیم قابل مشاهده است)"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-sticky"></i> افزودن یادداشت
-                        </button>
-                    </form>
+                    <div class="add-note-section mt-4">
+                        <hr>
+                        <form method="post" asp-action="AddNote" asp-route-id="@Model.Id" id="noteForm">
+                            <div class="form-group mb-3">
+                                <label for="noteContent" class="form-label fw-bold">
+                                    <i class="bi bi-sticky"></i> افزودن یادداشت داخلی:
+                                </label>
+                                <textarea name="content" id="noteContent" class="form-control" rows="3" 
+                                          placeholder="یادداشت داخلی (فقط برای تیم قابل مشاهده است)" required></textarea>
+                                <div class="form-text">
+                                    <small class="text-warning">
+                                        <i class="bi bi-shield-exclamation"></i> 
+                                        این یادداشت فقط برای کارشناسان و مدیران قابل مشاهده است
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-sticky"></i> افزودن یادداشت
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearNote()">
+                                    <i class="bi bi-x-circle"></i> پاک کردن
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         }
@@ -392,12 +502,387 @@
 </div>
 
 @section Scripts {
-    <script>
-        function changeTicketStatus(ticketId, newStatus) {
-            if (confirm('آیا مطمئن هستید؟')) {
-                // Implementation for changing ticket status
-                console.log('Changing ticket', ticketId, 'to status', newStatus);
+    <!-- Load external JavaScript -->
+    <script src="~/js/ticket-details.js" asp-append-version="true"></script>
+    
+    <style>
+        .conversation-thread {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .response-item {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .response-bubble {
+            transition: all 0.2s ease;
+        }
+
+        .response-bubble:hover {
+            transform: translateX(2px);
+        }
+
+        .avatar {
+            transition: all 0.2s ease;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .response-content {
+            border-left: 4px solid #0d6efd;
+            word-wrap: break-word;
+        }
+
+        .notes-container .alert {
+            transition: all 0.2s ease;
+        }
+
+        .notes-container .alert:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .add-response-section, .add-note-section {
+            background: linear-gradient(45deg, #f8f9fa, #ffffff);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        textarea {
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .timeline {
+            position: relative;
+            margin: 0 0 0 10px;
+        }
+
+        .timeline:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 10px;
+            width: 2px;
+            background: #dee2e6;
+        }
+
+        .timeline > div {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .timeline > div > .bi {
+            position: absolute;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 10px;
+            color: white;
+        }
+
+        .timeline-item {
+            margin-left: 35px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .timeline-header {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+        }
+
+        .timeline-body {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .bg-blue { background-color: #007bff !important; }
+        .bg-green { background-color: #28a745 !important; }
+        .bg-gray { background-color: #6c757d !important; }
+
+        /* Canned Responses Styles */
+        .canned-response-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .canned-response-item:hover {
+            border-color: #0d6efd !important;
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .canned-response-item.selected {
+            border-color: #0d6efd !important;
+            background-color: #e7f3ff;
+        }
+
+        .hover-effect {
+            transition: all 0.2s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .response-preview {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.4;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .canned-responses-container {
+            scrollbar-width: thin;
+            scrollbar-color: #dee2e6 transparent;
+        }
+
+        .canned-responses-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .canned-responses-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .canned-responses-container::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 3px;
+        }
+
+        .canned-responses-container::-webkit-scrollbar-thumb:hover {
+            background: #adb5bd;
+        }
+
+        /* Variables Modal Styles */
+        #variablesModal .btn {
+            text-align: start;
+            display: flex;
+            align-items: center;
+        }
+
+        #variablesModal code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Badge improvements */
+        .badge.border {
+            border-width: 1px !important;
+        }
+
+        /* Modal improvements */
+        .modal-lg {
+            max-width: 900px;
+        }
+
+        /* Search input focus */
+        #cannedResponseSearch:focus,
+        #cannedResponseCategory:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Loading animation */
+        @@keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        #cannedResponsesLoading {
+            animation: pulse 2s infinite;
+        }
+
+        /* Toast notifications */
+        .alert.position-fixed {
+            animation: slideInDown 0.3s ease;
+        }
+
+        @@keyframes slideInDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
             }
         }
-    </script>
+
+        /* Responsive improvements */
+        @@media (max-width: 768px) {
+            .response-actions,
+            .response-options {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .response-actions .btn,
+            .response-options .btn {
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+
+            .modal-lg {
+                max-width: 95%;
+            }
+
+            .canned-response-item {
+                margin-bottom: 1rem !important;
+            }
+        }
+    </style>
 }
+
+<!-- Canned Responses Modal -->
+<div class="modal fade" id="cannedResponsesModal" tabindex="-1" aria-labelledby="cannedResponsesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cannedResponsesModalLabel">
+                    <i class="bi bi-bookmarks"></i> انتخاب پاسخ آماده
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search and Filter -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="cannedResponseSearch" 
+                                   placeholder="جستجو در پاسخ‌های آماده...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchCannedResponses()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="cannedResponseCategory" onchange="filterCannedResponses()">
+                            <option value="">همه دسته‌ها</option>
+                            <option value="پشتیبانی">پشتیبانی</option>
+                            <option value="فنی">فنی</option>
+                            <option value="مالی">مالی</option>
+                            <option value="عمومی">عمومی</option>
+                            <option value="فروش">فروش</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="cannedResponsesLoading" class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    در حال بارگذاری پاسخ‌های آماده...
+                </div>
+
+                <!-- Canned Responses List -->
+                <div id="cannedResponsesList" class="canned-responses-container" style="display: none; max-height: 400px; overflow-y: auto;">
+                    <!-- Content will be loaded here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="cannedResponsesEmpty" class="text-center py-4 text-muted" style="display: none;">
+                    <i class="bi bi-chat-quote" style="font-size: 3rem; opacity: 0.5;"></i>
+                    <h5 class="mt-3">هیچ پاسخ آماده‌ای یافت نشد</h5>
+                    <p>پاسخ آماده‌ای با این مشخصات موجود نیست</p>
+                    <a asp-controller="Knowledge" asp-action="CreateCannedResponse" class="btn btn-primary btn-sm" target="_blank">
+                        <i class="bi bi-plus"></i> ایجاد پاسخ آماده جدید
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            کلیک کنید تا پاسخ آماده را انتخاب کنید
+                        </small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                        <a asp-controller="Knowledge" asp-action="CannedResponses" class="btn btn-outline-primary" target="_blank">
+                            <i class="bi bi-gear"></i> مدیریت پاسخ‌ها
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Variables Helper Modal -->
+<div class="modal fade" id="variablesModal" tabindex="-1" aria-labelledby="variablesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="variablesModalLabel">
+                    <i class="bi bi-code-slash"></i> متغیرهای قابل استفاده
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">روی هر متغیر کلیک کنید تا به متن پاسخ اضافه شود:</p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_مشتری}'); closeVariablesModal();">
+                        <code>{نام_مشتری}</code> - نام کامل مشتری
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{شماره_تیکت}'); closeVariablesModal();">
+                        <code>{شماره_تیکت}</code> - شماره تیکت فعلی
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_شرکت}'); closeVariablesModal();">
+                        <code>{نام_شرکت}</code> - نام شرکت مشتری
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{تاریخ_امروز}'); closeVariablesModal();">
+                        <code>{تاریخ_امروز}</code> - تاریخ جاری
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_کارشناس}'); closeVariablesModal();">
+                        <code>{نام_کارشناس}</code> - نام کارشناس پاسخ‌دهنده
+                    </button>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <small>
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>نکته:</strong> متغیرها هنگام ارسال پاسخ به صورت خودکار با مقادیر واقعی جایگزین می‌شوند.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External JS Test - CreateCannedResponse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .test-result { margin: 5px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .cursor-pointer { cursor: pointer; transition: all 0.2s ease; }
+        .cursor-pointer:hover { background-color: #e9ecef !important; transform: scale(1.05); }
+    </style>
+</head>
+<body class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>External JavaScript Test</h2>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                این صفحه بررسی می‌کند که external JavaScript file کار می‌کند.
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Simulated CreateCannedResponse Elements</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Name field -->
+                    <div class="mb-3">
+                        <label class="form-label">نام پاسخ آماده</label>
+                        <input name="Name" class="form-control" value="تست پاسخ آماده">
+                    </div>
+                    
+                    <!-- Content field -->
+                    <div class="mb-3">
+                        <label class="form-label">محتوای پاسخ</label>
+                        <textarea id="responseContent" class="form-control" rows="5" placeholder="محتوای پاسخ آماده را اینجا وارد کنید...">سلام {نام_مشتری} عزیز</textarea>
+                        
+                        <!-- Variable buttons -->
+                        <div class="mt-2">
+                            <small class="text-muted">متغیرهای قابل استفاده:</small>
+                            <div class="btn-group btn-group-sm mt-1 flex-wrap">
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_مشتری}')">نام مشتری</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{شماره_تیکت}')">شماره تیکت</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="insertVariable('{نام_کارشناس}')">نام کارشناس</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags field -->
+                    <div class="mb-3">
+                        <label class="form-label">برچسب‌ها</label>
+                        <input id="tagsInput" name="Tags" class="form-control" placeholder="پشتیبانی, فنی, مالی">
+                        
+                        <!-- Tag buttons -->
+                        <div class="mt-2">
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('پشتیبانی')">پشتیبانی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('فنی')">فنی</span>
+                            <span class="badge bg-light text-dark border me-1 mb-1 cursor-pointer" onclick="addTag('عمومی')">عمومی</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action buttons -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-info" onclick="testResponse()"><i class="bi bi-play"></i> تست پاسخ</button>
+                        <button type="button" class="btn btn-outline-warning" onclick="clearForm()"><i class="bi bi-x-circle"></i> پاک کردن فرم</button>
+                        <button type="button" class="btn btn-outline-info" onclick="debugElements()"><i class="bi bi-bug"></i> Debug</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>پیش‌نمایش زنده</h5>
+                </div>
+                <div class="card-body">
+                    <div id="previewContent" class="border rounded p-3 bg-light" style="min-height: 100px;">
+                        پیش‌نمایش اینجا نمایش داده می‌شود
+                    </div>
+                    <button type="button" class="btn btn-outline-info w-100 mt-2" onclick="updatePreview()">
+                        <i class="bi bi-arrow-clockwise"></i> بروزرسانی پیش‌نمایش
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Templates -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>قالب‌های آماده</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('greeting')">
+                            <i class="bi bi-hand-wave"></i> سلام و احوالپرسی
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('closing')">
+                            <i class="bi bi-door-open"></i> پایان مکالمه
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="useTemplate('investigation')">
+                            <i class="bi bi-search"></i> درخواست اطلاعات
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Results -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>نتایج تست</h5>
+                    <button class="btn btn-sm btn-primary" onclick="runAllTests()">اجرای همه تست‌ها</button>
+                </div>
+                <div class="card-body">
+                    <div id="testResults" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-muted">نتایج تست اینجا نمایش داده می‌شود...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load our external JavaScript -->
+    <script src="/js/create-canned-response.js"></script>
+    
+    <script>
+        // Test functions
+        function logTest(name, result) {
+            var resultsDiv = document.getElementById('testResults');
+            var time = new Date().toLocaleTimeString();
+            var className = result === 'SUCCESS' || result.startsWith('SUCCESS') ? 'success' : 'error';
+            resultsDiv.innerHTML += '<div class="test-result ' + className + '">[' + time + '] <strong>' + name + ':</strong> ' + result + '</div>';
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function runAllTests() {
+            document.getElementById('testResults').innerHTML = '<h6>Running Tests...</h6>';
+            
+            // Function availability test
+            var functions = ['insertVariable', 'addTag', 'useTemplate', 'updatePreview', 'testResponse', 'clearForm', 'debugElements'];
+            functions.forEach(function(funcName) {
+                var available = typeof window[funcName] === 'function';
+                logTest(funcName + ' Availability', available ? 'SUCCESS' : 'ERROR: Not found');
+            });
+            
+            // Element availability test
+            var elements = {
+                'responseContent': document.getElementById('responseContent'),
+                'previewContent': document.getElementById('previewContent'),
+                'tagsInput': document.getElementById('tagsInput')
+            };
+            
+            for (var name in elements) {
+                logTest(name + ' Element', elements[name] ? 'SUCCESS' : 'ERROR: Not found');
+            }
+            
+            // Functional tests
+            setTimeout(function() {
+                try {
+                    window.updatePreview();
+                    logTest('updatePreview Execution', 'SUCCESS');
+                } catch (e) {
+                    logTest('updatePreview Execution', 'ERROR: ' + e.message);
+                }
+                
+                setTimeout(function() {
+                    try {
+                        window.insertVariable('{نام_مشتری}');
+                        logTest('insertVariable Execution', 'SUCCESS');
+                    } catch (e) {
+                        logTest('insertVariable Execution', 'ERROR: ' + e.message);
+                    }
+                }, 200);
+                
+                setTimeout(function() {
+                    try {
+                        window.addTag('تست');
+                        logTest('addTag Execution', 'SUCCESS');
+                    } catch (e) {
+                        logTest('addTag Execution', 'ERROR: ' + e.message);
+                    }
+                }, 400);
+            }, 500);
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', function() {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Function Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .function-test {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+    </style>
+</head>
+<body class="container mt-4">
+    <h3>Quick Function Test</h3>
+    <div id="results"></div>
+    
+    <!-- Simulate form elements -->
+    <div class="d-none">
+        <textarea id="responseContent">سلام {نام_مشتری}</textarea>
+        <input id="tagsInput" name="Tags" value="">
+        <div id="previewContent"></div>
+    </div>
+
+    <script>
+        // Copy exact functions from CreateCannedResponse
+        window.cannedResponseApp = {
+            templates: {
+                greeting: "سلام {نام_مشتری} عزیز،\\n\\nامیدوارم حال شما خوب باشد.",
+                closing: "با تشکر،\\n{نام_کارشناس}"
+            }
+        };
+
+        window.insertVariable = function(variable) {
+            console.log('insertVariable called with:', variable);
+            try {
+                var textarea = document.getElementById('responseContent');
+                if (!textarea) {
+                    throw new Error('Response content textarea not found');
+                }
+                
+                var start = textarea.selectionStart;
+                var end = textarea.selectionEnd;
+                var text = textarea.value;
+                
+                textarea.value = text.substring(0, start) + variable + text.substring(end);
+                textarea.focus();
+                textarea.setSelectionRange(start + variable.length, start + variable.length);
+                
+                return 'SUCCESS: Variable inserted';
+            } catch (error) {
+                return 'ERROR: ' + error.message;
+            }
+        };
+
+        window.addTag = function(tag) {
+            console.log('addTag called with:', tag);
+            try {
+                var tagsInput = document.getElementById('tagsInput');
+                if (!tagsInput) {
+                    throw new Error('Tags input not found');
+                }
+                
+                var currentTags = tagsInput.value.trim();
+                if (currentTags) {
+                    tagsInput.value = currentTags + ', ' + tag;
+                } else {
+                    tagsInput.value = tag;
+                }
+                
+                return 'SUCCESS: Tag added';
+            } catch (error) {
+                return 'ERROR: ' + error.message;
+            }
+        };
+
+        window.useTemplate = function(templateName) {
+            console.log('useTemplate called with:', templateName);
+            try {
+                var templates = window.cannedResponseApp.templates;
+                if (!templates[templateName]) {
+                    throw new Error('Template not found: ' + templateName);
+                }
+                
+                var textarea = document.getElementById('responseContent');
+                if (!textarea) {
+                    throw new Error('Response content textarea not found');
+                }
+                
+                textarea.value = templates[templateName].replace(/\\n/g, '\n');
+                return 'SUCCESS: Template applied';
+            } catch (error) {
+                return 'ERROR: ' + error.message;
+            }
+        };
+
+        window.updatePreview = function() {
+            try {
+                var textarea = document.getElementById('responseContent');
+                var previewDiv = document.getElementById('previewContent');
+                
+                if (!textarea || !previewDiv) {
+                    throw new Error('Required elements not found');
+                }
+                
+                var content = textarea.value;
+                if (content.trim()) {
+                    var preview = content
+                        .replace(/{نام_مشتری}/g, '<span class="text-primary">احمد محمدی</span>')
+                        .replace(/\n/g, '<br>');
+                    previewDiv.innerHTML = preview;
+                } else {
+                    previewDiv.innerHTML = 'No content';
+                }
+                
+                return 'SUCCESS: Preview updated';
+            } catch (error) {
+                return 'ERROR: ' + error.message;
+            }
+        };
+
+        // Test all functions
+        function runTests() {
+            var results = document.getElementById('results');
+            results.innerHTML = '<h4>Running Tests...</h4>';
+            
+            var tests = [
+                {
+                    name: 'insertVariable Test',
+                    test: function() { return window.insertVariable('{نام_مشتری}'); }
+                },
+                {
+                    name: 'addTag Test',
+                    test: function() { return window.addTag('تست'); }
+                },
+                {
+                    name: 'useTemplate Test',
+                    test: function() { return window.useTemplate('greeting'); }
+                },
+                {
+                    name: 'updatePreview Test',
+                    test: function() { return window.updatePreview(); }
+                }
+            ];
+            
+            tests.forEach(function(test) {
+                try {
+                    var result = test.test();
+                    var className = result.startsWith('SUCCESS') ? 'success' : 'error';
+                    results.innerHTML += '<div class="function-test ' + className + '">' +
+                        '<strong>' + test.name + ':</strong> ' + result + '</div>';
+                } catch (error) {
+                    results.innerHTML += '<div class="function-test error">' +
+                        '<strong>' + test.name + ':</strong> ERROR: ' + error.message + '</div>';
+                }
+            });
+            
+            // Check function availability
+            results.innerHTML += '<h4>Function Availability:</h4>';
+            var functions = ['insertVariable', 'addTag', 'useTemplate', 'updatePreview'];
+            functions.forEach(function(funcName) {
+                var available = typeof window[funcName] === 'function';
+                var className = available ? 'success' : 'error';
+                results.innerHTML += '<div class="function-test ' + className + '">' +
+                    '<strong>' + funcName + ':</strong> ' + (available ? 'Available' : 'NOT FOUND') + '</div>';
+            });
+            
+            // Show current values
+            results.innerHTML += '<h4>Current Values:</h4>';
+            results.innerHTML += '<div class="function-test">' +
+                '<strong>Content:</strong> ' + document.getElementById('responseContent').value + '</div>';
+            results.innerHTML += '<div class="function-test">' +
+                '<strong>Tags:</strong> ' + document.getElementById('tagsInput').value + '</div>';
+            results.innerHTML += '<div class="function-test">' +
+                '<strong>Preview:</strong> ' + document.getElementById('previewContent').innerHTML + '</div>';
+        }
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded');
+            setTimeout(runTests, 100);
+        });
+    </script>
+</body>
+</html>
