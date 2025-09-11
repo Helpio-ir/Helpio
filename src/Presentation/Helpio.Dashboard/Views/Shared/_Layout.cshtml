@@ -59,11 +59,6 @@
       
       @await Html.PartialAsync("_Header")
       
-      @if (User.Identity?.IsAuthenticated == true)
-      {
-        @await Html.PartialAsync("_OrganizationInfo")
-      }
-      
       @await Html.PartialAsync("_Sidebar")
       
       <!--begin::App Main-->

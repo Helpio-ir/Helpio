@@ -17,9 +17,6 @@ html {
   min-height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
-}
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
@@ -28,4 +25,177 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* Sidebar Fixes */
+.app-sidebar {
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-wrapper {
+  height: calc(100vh - 8rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu {
+  padding-bottom: 2rem;
+}
+
+.nav-header {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-header:first-child {
+  margin-top: 0.5rem;
+}
+
+.nav-treeview {
+  max-height: none;
+  overflow: visible;
+}
+
+.nav-treeview .nav-link {
+  padding-right: 3rem;
+}
+
+/* RTL Support for Sidebar */
+[dir="rtl"] .app-sidebar {
+  right: 0;
+  left: auto;
+}
+
+[dir="rtl"] .nav-arrow {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Brand fixes */
+.sidebar-brand {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+}
+
+.brand-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+
+.brand-image {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: 0.75rem;
+}
+
+[dir="rtl"] .brand-image {
+  margin-left: 0;
+  margin-right: 0.75rem;
+}
+
+/* Organization Info Styling */
+.organization-info {
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+}
+
+.organization-info i {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+[dir="rtl"] .organization-info i {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+.organization-info .text-warning {
+  color: #ffc107 !important;
+}
+
+.organization-info .text-info {
+  color: #17a2b8 !important;
+}
+
+.organization-info .text-success {
+  color: #28a745 !important;
+}
+
+.organization-info .text-muted {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Fix for nav items spacing */
+.nav-item:last-child {
+  margin-bottom: 1rem;
+}
+
+/* Make sidebar scrollable properly */
+.app-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive sidebar */
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  [dir="rtl"] .app-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-open .app-sidebar {
+    transform: translateX(0);
+  }
+  
+  .app-main {
+    margin-right: 0 !important;
+  }
+  
+  [dir="rtl"] .app-main {
+    margin-left: 0 !important;
+  }
+  
+  .organization-info {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
 }

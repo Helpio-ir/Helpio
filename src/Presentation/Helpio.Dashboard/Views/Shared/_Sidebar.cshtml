@@ -21,18 +21,37 @@
     <!--end::Brand Link-->
   </div>
   <!--end::Sidebar Brand-->
+  
+  <!--begin::Organization Info-->
+  @if (User.Identity?.IsAuthenticated == true && UserContext.CurrentOrganization != null)
+  {
+    <div class="organization-info text-center py-2 bg-dark border-bottom border-secondary">
+      <small class="text-light">
+        <i class="bi bi-building text-warning"></i>
+        <strong>@UserContext.CurrentOrganization.Name</strong>
+        @if (UserContext.CurrentTeam != null)
+        {
+          <span class="mx-2 text-muted">|</span>
+          <i class="bi bi-people text-info"></i>
+          <span class="text-info">@UserContext.CurrentTeam.Name</span>
+        }
+        @if (UserContext.UserRoles.Any())
+        {
+          <span class="mx-2 text-muted">|</span>
+          <i class="bi bi-person-badge text-success"></i>
+          <span class="text-success">@string.Join(", ", UserContext.UserRoles)</span>
+        }
+      </small>
+    </div>
+  }
+  <!--end::Organization Info-->
+  
   <!--begin::Sidebar Wrapper-->
   <div class="sidebar-wrapper">
     <nav class="mt-2">
       <!--begin::Sidebar Menu-->
-      <ul
-        class="nav sidebar-menu flex-column"
-        data-lte-toggle="treeview"
-        role="navigation"
-        aria-label="Main navigation"
-        data-accordion="false"
-        id="navigation"
-      >
+      <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="navigation" aria-label="Main navigation" data-accordion="false">
+        
         <!-- Dashboard -->
         <li class="nav-item">
           <a asp-controller="Dashboard" asp-action="Index" class="nav-link">
@@ -153,40 +172,6 @@
           </li>
         }
 
-        <!-- Reports Section -->
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-bar-chart"></i>
-            <p>
-              گزارشات
-              <i class="nav-arrow bi bi-chevron-right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a asp-controller="Reports" asp-action="Index" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>گزارش کلی</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a asp-controller="Reports" asp-action="TicketReport" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>گزارش تیکت‌ها</p>
-              </a>
-            </li>
-            @if (UserContext.IsAdmin || UserContext.IsManager)
-            {
-              <li class="nav-item">
-                <a asp-controller="Reports" asp-action="AgentPerformance" class="nav-link">
-                  <i class="nav-icon bi bi-circle"></i>
-                  <p>عملکرد کارشناسان</p>
-                </a>
-              </li>
-            }
-          </ul>
-        </li>
-
         <!-- Knowledge Base -->
         <li class="nav-item">
           <a href="#" class="nav-link">
@@ -227,7 +212,50 @@
           </ul>
         </li>
 
-        <!-- Settings Section -->
+        <!-- Reports Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-bar-chart"></i>
+            <p>
+              گزارشات
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a asp-controller="Reports" asp-action="Index" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>گزارش کلی</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a asp-controller="Reports" asp-action="TicketReport" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>گزارش تیکت‌ها</p>
+              </a>
+            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Reports" asp-action="AgentPerformance" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>عملکرد کارشناسان</p>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+
+        <!-- User Profile -->
+        <li class="nav-header">کاربر</li>
+        <li class="nav-item">
+          <a asp-controller="Profile" asp-action="Index" class="nav-link">
+            <i class="nav-icon bi bi-person-circle"></i>
+            <p>پروفایل من</p>
+          </a>
+        </li>
+
+        <!-- Settings Section - Admin/Manager Only -->
         @if (UserContext.IsAdmin || UserContext.IsManager)
         {
           <li class="nav-header">تنظیمات</li>
@@ -256,24 +284,15 @@
                 </li>
               }
               <li class="nav-item">
-                <a asp-controller="Profile" asp-action="Index" class="nav-link">
+                <a asp-controller="Profile" asp-action="Edit" class="nav-link">
                   <i class="nav-icon bi bi-circle"></i>
-                  <p>پروفایل کاربری</p>
+                  <p>ویرایش پروفایل</p>
                 </a>
               </li>
             </ul>
           </li>
         }
 
-        <!-- User Section -->
-        <li class="nav-header">کاربر</li>
-        <li class="nav-item">
-          <a asp-controller="Profile" asp-action="Index" class="nav-link">
-            <i class="nav-icon bi bi-person-circle"></i>
-            <p>پروفایل من</p>
-          </a>
-        </li>
-        
         <!-- Help Section -->
         <li class="nav-header">راهنما</li>
         <li class="nav-item">
@@ -288,6 +307,7 @@
             <p>تماس با پشتیبانی</p>
           </a>
         </li>
+        
       </ul>
       <!--end::Sidebar Menu-->
     </nav>
