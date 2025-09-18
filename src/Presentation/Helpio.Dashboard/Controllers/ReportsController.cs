@@ -49,9 +49,15 @@ namespace Helpio.Dashboard.Controllers
         {
             var query = _context.Tickets
                 .Include(t => t.TicketState)
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
                 .AsQueryable();
 
-            query = ApplyAccessFilter(query);
+            // Apply organization filter for non-admin users
+            if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
+            {
+                query = query.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
 
             return await query
                 .GroupBy(t => t.TicketState.Name)
@@ -64,10 +70,16 @@ namespace Helpio.Dashboard.Controllers
             var query = _context.Tickets
                 .Include(t => t.SupportAgent)
                     .ThenInclude(sa => sa.User)
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
                 .Where(t => t.SupportAgent != null)
                 .AsQueryable();
 
-            query = ApplyAccessFilter(query);
+            // Apply organization filter for non-admin users
+            if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
+            {
+                query = query.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
 
             return await query
                 .GroupBy(t => t.SupportAgent!.User.FirstName + " " + t.SupportAgent.User.LastName)
@@ -83,8 +95,16 @@ namespace Helpio.Dashboard.Controllers
 
         private async Task<Dictionary<string, int>> GetMonthlyTicketsAsync()
         {
-            var query = _context.Tickets.AsQueryable();
-            query = ApplyAccessFilter(query);
+            var query = _context.Tickets
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
+                .AsQueryable();
+
+            // Apply organization filter for non-admin users
+            if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
+            {
+                query = query.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
 
             var threeMonthsAgo = DateTime.UtcNow.AddMonths(-3);
 
@@ -106,9 +126,15 @@ namespace Helpio.Dashboard.Controllers
                 .Include(t => t.TicketState)
                 .Include(t => t.SupportAgent)
                     .ThenInclude(sa => sa.User)
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
                 .AsQueryable();
 
-            query = ApplyAccessFilter(query);
+            // Apply organization filter for non-admin users
+            if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
+            {
+                query = query.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
 
             var tickets = await query
                 .OrderByDescending(t => t.CreatedAt)
@@ -125,27 +151,50 @@ namespace Helpio.Dashboard.Controllers
 
         private async Task<AgentPerformanceViewModel> GetAgentPerformanceReportAsync()
         {
-            var query = _context.SupportAgents
+            // Build base query for agents with proper organization filtering
+            var agentQuery = _context.SupportAgents
                 .Include(sa => sa.User)
-                .Include(sa => sa.AssignedTickets)
-                    .ThenInclude(t => t.TicketState)
+                .Include(sa => sa.Team)
+                    .ThenInclude(t => t.Branch)
                 .AsQueryable();
 
             if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
             {
-                query = query.Where(sa => sa.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+                agentQuery = agentQuery.Where(sa => sa.Team != null && sa.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
             }
 
-            var agents = await query.ToListAsync();
+            // Build base query for tickets with proper organization filtering
+            var ticketQuery = _context.Tickets
+                .Include(t => t.TicketState)
+                .Include(t => t.SupportAgent)
+                    .ThenInclude(sa => sa.User)
+                .Include(t => t.Team)
+                    .ThenInclude(t => t.Branch)
+                .Where(t => t.SupportAgent != null)
+                .AsQueryable();
 
-            var performance = agents.Select(agent => new AgentPerformanceItem
+            if (!IsCurrentUserAdmin && CurrentOrganizationId.HasValue)
             {
-                AgentName = $"{agent.User.FirstName} {agent.User.LastName}",
-                TotalTickets = agent.AssignedTickets.Count,
-                ClosedTickets = agent.AssignedTickets.Count(t => t.TicketState.Name == "Closed"),
-                OpenTickets = agent.AssignedTickets.Count(t => t.TicketState.Name == "Open"),
-                SuccessRate = agent.AssignedTickets.Count > 0
-                    ? (double)agent.AssignedTickets.Count(t => t.TicketState.Name == "Closed") / agent.AssignedTickets.Count * 100
+                ticketQuery = ticketQuery.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+            }
+
+            // Get agent performance data using a single efficient query
+            var agentPerformanceData = await (from agent in agentQuery
+                                            join ticket in ticketQuery on agent.Id equals ticket.SupportAgentId into agentTickets
+                                            select new
+                                            {
+                                                Agent = agent,
+                                                Tickets = agentTickets.ToList()
+                                            }).ToListAsync();
+
+            var performance = agentPerformanceData.Select(data => new AgentPerformanceItem
+            {
+                AgentName = $"{data.Agent.User.FirstName} {data.Agent.User.LastName}",
+                TotalTickets = data.Tickets.Count,
+                ClosedTickets = data.Tickets.Count(t => t.TicketState.Name == "Closed"),
+                OpenTickets = data.Tickets.Count(t => t.TicketState.Name == "Open"),
+                SuccessRate = data.Tickets.Count > 0
+                    ? (double)data.Tickets.Count(t => t.TicketState.Name == "Closed") / data.Tickets.Count * 100
                     : 0
             }).ToList();
 
@@ -153,12 +202,6 @@ namespace Helpio.Dashboard.Controllers
             {
                 Agents = performance
             };
-        }
-
-        private IQueryable<T> ApplyAccessFilter<T>(IQueryable<T> query) where T : class
-        {
-            // This is a generic method - in real implementation, you'd need specific logic per entity type
-            return query;
         }
 
         private async Task<double> CalculateAverageResolutionTimeAsync(IQueryable<Helpio.Ir.Domain.Entities.Ticketing.Ticket> query)

@@ -65,6 +65,7 @@ namespace Helpio.Dashboard.Controllers
             var categories = await GetAccessibleCategoriesAsync();
             var customers = await GetAccessibleCustomersAsync();
             var teams = await GetAccessibleTeamsAsync();
+            var agents = await GetAccessibleAgentsAsync();
 
             // Debug: Check if essential data exists
             if (!categories.Any())
@@ -85,6 +86,7 @@ namespace Helpio.Dashboard.Controllers
             ViewBag.Categories = categories;
             ViewBag.Customers = customers;
             ViewBag.Teams = teams;
+            ViewBag.Agents = agents;
             ViewBag.CanCreateTicket = canCreateTicket;
             ViewBag.SubscriptionLimitInfo = limitInfo;
             
@@ -120,6 +122,7 @@ namespace Helpio.Dashboard.Controllers
                             ViewBag.Categories = await GetAccessibleCategoriesAsync();
                             ViewBag.Customers = await GetAccessibleCustomersAsync();
                             ViewBag.Teams = await GetAccessibleTeamsAsync();
+                            ViewBag.Agents = await GetAccessibleAgentsAsync();
                             return View(dto);
                         }
                     }
@@ -137,6 +140,12 @@ namespace Helpio.Dashboard.Controllers
                         CreatedAt = DateTime.UtcNow,
                         TicketStateId = 1 // Default to "Open"
                     };
+
+                    // Set SupportAgentId if specified (Admin/Manager only)
+                    if ((IsCurrentUserAdmin || IsCurrentUserManager) && dto.SupportAgentId.HasValue && dto.SupportAgentId.Value > 0)
+                    {
+                        ticket.SupportAgentId = dto.SupportAgentId.Value;
+                    }
 
                     // Set TeamId based on user role and organization
                     if (!IsCurrentUserAdmin && CurrentTeamId.HasValue)
@@ -161,6 +170,7 @@ namespace Helpio.Dashboard.Controllers
                             ViewBag.Categories = await GetAccessibleCategoriesAsync();
                             ViewBag.Customers = await GetAccessibleCustomersAsync();
                             ViewBag.Teams = await GetAccessibleTeamsAsync();
+                            ViewBag.Agents = await GetAccessibleAgentsAsync();
                             return View(dto);
                         }
                     }
@@ -206,6 +216,7 @@ namespace Helpio.Dashboard.Controllers
             ViewBag.Categories = await GetAccessibleCategoriesAsync();
             ViewBag.Customers = await GetAccessibleCustomersAsync();
             ViewBag.Teams = await GetAccessibleTeamsAsync();
+            ViewBag.Agents = await GetAccessibleAgentsAsync();
 
             return View(dto);
         }
@@ -560,6 +571,58 @@ namespace Helpio.Dashboard.Controllers
             }
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkAssignTickets()
+        {
+            if (!IsCurrentUserAdmin && !IsCurrentUserManager)
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                // Find unassigned tickets
+                var unassignedTickets = await _context.Tickets
+                    .Where(t => t.SupportAgentId == null)
+                    .ToListAsync();
+
+                if (!unassignedTickets.Any())
+                {
+                    TempData["Info"] = "هیچ تیکت بدون تخصیصی یافت نشد.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Get available agents
+                var agents = await GetAccessibleAgentsAsync();
+                if (!agents.Any())
+                {
+                    TempData["Error"] = "هیچ کارشناسی برای تخصیص یافت نشد.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Simple round-robin assignment
+                int agentIndex = 0;
+                foreach (var ticket in unassignedTickets)
+                {
+                    ticket.SupportAgentId = agents[agentIndex].Id;
+                    ticket.UpdatedAt = DateTime.UtcNow;
+                    
+                    agentIndex = (agentIndex + 1) % agents.Count;
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"{unassignedTickets.Count} تیکت به کارشناسان تخصیص داده شد.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"خطا در تخصیص تیکت‌ها: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

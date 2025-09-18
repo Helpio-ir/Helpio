@@ -178,6 +178,25 @@
                         </div>
                     }
 
+                    @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
+                    {
+                        <div class="form-group mb-3">
+                            <label asp-for="SupportAgentId" class="form-label">کارشناس مسئول</label>
+                            <select asp-for="SupportAgentId" class="form-select">
+                                <option value="">عدم تخصیص (تخصیص دستی بعداً)</option>
+                                @if (ViewBag.Agents != null)
+                                {
+                                    @foreach (var agent in (List<Helpio.Ir.Domain.Entities.Core.SupportAgent>)ViewBag.Agents)
+                                    {
+                                        <option value="@agent.Id">@agent.User.FirstName @agent.User.LastName (@agent.AgentCode)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="SupportAgentId" class="text-danger"></span>
+                            <small class="form-text text-muted">کارشناس مسئول رسیدگی به این تیکت</small>
+                        </div>
+                    }
+
                     <!-- Debug Information -->
                     @if (ViewBag.IsAdmin == true)
                     {

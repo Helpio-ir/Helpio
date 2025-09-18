@@ -14,6 +14,11 @@
                         <a asp-action="Create" class="btn btn-primary btn-sm">
                             <i class="bi bi-plus"></i> تیکت جدید
                         </a>
+                        <form asp-action="BulkAssignTickets" method="post" class="d-inline ms-2">
+                            <button type="submit" class="btn btn-outline-secondary" onclick="return confirm('آیا مایل به تخصیص تمام تیکت‌های بدون کارشناس هستید؟')">
+                                <i class="bi bi-arrow-repeat"></i> تخصیص خودکار
+                            </button>
+                        </form>
                     }
                 </div>
             </div>

@@ -1,0 +1,368 @@
+﻿@model Helpio.Dashboard.Controllers.AgentPerformanceViewModel
+@{
+    ViewData["Title"] = "گزارش عملکرد کارشناسان";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">گزارش عملکرد کارشناسان</h3>
+                <div class="card-tools">
+                    <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+                        <i class="bi bi-file-earmark-excel"></i> خروجی Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="exportToPDF()">
+                        <i class="bi bi-file-earmark-pdf"></i> خروجی PDF
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Agents.Any())
+                {
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="bi bi-people"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">تعداد کارشناسان</span>
+                                    <span class="info-box-number">@Model.Agents.Count</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="bi bi-ticket-detailed"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">کل تیکت‌ها</span>
+                                    <span class="info-box-number">@Model.Agents.Sum(a => a.TotalTickets)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="bi bi-check-circle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">تیکت‌های بسته شده</span>
+                                    <span class="info-box-number">@Model.Agents.Sum(a => a.ClosedTickets)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="bi bi-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">تیکت‌های باز</span>
+                                    <span class="info-box-number">@Model.Agents.Sum(a => a.OpenTickets)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Charts -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">توزیع تیکت‌ها بین کارشناسان</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="ticketDistributionChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">نرخ موفقیت کارشناسان</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="successRateChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agents Performance Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="agentsTable">
+                            <thead>
+                                <tr>
+                                    <th>نام کارشناس</th>
+                                    <th>کل تیکت‌ها</th>
+                                    <th>تیکت‌های بسته شده</th>
+                                    <th>تیکت‌های باز</th>
+                                    <th>نرخ موفقیت</th>
+                                    <th>عملکرد</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var agent in Model.Agents.OrderByDescending(a => a.SuccessRate))
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@agent.AgentName</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@agent.TotalTickets</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">@agent.ClosedTickets</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning">@agent.OpenTickets</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@(agent.SuccessRate >= 80 ? "success" : agent.SuccessRate >= 60 ? "warning" : "danger")">
+                                                @agent.SuccessRate.ToString("F1")%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-@(agent.SuccessRate >= 80 ? "success" : agent.SuccessRate >= 60 ? "warning" : "danger")" 
+                                                     role="progressbar" 
+                                                     style="width: @agent.SuccessRate%" 
+                                                     aria-valuenow="@agent.SuccessRate" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    @agent.SuccessRate.ToString("F1")%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Performance Analysis -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">بهترین کارشناسان</h3>
+                                </div>
+                                <div class="card-body">
+                                    @{
+                                        var topPerformers = Model.Agents.Where(a => a.TotalTickets > 0).OrderByDescending(a => a.SuccessRate).Take(3);
+                                    }
+                                    @if (topPerformers.Any())
+                                    {
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var agent in topPerformers)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>@agent.AgentName</strong>
+                                                        <br>
+                                                        <small class="text-muted">@agent.TotalTickets تیکت پردازش شده</small>
+                                                    </div>
+                                                    <span class="badge bg-success rounded-pill">@agent.SuccessRate.ToString("F1")%</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">داده‌ای برای نمایش وجود ندارد</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">کارشناسان نیازمند بهبود</h3>
+                                </div>
+                                <div class="card-body">
+                                    @{
+                                        var needsImprovement = Model.Agents.Where(a => a.TotalTickets > 0 && a.SuccessRate < 70).OrderBy(a => a.SuccessRate).Take(3);
+                                    }
+                                    @if (needsImprovement.Any())
+                                    {
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var agent in needsImprovement)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>@agent.AgentName</strong>
+                                                        <br>
+                                                        <small class="text-muted">@agent.TotalTickets تیکت پردازش شده</small>
+                                                    </div>
+                                                    <span class="badge bg-warning rounded-pill">@agent.SuccessRate.ToString("F1")%</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">همه کارشناسان عملکرد مناسبی دارند</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">آمار کلی</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-primary">@(Model.Agents.Any() ? Model.Agents.Average(a => a.TotalTickets).ToString("F1") : "0")</h4>
+                                            <p class="text-muted">میانگین تیکت‌های هر کارشناس</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-success">@(Model.Agents.Any() ? Model.Agents.Average(a => a.SuccessRate).ToString("F1") : "0")%</h4>
+                                            <p class="text-muted">میانگین نرخ موفقیت</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-info">@(Model.Agents.Any() ? Model.Agents.Max(a => a.TotalTickets) : 0)</h4>
+                                            <p class="text-muted">بیشترین تیکت پردازش شده</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-warning">@(Model.Agents.Any() ? Model.Agents.Max(a => a.SuccessRate).ToString("F1") : "0")%</h4>
+                                            <p class="text-muted">بالاترین نرخ موفقیت</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-person-x" style="font-size: 3rem; color: #6c757d;"></i>
+                        </div>
+                        <h4 class="text-muted">کارشناسی موجود نیست</h4>
+                        <p class="text-muted">هنوز هیچ کارشناسی در سیستم ثبت نشده است یا داده‌ای برای نمایش وجود ندارد.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (Model.Agents.Any())
+            {
+                <text>
+                // Prepare data for charts
+                const agents = @Html.Raw(Json.Serialize(Model.Agents.Select(a => new { 
+                    name = a.AgentName,
+                    totalTickets = a.TotalTickets,
+                    closedTickets = a.ClosedTickets,
+                    openTickets = a.OpenTickets,
+                    successRate = a.SuccessRate
+                })));
+
+                // Ticket Distribution Chart
+                const ticketCtx = document.getElementById('ticketDistributionChart').getContext('2d');
+                new Chart(ticketCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: agents.map(a => a.name),
+                        datasets: [{
+                            data: agents.map(a => a.totalTickets),
+                            backgroundColor: [
+                                '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', 
+                                '#fd7e14', '#20c997', '#6c757d', '#e83e8c', '#17a2b8'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // Success Rate Chart
+                const successCtx = document.getElementById('successRateChart').getContext('2d');
+                new Chart(successCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: agents.map(a => a.name),
+                        datasets: [{
+                            label: 'نرخ موفقیت (%)',
+                            data: agents.map(a => a.successRate),
+                            backgroundColor: agents.map(a => 
+                                a.successRate >= 80 ? '#198754' : 
+                                a.successRate >= 60 ? '#ffc107' : '#dc3545'
+                            )
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                </text>
+            }
+        });
+
+        function exportToExcel() {
+            // Create a simple CSV export
+            let csv = 'نام کارشناس,کل تیکت‌ها,تیکت‌های بسته شده,تیکت‌های باز,نرخ موفقیت\n';
+            
+            @foreach (var agent in Model.Agents)
+            {
+                <text>csv += '@agent.AgentName,@agent.TotalTickets,@agent.ClosedTickets,@agent.OpenTickets,@agent.SuccessRate.ToString("F1")\n';</text>
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'agent-performance-report.csv';
+            link.click();
+        }
+
+        function exportToPDF() {
+            window.print();
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        @@media print {
+            .card-tools {
+                display: none !important;
+            }
+            .btn {
+                display: none !important;
+            }
+        }
+    </style>
+}

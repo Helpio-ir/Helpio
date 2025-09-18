@@ -30,5 +30,8 @@ namespace Helpio.Dashboard.Models
         
         // Optional for Admin users
         public int? TeamId { get; set; }
+        
+        // Optional assignment to support agent
+        public int? SupportAgentId { get; set; }
     }
 }
