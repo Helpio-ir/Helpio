@@ -48,7 +48,7 @@
                                     نوع اشتراک
                                 </div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    @activeSubscription.PlanType.ToString()
+                                    @(activeSubscription.Plan?.Type.ToString() ?? "Unknown")
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -284,7 +284,7 @@
                                             <td>@subscription.Name</td>
                                             <td>
                                                 <span class="badge @(subscription.IsFreemium ? "bg-warning" : "bg-info") text-dark">
-                                                    @subscription.PlanType.ToString()
+                                                    @(subscription.Plan?.Type.ToString() ?? "Unknown")
                                                 </span>
                                             </td>
                                             <td>@subscription.StartDate.ToString("yyyy/MM/dd")</td>
@@ -318,9 +318,9 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                @if (subscription.Price > 0)
+                                                @if (subscription.GetPrice() > 0)
                                                 {
-                                                    @subscription.Price.ToString("N0") @subscription.Currency
+                                                    @subscription.GetPrice().ToString("N0") @subscription.GetCurrency()
                                                 }
                                                 else
                                                 {
@@ -328,13 +328,13 @@
                                                 }
                                             </td>
                                             <td>
-                                                @if (subscription.MonthlyTicketLimit == int.MaxValue)
+                                                @if (subscription.GetMonthlyTicketLimit() == -1)
                                                 {
                                                     <span class="text-success">نامحدود</span>
                                                 }
                                                 else
                                                 {
-                                                    @subscription.MonthlyTicketLimit.ToString()
+                                                    @subscription.GetMonthlyTicketLimit().ToString()
                                                 }
                                             </td>
                                         </tr>

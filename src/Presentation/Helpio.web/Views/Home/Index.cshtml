@@ -1,8 +1,310 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "هلپیو - سیستم تیکتینگ هوشمند برای استارتاپ‌ها";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">سیستم تیکتینگ هوشمند برای استارتاپ‌های ایرانی</h1>
+                <p class="lead mb-4">پلتفرم پیشرو در ارائه خدمات پشتیبانی مشتری برای اکوسیستم استارتاپی ایران. با هلپیو، مدیریت تیکت‌ها را ساده و کارآمد کنید.</p>
+                <div class="d-flex gap-3 mb-4">
+                    <a href="#" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#signupModal">
+                        <i class="fas fa-rocket me-2"></i>شروع رایگان (۵۰ تیکت/ماه)
+                    </a>
+                    <a asp-controller="Support" asp-action="KnowledgeBase" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-book me-2"></i>مشاهده دمو
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-4 text-sm">
+                    <span><i class="fas fa-check me-1"></i>بدون نیاز به کارت اعتباری</span>
+                    <span><i class="fas fa-check me-1"></i>راه‌اندازی در ۵ دقیقه</span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-chart-line" style="font-size: 200px; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Key Benefits Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">چرا استارتاپ‌ها هلپیو را انتخاب می‌کنند؟</h2>
+            <p class="text-muted">راهکار مقرون‌به‌صرفه و کارآمد برای مدیریت پشتیبانی مشتریان</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-dollar-sign fa-3x text-success"></i>
+                    </div>
+                    <h5>مقرون‌به‌صرفه</h5>
+                    <p class="text-muted">پلن فریمیوم رایگان با ۵۰ تیکت در ماه برای شروع کار استارتاپ‌ها</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-cogs fa-3x text-primary"></i>
+                    </div>
+                    <h5>ساده و کاربرپسند</h5>
+                    <p class="text-muted">طراحی شده با حداقل پیچیدگی برای تیم‌های کوچک و در حال رشد</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-tachometer-alt fa-3x text-warning"></i>
+                    </div>
+                    <h5>کاهش زمان پاسخ</h5>
+                    <p class="text-muted">کاهش میانگین زمان پاسخ‌دهی با ارجاع هوشمند و پاسخ‌های آماده</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Features Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">ویژگی‌های کلیدی</h2>
+            <p class="text-muted">همه چیزی که برای مدیریت حرفه‌ای پشتیبانی نیاز دارید</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-ticket-alt fa-3x text-primary mb-3"></i>
+                        <h6 class="card-title">مدیریت تیکت</h6>
+                        <p class="card-text text-muted small">داشبورد بلادرنگ، ارجاع هوشمند، دسته‌بندی و اولویت‌بندی</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-book fa-3x text-info mb-3"></i>
+                        <h6 class="card-title">پایگاه دانش</h6>
+                        <p class="card-text text-muted small">مقالات راهنما، جستجوی قوی و پیشنهاد هوشمند</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
+                        <h6 class="card-title">گزارش‌دهی</h6>
+                        <p class="card-text text-muted small">تحلیل عملکرد، نظرسنجی رضایت و گزارش‌های کامل</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-users fa-3x text-warning mb-3"></i>
+                        <h6 class="card-title">مدیریت تیم</h6>
+                        <p class="card-text text-muted small">ساختار سازمانی، نقش‌ها و دسترسی‌های مختلف</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Target Audience Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">برای چه کسانی مناسب است؟</h2>
+            <p class="text-muted">گروه‌های هدف هلپیو</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <i class="fas fa-rocket fa-4x text-primary mb-3"></i>
+                        <h5 class="card-title">استارتاپ‌ها</h5>
+                        <p class="card-text text-muted">کسب‌وکارهای نوپا که به دنبال ابزار مقرون‌به‌صرفه برای مدیریت ارتباط با مشتریان هستند</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>شروع رایگان</li>
+                            <li><i class="fas fa-check text-success me-2"></i>مقیاس‌پذیری</li>
+                            <li><i class="fas fa-check text-success me-2"></i>راه‌اندازی سریع</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <i class="fas fa-building fa-4x text-success mb-3"></i>
+                        <h5 class="card-title">شرکت‌های کوچک و متوسط</h5>
+                        <p class="card-text text-muted">کسب‌وکارهایی که نیاز به یک سیستم متمرکز برای مدیریت پشتیبانی دارند</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>مدیریت تیمی</li>
+                            <li><i class="fas fa-check text-success me-2"></i>گزارش‌دهی کامل</li>
+                            <li><i class="fas fa-check text-success me-2"></i>ادغام با ایمیل</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <i class="fas fa-headset fa-4x text-info mb-3"></i>
+                        <h5 class="card-title">تیم‌های پشتیبانی</h5>
+                        <p class="card-text text-muted">تیم‌هایی که می‌خواهند تیکت‌ها را منظم و با ابزارهای کارآمد مدیریت کنند</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>ارجاع هوشمند</li>
+                            <li><i class="fas fa-check text-success me-2"></i>پاسخ‌های آماده</li>
+                            <li><i class="fas fa-check text-success me-2"></i>پیگیری عملکرد</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Business Goals Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h3 class="display-4 fw-bold text-warning">۱۰۰۰</h3>
+                    <p>هدف مشتری فریمیوم<br>در سال اول</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h3 class="display-4 fw-bold text-warning">۱۰٪</h3>
+                    <p>نرخ تبدیل به<br>پلن‌های پولی</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h3 class="display-4 fw-bold text-warning">۵۰</h3>
+                    <p>تیکت رایگان<br>در ماه</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <h3 class="display-4 fw-bold text-warning">۰</h3>
+                    <p>پیچیدگی<br>حداقل</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">چگونه کار می‌کند؟</h2>
+            <p class="text-muted">راه‌اندازی و استفاده در ۳ مرحله ساده</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="mb-0">۱</h3>
+                    </div>
+                    <h5>ثبت‌نام رایگان</h5>
+                    <p class="text-muted">با ایمیل یا شماره تلفن ثبت‌نام کنید و پلن فریمیوم را فعال کنید</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="mb-0">۲</h3>
+                    </div>
+                    <h5>تنظیمات اولیه</h5>
+                    <p class="text-muted">تیم خود را تشکیل دهید، موضوعات تیکت را تعریف کنید و ایمیل را متصل کنید</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="text-center">
+                    <div class="rounded-circle bg-info text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="mb-0">۳</h3>
+                    </div>
+                    <h5>شروع کار</h5>
+                    <p class="text-muted">تیکت‌ها را دریافت کنید، پاسخ دهید و عملکرد تیم را رصد کنید</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Access Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">دسترسی سریع</h2>
+            <p class="text-muted">بهترین راه‌های دریافت کمک</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-rocket fa-2x text-success me-3"></i>
+                            <h5 class="card-title mb-0">شروع رایگان کنید</h5>
+                        </div>
+                        <p class="card-text text-muted">همین الان ثبت‌نام کنید و از ۵۰ تیکت رایگان در ماه استفاده کنید</p>
+                        <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#signupModal">
+                            <i class="fas fa-user-plus me-2"></i>ایجاد حساب رایگان
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-search fa-2x text-primary me-3"></i>
+                            <h5 class="card-title mb-0">جستجو در راهنما</h5>
+                        </div>
+                        <p class="card-text text-muted">پاسخ سوالات خود را در پایگاه دانش جامع ما پیدا کنید</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="جستجو برای مقالات راهنما...">
+                            <button class="btn btn-primary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-gradient-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">آماده شروع هستید؟</h2>
+        <p class="lead mb-4">به ۱۰۰۰ استارتاپ ایرانی بپیوندید که به هلپیو اعتماد کرده‌اند</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="#" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#signupModal">
+                <i class="fas fa-rocket me-2"></i>شروع رایگان - بدون کارت اعتباری
+            </a>
+            <a asp-controller="Home" asp-action="Pricing" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-tag me-2"></i>مشاهده قیمت‌ها
+            </a>
+        </div>
+        <div class="mt-3 text-sm opacity-75">
+            <i class="fas fa-shield-alt me-1"></i>امن و قابل اعتماد
+            <span class="mx-3">|</span>
+            <i class="fas fa-clock me-1"></i>پشتیبانی ۲۴/۷
+            <span class="mx-3">|</span>
+            <i class="fas fa-chart-line me-1"></i>گزارش‌دهی دقیق
+        </div>
+    </div>
+</section>

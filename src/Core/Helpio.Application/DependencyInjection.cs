@@ -54,10 +54,17 @@ namespace Helpio.Ir.Application
 
         private static void RegisterBusinessServices(IServiceCollection services)
         {
+            services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISubscriptionLimitService, SubscriptionLimitService>();
             services.AddScoped<ITransactionService, TransactionService>();
+            
+            // New services - simplified registration
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ISubscriptionAnalyticsService, SubscriptionAnalyticsService>();
         }
 
         private static void RegisterKnowledgeServices(IServiceCollection services)

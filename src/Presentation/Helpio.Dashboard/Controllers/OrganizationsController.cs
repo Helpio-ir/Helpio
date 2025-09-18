@@ -47,6 +47,7 @@ namespace Helpio.Dashboard.Controllers
 
             // Get subscription information
             var subscription = await _context.Subscriptions
+                .Include(s => s.Plan)
                 .Where(s => s.OrganizationId == id && s.IsActive)
                 .OrderByDescending(s => s.CreatedAt)
                 .FirstOrDefaultAsync();
@@ -170,6 +171,32 @@ namespace Helpio.Dashboard.Controllers
                     return RedirectToAction(nameof(Details), new { id });
                 }
 
+                // First, create or get the Professional plan
+                var professionalPlan = await _context.Plans
+                    .FirstOrDefaultAsync(p => p.Type == Helpio.Ir.Domain.Entities.Business.PlanType.Professional);
+
+                if (professionalPlan == null)
+                {
+                    // Create a basic Professional plan if it doesn't exist
+                    professionalPlan = new Helpio.Ir.Domain.Entities.Business.Plan
+                    {
+                        Name = "Professional Plan",
+                        Description = "طرح حرفه‌ای با 1000 تیکت در ماه",
+                        Type = Helpio.Ir.Domain.Entities.Business.PlanType.Professional,
+                        Price = 1500000,
+                        Currency = "IRR",
+                        BillingCycleDays = 30,
+                        MonthlyTicketLimit = 1000,
+                        HasApiAccess = true,
+                        HasPrioritySupport = true,
+                        HasAdvancedReporting = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Plans.Add(professionalPlan);
+                    await _context.SaveChangesAsync();
+                }
+
                 // Create Professional subscription for testing
                 var testSubscription = new Helpio.Ir.Domain.Entities.Business.Subscription
                 {
@@ -177,23 +204,19 @@ namespace Helpio.Dashboard.Controllers
                     Description = "طرح حرفه‌ای با 1000 تیکت در ماه برای تست",
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddYears(1), // 1 year subscription
-                    Price = 1500000,
-                    Currency = "IRR",
-                    BillingCycleDays = 30,
                     Status = Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Active,
-                    PlanType = Helpio.Ir.Domain.Entities.Business.SubscriptionPlanType.Professional,
+                    PlanId = professionalPlan.Id,
                     OrganizationId = id,
                     IsActive = true,
-                    MonthlyTicketLimit = 1000,
-                    CurrentMonthTicketCount = Random.Shared.Next(5, 50), // Random usage for testing
-                    CurrentMonthStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
+                    CurrentPeriodTicketCount = Random.Shared.Next(5, 50), // Random usage for testing
+                    CurrentPeriodStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Subscriptions.Add(testSubscription);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"اشتراک Professional برای سازمان {organization.Name} با موفقیت ایجاد شد. ({testSubscription.CurrentMonthTicketCount}/1000 تیکت استفاده شده)";
+                TempData["Success"] = $"اشتراک Professional برای سازمان {organization.Name} با موفقیت ایجاد شد. ({testSubscription.CurrentPeriodTicketCount}/1000 تیکت استفاده شده)";
             }
             catch (Exception ex)
             {

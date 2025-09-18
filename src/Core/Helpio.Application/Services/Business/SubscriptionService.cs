@@ -1,8 +1,8 @@
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Helpio.Ir.Application.DTOs.Business;
 using Helpio.Ir.Application.DTOs.Common;
-using Helpio.Ir.Application.Services.Business;
 using Helpio.Ir.Application.Common.Exceptions;
 using Helpio.Ir.Application.Common.Interfaces;
 using Helpio.Ir.Domain.Interfaces;
@@ -12,18 +12,18 @@ namespace Helpio.Ir.Application.Services.Business
 {
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<SubscriptionService> _logger;
         private readonly IDateTime _dateTime;
 
         public SubscriptionService(
-            IUnitOfWork unitOfWork,
+            IApplicationDbContext context,
             IMapper mapper,
             ILogger<SubscriptionService> logger,
             IDateTime dateTime)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
             _mapper = mapper;
             _logger = logger;
             _dateTime = dateTime;
@@ -31,40 +31,46 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<SubscriptionDto?> GetByIdAsync(int id)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(id);
+            var subscription = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Include(s => s.Organization)
+                .FirstOrDefaultAsync(s => s.Id == id);
             return subscription != null ? _mapper.Map<SubscriptionDto>(subscription) : null;
         }
 
         public async Task<PaginatedResult<SubscriptionDto>> GetSubscriptionsAsync(PaginationRequest request)
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetAllAsync();
+            var query = _context.Subscriptions
+                .Include(s => s.Plan)
+                .Include(s => s.Organization)
+                .AsQueryable();
 
             // Apply search filter
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {
-                subscriptions = subscriptions.Where(s =>
-                    s.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    (s.Description != null && s.Description.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)));
+                query = query.Where(s =>
+                    s.Name.Contains(request.SearchTerm) ||
+                    (s.Description != null && s.Description.Contains(request.SearchTerm)));
             }
 
+            var totalItems = await query.CountAsync();
+
             // Apply sorting
-            subscriptions = request.SortBy?.ToLower() switch
+            var subscriptions = request.SortBy?.ToLower() switch
             {
-                "name" => request.SortDescending ? subscriptions.OrderByDescending(s => s.Name) : subscriptions.OrderBy(s => s.Name),
-                "price" => request.SortDescending ? subscriptions.OrderByDescending(s => s.Price) : subscriptions.OrderBy(s => s.Price),
-                "startdate" => request.SortDescending ? subscriptions.OrderByDescending(s => s.StartDate) : subscriptions.OrderBy(s => s.StartDate),
-                "enddate" => request.SortDescending ? subscriptions.OrderByDescending(s => s.EndDate) : subscriptions.OrderBy(s => s.EndDate),
-                "status" => request.SortDescending ? subscriptions.OrderByDescending(s => s.Status) : subscriptions.OrderBy(s => s.Status),
-                _ => subscriptions.OrderByDescending(s => s.CreatedAt)
+                "name" => request.SortDescending ? 
+                    await query.OrderByDescending(s => s.Name).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync() :
+                    await query.OrderBy(s => s.Name).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync(),
+                "startdate" => request.SortDescending ?
+                    await query.OrderByDescending(s => s.StartDate).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync() :
+                    await query.OrderBy(s => s.StartDate).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync(),
+                "status" => request.SortDescending ?
+                    await query.OrderByDescending(s => s.Status).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync() :
+                    await query.OrderBy(s => s.Status).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync(),
+                _ => await query.OrderByDescending(s => s.CreatedAt).Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync()
             };
 
-            var totalItems = subscriptions.Count();
-            var items = subscriptions
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
-
-            var subscriptionDtos = _mapper.Map<List<SubscriptionDto>>(items);
+            var subscriptionDtos = _mapper.Map<List<SubscriptionDto>>(subscriptions);
 
             return new PaginatedResult<SubscriptionDto>
             {
@@ -77,35 +83,55 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<SubscriptionDto> CreateAsync(CreateSubscriptionDto createDto)
         {
-            // Validate organization exists if provided
-            if (createDto.OrganizationId.HasValue)
+            // Validate organization exists
+            var organization = await _context.Organizations.FindAsync(createDto.OrganizationId);
+            if (organization == null)
             {
-                var organization = await _unitOfWork.Organizations.GetByIdAsync(createDto.OrganizationId.Value);
-                if (organization == null)
-                {
-                    throw new NotFoundException("Organization", createDto.OrganizationId.Value);
-                }
+                throw new NotFoundException($"Organization with ID {createDto.OrganizationId} not found");
+            }
+
+            // Validate plan exists
+            var plan = await _context.Plans.FindAsync(createDto.PlanId);
+            if (plan == null)
+            {
+                throw new NotFoundException($"Plan with ID {createDto.PlanId} not found");
             }
 
             var subscription = _mapper.Map<Subscription>(createDto);
-            var createdSubscription = await _unitOfWork.Subscriptions.AddAsync(subscription);
+            subscription.CreatedAt = DateTime.UtcNow;
+
+            _context.Subscriptions.Add(subscription);
+            await _context.SaveChangesAsync();
+
+            // Load navigation properties for response by querying again
+            var createdSubscription = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Include(s => s.Organization)
+                .FirstOrDefaultAsync(s => s.Id == subscription.Id);
 
             _logger.LogInformation("Subscription created with ID: {SubscriptionId}, Name: {Name}", 
-                createdSubscription.Id, createdSubscription.Name);
+                subscription.Id, subscription.Name);
 
             return _mapper.Map<SubscriptionDto>(createdSubscription);
         }
 
         public async Task<SubscriptionDto> UpdateAsync(int id, UpdateSubscriptionDto updateDto)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(id);
+            var subscription = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Include(s => s.Organization)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            
             if (subscription == null)
             {
-                throw new NotFoundException("Subscription", id);
+                throw new NotFoundException($"Subscription with ID {id} not found");
             }
 
             _mapper.Map(updateDto, subscription);
-            await _unitOfWork.Subscriptions.UpdateAsync(subscription);
+            subscription.UpdatedAt = DateTime.UtcNow;
+
+            _context.Update(subscription);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Subscription updated with ID: {SubscriptionId}", id);
 
@@ -114,13 +140,14 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(id);
+            var subscription = await _context.Subscriptions.FindAsync(id);
             if (subscription == null)
             {
                 return false;
             }
 
-            await _unitOfWork.Subscriptions.DeleteAsync(subscription);
+            _context.Subscriptions.Remove(subscription);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Subscription deleted with ID: {SubscriptionId}", id);
 
@@ -129,50 +156,73 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<IEnumerable<SubscriptionDto>> GetByOrganizationIdAsync(int organizationId)
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetByOrganizationIdAsync(organizationId);
+            var subscriptions = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.OrganizationId == organizationId)
+                .ToListAsync();
+            
             return _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
         }
 
         public async Task<IEnumerable<SubscriptionDto>> GetByStatusAsync(SubscriptionStatusDto status)
         {
-            var domainStatus = _mapper.Map<SubscriptionStatus>(status);
-            var subscriptions = await _unitOfWork.Subscriptions.GetByStatusAsync(domainStatus);
+            var domainStatus = (SubscriptionStatus)status;
+            var subscriptions = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.Status == domainStatus)
+                .ToListAsync();
+            
             return _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
         }
 
         public async Task<IEnumerable<SubscriptionDto>> GetActiveSubscriptionsAsync()
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetActiveSubscriptionsAsync();
+            var subscriptions = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.Status == SubscriptionStatus.Active && s.IsActive)
+                .ToListAsync();
+            
             return _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
         }
 
         public async Task<IEnumerable<SubscriptionDto>> GetExpiringSubscriptionsAsync(DateTime expiryDate)
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetExpiringSubscriptionsAsync(expiryDate);
+            var subscriptions = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.EndDate.HasValue && s.EndDate <= expiryDate && s.Status == SubscriptionStatus.Active)
+                .ToListAsync();
+            
             return _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
         }
 
         public async Task<IEnumerable<SubscriptionDto>> GetExpiredSubscriptionsAsync()
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetExpiredSubscriptionsAsync();
+            var now = _dateTime.UtcNow;
+            var subscriptions = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .Where(s => s.EndDate.HasValue && s.EndDate < now)
+                .ToListAsync();
+            
             return _mapper.Map<IEnumerable<SubscriptionDto>>(subscriptions);
         }
 
         public async Task<bool> ExtendSubscriptionAsync(int subscriptionId, DateTime newEndDate)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(subscriptionId);
+            var subscription = await _context.Subscriptions.FindAsync(subscriptionId);
             if (subscription == null)
             {
-                throw new NotFoundException("Subscription", subscriptionId);
+                throw new NotFoundException($"Subscription with ID {subscriptionId} not found");
             }
 
             subscription.EndDate = newEndDate;
+            subscription.UpdatedAt = DateTime.UtcNow;
             if (subscription.Status == SubscriptionStatus.Expired)
             {
                 subscription.Status = SubscriptionStatus.Active;
             }
 
-            await _unitOfWork.Subscriptions.UpdateAsync(subscription);
+            _context.Update(subscription);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Subscription {SubscriptionId} extended to {EndDate}", 
                 subscriptionId, newEndDate);
@@ -182,15 +232,18 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<bool> CancelSubscriptionAsync(int subscriptionId)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(subscriptionId);
+            var subscription = await _context.Subscriptions.FindAsync(subscriptionId);
             if (subscription == null)
             {
-                throw new NotFoundException("Subscription", subscriptionId);
+                throw new NotFoundException($"Subscription with ID {subscriptionId} not found");
             }
 
             subscription.Status = SubscriptionStatus.Cancelled;
             subscription.IsActive = false;
-            await _unitOfWork.Subscriptions.UpdateAsync(subscription);
+            subscription.UpdatedAt = DateTime.UtcNow;
+            
+            _context.Update(subscription);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Subscription {SubscriptionId} cancelled", subscriptionId);
 
@@ -199,19 +252,24 @@ namespace Helpio.Ir.Application.Services.Business
 
         public async Task<bool> RenewSubscriptionAsync(int subscriptionId)
         {
-            var subscription = await _unitOfWork.Subscriptions.GetByIdAsync(subscriptionId);
+            var subscription = await _context.Subscriptions
+                .Include(s => s.Plan)
+                .FirstOrDefaultAsync(s => s.Id == subscriptionId);
+            
             if (subscription == null)
             {
-                throw new NotFoundException("Subscription", subscriptionId);
+                throw new NotFoundException($"Subscription with ID {subscriptionId} not found");
             }
 
             // Extend for another billing cycle
             var currentEndDate = subscription.EndDate ?? _dateTime.UtcNow;
-            subscription.EndDate = currentEndDate.AddDays(subscription.BillingCycleDays);
+            subscription.EndDate = currentEndDate.AddDays(subscription.Plan?.BillingCycleDays ?? 30);
             subscription.Status = SubscriptionStatus.Active;
             subscription.IsActive = true;
+            subscription.UpdatedAt = DateTime.UtcNow;
 
-            await _unitOfWork.Subscriptions.UpdateAsync(subscription);
+            _context.Update(subscription);
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Subscription {SubscriptionId} renewed until {EndDate}", 
                 subscriptionId, subscription.EndDate);

@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Help Center - Helpio";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+            <h1 class="display-5 fw-bold">How can we help you?</h1>
+            <p class="lead text-muted">Find answers to your questions or get in touch with our support team</p>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search for help articles, guides, or FAQs...">
+                        <button class="btn btn-primary px-4" type="button">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Categories -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-ticket-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Submit Ticket</h5>
+                    <p class="card-text text-muted">Create a support ticket for personalized assistance</p>
+                    <a asp-action="SubmitTicket" class="btn btn-outline-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-book fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Knowledge Base</h5>
+                    <p class="card-text text-muted">Browse our comprehensive help articles and guides</p>
+                    <a asp-action="KnowledgeBase" class="btn btn-outline-success">Browse</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-question-circle fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">FAQ</h5>
+                    <p class="card-text text-muted">Quick answers to frequently asked questions</p>
+                    <a asp-action="FAQ" class="btn btn-outline-warning">View FAQ</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <i class="fas fa-comments fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Live Chat</h5>
+                    <p class="card-text text-muted">Chat with our support team in real-time</p>
+                    <button class="btn btn-outline-info" onclick="startLiveChat()">Start Chat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Topics -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">Popular Topics</h3>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                        <i class="fas fa-user-circle text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Account Management</h6>
+                            <small class="text-muted">Profile settings, password reset, account deletion</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                        <i class="fas fa-credit-card text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Billing & Payments</h6>
+                            <small class="text-muted">Invoices, payment methods, subscription plans</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                        <i class="fas fa-cog text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Technical Issues</h6>
+                            <small class="text-muted">Bug reports, performance issues, troubleshooting</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center p-3 bg-light rounded">
+                        <i class="fas fa-mobile-alt text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Mobile App</h6>
+                            <small class="text-muted">Download, installation, mobile-specific features</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="card-title">Still need help?</h5>
+                            <p class="card-text mb-0">Our support team is available 24/7 to assist you with any questions or concerns.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a asp-action="Contact" class="btn btn-light">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function startLiveChat() {
+        alert('Live chat feature will be implemented soon!');
+    }
+</script>
+}

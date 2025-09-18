@@ -1,0 +1,232 @@
+﻿@model ContactFormModel
+@{
+    ViewData["Title"] = "Contact Support - Helpio";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+            <h1 class="display-6 fw-bold">Contact Support</h1>
+            <p class="lead text-muted">Get in touch with our support team through multiple channels</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="row mb-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Contact Methods -->
+        <div class="col-lg-4">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Live Chat</h5>
+                            <p class="card-text text-muted">Chat with our support team in real-time</p>
+                            <p class="small text-success">
+                                <i class="fas fa-circle me-1"></i>Available Now
+                            </p>
+                            <button class="btn btn-primary w-100" onclick="startLiveChat()">
+                                <i class="fas fa-comment me-2"></i>Start Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-phone fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Phone Support</h5>
+                            <p class="card-text text-muted">Call us directly for urgent issues</p>
+                            <p class="small text-success">
+                                <i class="fas fa-clock me-1"></i>24/7 Available
+                            </p>
+                            <a href="tel:+1-800-HELPIO" class="btn btn-success w-100">
+                                <i class="fas fa-phone me-2"></i>Call Now
+                            </a>
+                            <small class="text-muted d-block mt-2">+1-800-HELPIO</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-envelope fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Email Support</h5>
+                            <p class="card-text text-muted">Send us an email for detailed inquiries</p>
+                            <p class="small text-warning">
+                                <i class="fas fa-clock me-1"></i>Response within 4 hours
+                            </p>
+                            <a href="mailto:support@helpio.com" class="btn btn-info w-100">
+                                <i class="fas fa-envelope me-2"></i>Send Email
+                            </a>
+                            <small class="text-muted d-block mt-2">support@helpio.com</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-body p-5">
+                    <h4 class="card-title mb-4">Send us a Message</h4>
+                    <form asp-action="Contact" method="post" data-needs-validation>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-semibold">Full Name *</label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter your full name">
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-semibold">Email Address *</label>
+                                <input asp-for="Email" class="form-control" placeholder="Enter your email address">
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Company" class="form-label fw-semibold">Company</label>
+                                <input asp-for="Company" class="form-control" placeholder="Enter your company name">
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number">
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Subject" class="form-label fw-semibold">Subject *</label>
+                                <input asp-for="Subject" class="form-control" placeholder="Brief description of your inquiry">
+                                <span asp-validation-for="Subject" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="InquiryType" class="form-label fw-semibold">Inquiry Type *</label>
+                                <select asp-for="InquiryType" class="form-select">
+                                    <option value="">Select type</option>
+                                    <option value="General">General Inquiry</option>
+                                    <option value="Technical">Technical Support</option>
+                                    <option value="Billing">Billing Question</option>
+                                    <option value="Sales">Sales Inquiry</option>
+                                    <option value="Partnership">Partnership</option>
+                                    <option value="Feedback">Feedback</option>
+                                </select>
+                                <span asp-validation-for="InquiryType" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Priority" class="form-label fw-semibold">Priority</label>
+                                <select asp-for="Priority" class="form-select">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Message" class="form-label fw-semibold">Message *</label>
+                                <textarea asp-for="Message" class="form-control" rows="5" placeholder="Please describe your question or concern in detail..."></textarea>
+                                <span asp-validation-for="Message" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">* Required fields</small>
+                            <button type="submit" class="btn btn-primary btn-lg" data-original-text="Send Message">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Hours & Info -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                            <h6>Support Hours</h6>
+                            <p class="text-muted small mb-0">
+                                24/7 Live Chat & Phone<br>
+                                Email: Mon-Fri 9AM-6PM PST
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-globe fa-2x text-success mb-2"></i>
+                            <h6>Global Coverage</h6>
+                            <p class="text-muted small mb-0">
+                                Support in 12 languages<br>
+                                Offices in US, EU, and APAC
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-headset fa-2x text-warning mb-2"></i>
+                            <h6>Response Time</h6>
+                            <p class="text-muted small mb-0">
+                                Live Chat: Immediate<br>
+                                Email: Within 4 hours
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-shield-check fa-2x text-info mb-2"></i>
+                            <h6>Expert Team</h6>
+                            <p class="text-muted small mb-0">
+                                Certified professionals<br>
+                                98% satisfaction rate
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h6 class="text-muted mb-3">Other Ways to Get Help</h6>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a asp-action="FAQ" class="btn btn-outline-secondary">
+                        <i class="fas fa-question-circle me-1"></i>FAQ
+                    </a>
+                    <a asp-action="KnowledgeBase" class="btn btn-outline-secondary">
+                        <i class="fas fa-book me-1"></i>Knowledge Base
+                    </a>
+                    <a asp-action="SubmitTicket" class="btn btn-outline-secondary">
+                        <i class="fas fa-ticket-alt me-1"></i>Submit Ticket
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="fab fa-youtube me-1"></i>Video Tutorials
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="fas fa-users me-1"></i>Community Forum
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+    function startLiveChat() {
+        alert('Live chat feature will be implemented soon! For now, please use our contact form or call us directly.');
+    }
+</script>
+}

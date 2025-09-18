@@ -1,18 +1,23 @@
 ﻿using System.Diagnostics;
 using Helpio.Dashboard.Models;
 using Helpio.Dashboard.Services;
+using Helpio.Ir.Application.Common.Interfaces;
+using Helpio.Ir.Application.Services.Business;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Helpio.Dashboard.Controllers;
 
 public class HomeController : BaseController
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly IPlanService _planService;
 
-    public HomeController(ILogger<HomeController> logger, ICurrentUserContext userContext)
+    public HomeController(ILogger<HomeController> logger, ICurrentUserContext userContext, IPlanService planService)
         : base(userContext)
     {
         _logger = logger;
+        _planService = planService;
     }
 
     public IActionResult Index()
@@ -31,6 +36,35 @@ public class HomeController : BaseController
         }
 
         return View();
+    }
+
+    public async Task<IActionResult> Pricing()
+    {
+        try
+        {
+            _logger.LogInformation("Loading pricing plans...");
+            
+            var planDtos = await _planService.GetPublicPlansAsync();
+            
+            _logger.LogInformation("Loaded {PlanCount} plans from database", planDtos?.Count() ?? 0);
+            
+            if (planDtos != null)
+            {
+                foreach (var plan in planDtos)
+                {
+                    _logger.LogInformation("Plan: {PlanName}, Type: {PlanType}, Price: {Price}", 
+                        plan.Name, plan.Type, plan.Price);
+                }
+            }
+            
+            return View(planDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading pricing plans");
+            TempData["Error"] = "خطا در بارگذاری طرح‌های قیمت‌گذاری";
+            return View(new List<Helpio.Ir.Application.DTOs.Business.PlanDto>());
+        }
     }
 
     public IActionResult Privacy()

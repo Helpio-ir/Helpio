@@ -171,6 +171,26 @@ namespace Helpio.Ir.Infrastructure.Data.Seeders
             context.TicketStates.AddRange(ticketStates);
             await context.SaveChangesAsync();
 
+            // ایجاد طرح فریمیوم
+            var freemiumPlan = new Plan
+            {
+                Name = "Freemium Plan",
+                Description = "طرح رایگان با محدودیت ۵۰ تیکت در ماه",
+                Type = PlanType.Freemium,
+                Price = 0,
+                Currency = "IRR",
+                BillingCycleDays = 30,
+                MonthlyTicketLimit = 50,
+                HasApiAccess = true,
+                HasPrioritySupport = false,
+                Has24x7Support = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Plans.Add(freemiumPlan);
+            await context.SaveChangesAsync();
+
             // ایجاد اشتراک فریمیوم
             var freemiumSubscription = new Subscription
             {
@@ -178,16 +198,12 @@ namespace Helpio.Ir.Infrastructure.Data.Seeders
                 Description = "طرح رایگان با محدودیت ۵۰ تیکت در ماه",
                 StartDate = DateTime.UtcNow.AddDays(-15), // شروع ۱۵ روز پیش
                 EndDate = null, // فریمیوم منقضی نمی‌شود
-                Price = 0,
-                Currency = "IRR",
-                BillingCycleDays = 30,
                 Status = SubscriptionStatus.Active,
-                PlanType = SubscriptionPlanType.Freemium,
+                PlanId = freemiumPlan.Id,
                 OrganizationId = organization.Id,
                 IsActive = true,
-                MonthlyTicketLimit = 50,
-                CurrentMonthTicketCount = 25, // ۲۵ تیکت استفاده شده برای تست
-                CurrentMonthStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
+                CurrentPeriodTicketCount = 25, // ۲۵ تیکت استفاده شده برای تست
+                CurrentPeriodStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -255,7 +271,7 @@ namespace Helpio.Ir.Infrastructure.Data.Seeders
             Console.WriteLine($"   🏢 شعبه: {branch.Name}");
             Console.WriteLine($"   👥 تیم: {team.Name}");
             Console.WriteLine($"   👤 کاربران: Admin, Manager, Agent");
-            Console.WriteLine($"   💳 اشتراک: Freemium ({freemiumSubscription.CurrentMonthTicketCount}/{freemiumSubscription.MonthlyTicketLimit} تیکت استفاده شده)");
+            Console.WriteLine($"   💳 اشتراک: Freemium ({freemiumSubscription.CurrentPeriodTicketCount}/{freemiumSubscription.GetMonthlyTicketLimit()} تیکت استفاده شده)");
             Console.WriteLine($"   🎫 تیکت‌ها: {sampleTickets.Count} تیکت نمونه");
             Console.WriteLine($"   📝 پاسخ‌های آماده: {cannedResponses.Length} پاسخ");
         }

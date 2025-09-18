@@ -1,0 +1,244 @@
+﻿@model Helpio.Dashboard.Models.ContactSalesViewModel
+@{
+    ViewData["Title"] = "تماس با فروش";
+    var selectedPlan = ViewBag.SelectedPlan as Helpio.Ir.Domain.Entities.Business.Plan;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">
+                        <i class="bi bi-telephone"></i>
+                        تماس با فروش
+                    </h1>
+                    @if (selectedPlan != null)
+                    {
+                        <p class="card-subtitle text-muted">درخواست مشاوره برای طرح @selectedPlan.Name</p>
+                    }
+                    else
+                    {
+                        <p class="card-subtitle text-muted">مشاوره رایگان و انتخاب بهترین طرح برای شما</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">فرم تماس</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ContactSales" method="post">
+                        <input asp-for="PlanId" type="hidden" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="OrganizationName" class="form-label"></label>
+                                    <input asp-for="OrganizationName" class="form-control" placeholder="نام شرکت یا سازمان" />
+                                    <span asp-validation-for="OrganizationName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ContactName" class="form-label"></label>
+                                    <input asp-for="ContactName" class="form-control" placeholder="نام و نام خانوادگی" />
+                                    <span asp-validation-for="ContactName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ContactEmail" class="form-label"></label>
+                                    <input asp-for="ContactEmail" type="email" class="form-control" placeholder="ایمیل" />
+                                    <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ContactPhone" class="form-label"></label>
+                                    <input asp-for="ContactPhone" type="tel" class="form-control" placeholder="۰۹۱۲۳۴۵۶۷۸۹" />
+                                    <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="EstimatedMonthlyTickets" class="form-label"></label>
+                                    <input asp-for="EstimatedMonthlyTickets" type="number" min="1" class="form-control" placeholder="مثال: ۲۰۰" />
+                                    <span asp-validation-for="EstimatedMonthlyTickets" class="text-danger"></span>
+                                    <small class="form-text text-muted">تخمین تعداد تیکت‌هایی که ماهانه دریافت می‌کنید</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="TeamSize" class="form-label"></label>
+                                    <input asp-for="TeamSize" type="number" min="1" class="form-control" placeholder="مثال: ۵" />
+                                    <span asp-validation-for="TeamSize" class="text-danger"></span>
+                                    <small class="form-text text-muted">تعداد افرادی که از سیستم استفاده خواهند کرد</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="PreferredContactTime" class="form-label"></label>
+                            <select asp-for="PreferredContactTime" class="form-select">
+                                <option value="">انتخاب کنید</option>
+                                <option value="صبح (۸-۱۲)">صبح (۸-۱۲)</option>
+                                <option value="ظهر (۱۲-۱۶)">ظهر (۱۲-۱۶)</option>
+                                <option value="عصر (۱۶-۲۰)">عصر (۱۶-۲۰)</option>
+                                <option value="هر زمان">هر زمان</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="AdditionalNotes" class="form-label"></label>
+                            <textarea asp-for="AdditionalNotes" class="form-control" rows="4" 
+                                      placeholder="نیازهای خاص، سوالات یا توضیحات اضافی..."></textarea>
+                            <span asp-validation-for="AdditionalNotes" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i>
+                                ارسال درخواست
+                            </button>
+                            <a asp-controller="Home" asp-action="Pricing" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i>
+                                بازگشت به قیمت‌گذاری
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            @if (selectedPlan != null)
+            {
+                <!-- Selected Plan Info -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">طرح انتخابی</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-primary">@selectedPlan.Name</h4>
+                        @if (!string.IsNullOrEmpty(selectedPlan.Description))
+                        {
+                            <p class="text-muted">@selectedPlan.Description</p>
+                        }
+                        
+                        <div class="pricing-amount mb-3">
+                            @if (selectedPlan.Price == 0)
+                            {
+                                <h3 class="text-success">رایگان</h3>
+                            }
+                            else
+                            {
+                                <h3 class="text-primary">
+                                    @selectedPlan.Price.ToString("N0") @selectedPlan.Currency
+                                    <small class="text-muted">/ @selectedPlan.BillingCycleDays روز</small>
+                                </h3>
+                            }
+                        </div>
+
+                        <hr />
+
+                        <h6>ویژگی‌های کلیدی:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-1">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                @if (selectedPlan.MonthlyTicketLimit == -1)
+                                {
+                                    <span>تیکت نامحدود</span>
+                                }
+                                else
+                                {
+                                    <span>@selectedPlan.MonthlyTicketLimit.ToString("N0") تیکت در ماه</span>
+                                }
+                            </li>
+                            @if (selectedPlan.HasEmailIntegration)
+                            {
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    یکپارچه‌سازی ایمیل
+                                </li>
+                            }
+                            @if (selectedPlan.HasApiAccess)
+                            {
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    دسترسی API
+                                </li>
+                            }
+                            @if (selectedPlan.HasAdvancedReporting)
+                            {
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    گزارش‌های پیشرفته
+                                </li>
+                            }
+                            @if (selectedPlan.Has24x7Support)
+                            {
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    پشتیبانی ۲۴/۷
+                                </li>
+                            }
+                            else if (selectedPlan.HasPrioritySupport)
+                            {
+                                <li class="mb-1">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    پشتیبانی اولویت‌دار
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+
+            <!-- Contact Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">اطلاعات تماس مستقیم</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="bi bi-telephone text-primary me-2"></i>تلفن فروش</h6>
+                        <p class="mb-0">۰۲۱-۱۲۳۴۵۶۷۸</p>
+                        <small class="text-muted">شنبه تا پنج‌شنبه، ۹ صبح تا ۶ عصر</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="bi bi-envelope text-primary me-2"></i>ایمیل فروش</h6>
+                        <p class="mb-0">sales@helpio.ir</p>
+                        <small class="text-muted">پاسخ در کمتر از ۲۴ ساعت</small>
+                    </div>
+                    
+                    <div>
+                        <h6><i class="bi bi-chat-dots text-primary me-2"></i>چت آنلاین</h6>
+                        <p class="mb-2">برای دریافت مشاوره فوری</p>
+                        <button class="btn btn-outline-primary btn-sm w-100" onclick="alert('چت آنلاین به زودی راه‌اندازی می‌شود')">
+                            <i class="bi bi-chat"></i>
+                            شروع چت
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

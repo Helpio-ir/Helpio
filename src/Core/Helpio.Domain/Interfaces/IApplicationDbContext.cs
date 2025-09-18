@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Domain.Entities.Ticketing;
 using Helpio.Ir.Domain.Entities.Business;
@@ -16,6 +16,7 @@ public interface IApplicationDbContext
     DbSet<Team> Teams { get; set; }
     DbSet<SupportAgent> SupportAgents { get; set; }
     DbSet<Profile> Profiles { get; set; }
+    DbSet<ApiKey> ApiKeys { get; set; }
     DbSet<Ticket> Tickets { get; set; }
     DbSet<TicketState> TicketStates { get; set; }
     DbSet<TicketCategory> TicketCategories { get; set; }
@@ -27,6 +28,9 @@ public interface IApplicationDbContext
     DbSet<Transaction> Transactions { get; set; }
     DbSet<Order> Orders { get; set; }
     DbSet<Subscription> Subscriptions { get; set; }
+    DbSet<Plan> Plans { get; set; }
+    DbSet<Invoice> Invoices { get; set; }
+    DbSet<InvoiceItem> InvoiceItems { get; set; }
     DbSet<CannedResponse> CannedResponses { get; set; }
     DbSet<Articles> Articles { get; set; }
 

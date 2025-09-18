@@ -1,4 +1,4 @@
-using Helpio.Ir.Domain.Entities;
+﻿using Helpio.Ir.Domain.Entities;
 using Helpio.Ir.Domain.Entities.Business;
 using Helpio.Ir.Domain.Entities.Core;
 using Helpio.Ir.Domain.Entities.Knowledge;
@@ -37,6 +37,9 @@ namespace Helpio.Ir.Infrastructure.Data
         public DbSet<Transaction> Transactions { get; set; } = null!;
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<Subscription> Subscriptions { get; set; } = null!;
+        public DbSet<Plan> Plans { get; set; } = null!;
+        public DbSet<Invoice> Invoices { get; set; } = null!;
+        public DbSet<InvoiceItem> InvoiceItems { get; set; } = null!;
         public DbSet<CannedResponse> CannedResponses { get; set; } = null!;
         public DbSet<Articles> Articles { get; set; } = null!;
 
@@ -89,6 +92,11 @@ namespace Helpio.Ir.Infrastructure.Data
                 .HasOne(sa => sa.Team)
                 .WithMany(t => t.SupportAgents)
                 .HasForeignKey(sa => sa.TeamId);
+
+            // Configure SupportAgent decimal precision
+            modelBuilder.Entity<SupportAgent>()
+                .Property(sa => sa.Salary)
+                .HasPrecision(18, 2);
 
             // Team relationships
             modelBuilder.Entity<Team>()
@@ -143,6 +151,15 @@ namespace Helpio.Ir.Infrastructure.Data
                 .WithMany(tc => tc.Tickets)
                 .HasForeignKey(t => t.TicketCategoryId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade conflicts
+
+            // Configure Ticket decimal precision
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.EstimatedHours)
+                .HasPrecision(8, 2);
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.ActualHours)
+                .HasPrecision(8, 2);
 
             // TicketCategory relationships
             modelBuilder.Entity<TicketCategory>()
@@ -212,11 +229,90 @@ namespace Helpio.Ir.Infrastructure.Data
                 .WithMany(s => s.Orders)
                 .HasForeignKey(o => o.SubscriptionId);
 
+            // Transaction relationships and precision
+            modelBuilder.Entity<Transaction>()
+                .Property(t => t.Amount)
+                .HasPrecision(18, 2);
+
+            // Plan relationships
+            modelBuilder.Entity<Plan>()
+                .HasIndex(p => p.Type)
+                .IsUnique(); // Each plan type should be unique
+
+            modelBuilder.Entity<Plan>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+
+            // Subscription relationships
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Plan)
+                .WithMany(p => p.Subscriptions)
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Subscription>()
                 .HasOne(s => s.Organization)
                 .WithMany()
                 .HasForeignKey(s => s.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subscription>()
+                .Property(s => s.CustomPrice)
+                .HasPrecision(18, 2);
+
+            // Invoice relationships
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Organization)
+                .WithMany()
+                .HasForeignKey(i => i.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Subscription)
+                .WithMany()
+                .HasForeignKey(i => i.SubscriptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Plan)
+                .WithMany()
+                .HasForeignKey(i => i.PlanId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.SubTotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.TaxAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.DiscountAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.TotalAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.TaxRate)
+                .HasPrecision(5, 4);
+
+            modelBuilder.Entity<Invoice>()
+                .HasIndex(i => i.InvoiceNumber)
+                .IsUnique();
+
+            // InvoiceItem relationships
+            modelBuilder.Entity<InvoiceItem>()
+                .HasOne(ii => ii.Invoice)
+                .WithMany(i => i.Items)
+                .HasForeignKey(ii => ii.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InvoiceItem>()
+                .Property(ii => ii.UnitPrice)
+                .HasPrecision(18, 2);
 
             // Knowledge relationships
             modelBuilder.Entity<CannedResponse>()

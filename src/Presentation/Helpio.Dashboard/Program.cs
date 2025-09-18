@@ -28,6 +28,9 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+        // Register IApplicationDbContext
+        builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
         // Add Identity
         builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
         {
@@ -77,9 +80,18 @@ public class Program
         
         // Add Application services
         builder.Services.AddScoped<ISubscriptionLimitService, SubscriptionLimitService>();
+        builder.Services.AddScoped<IPlanService, PlanService>();
+        builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+        builder.Services.AddScoped<ISubscriptionAnalyticsService, SubscriptionAnalyticsService>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
+        builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
         // Add AutoMapper
         builder.Services.AddAutoMapper(typeof(MappingProfile)); // Add AutoMapper
+
+        // Add Seeders
+        builder.Services.AddScoped<Helpio.Ir.Infrastructure.Data.Seeders.PlanSeeder>();
 
         var app = builder.Build();
 
@@ -112,6 +124,13 @@ public class Program
 
         // Initialize database with default users
         await Services.DatabaseInitializer.SeedDefaultUsersAsync(app.Services);
+
+        // Seed default plans
+        using (var scope = app.Services.CreateScope())
+        {
+            var planSeeder = scope.ServiceProvider.GetRequiredService<Helpio.Ir.Infrastructure.Data.Seeders.PlanSeeder>();
+            await planSeeder.SeedAsync();
+        }
 
         await app.RunAsync();
     }

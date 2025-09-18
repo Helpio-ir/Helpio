@@ -1,0 +1,166 @@
+﻿using System.ComponentModel.DataAnnotations;
+using Helpio.Ir.Application.DTOs.Common;
+using Helpio.Ir.Domain.Entities.Business;
+
+namespace Helpio.Ir.Application.DTOs.Business
+{
+    public class PlanDto : BaseDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public PlanType Type { get; set; }
+        public decimal Price { get; set; }
+        public string Currency { get; set; } = "IRR";
+        public int BillingCycleDays { get; set; }
+        public int MonthlyTicketLimit { get; set; }
+        public bool HasApiAccess { get; set; }
+        public bool HasPrioritySupport { get; set; }
+        public bool Has24x7Support { get; set; }
+        public bool HasCustomBranding { get; set; }
+        public bool HasAdvancedReporting { get; set; }
+        public bool HasCustomIntegrations { get; set; }
+        public bool HasKnowledgeBase { get; set; }
+        public bool HasEmailIntegration { get; set; }
+        public bool HasCannedResponses { get; set; }
+        public bool HasCSATSurveys { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsRecommended { get; set; }
+        public string? Features { get; set; }
+        
+        // Computed properties
+        public bool IsFreemium => Type == PlanType.Freemium;
+        public bool IsUnlimitedTickets => MonthlyTicketLimit == -1;
+        
+        public string GetDisplayPrice()
+        {
+            if (Price == 0)
+                return "رایگان";
+            
+            return $"{Price:N0} {Currency}";
+        }
+        
+        public List<string> GetFeatureList()
+        {
+            var features = new List<string>();
+            
+            if (IsUnlimitedTickets)
+                features.Add("تیکت نامحدود");
+            else
+                features.Add($"{MonthlyTicketLimit:N0} تیکت در ماه");
+            
+            if (HasEmailIntegration)
+                features.Add("یکپارچه‌سازی ایمیل");
+            
+            if (HasKnowledgeBase)
+                features.Add("پایگاه دانش");
+            
+            if (HasApiAccess)
+                features.Add("دسترسی API");
+            
+            if (HasCannedResponses)
+                features.Add("پاسخ‌های آماده");
+            
+            if (HasCSATSurveys)
+                features.Add("نظرسنجی رضایت");
+            
+            if (HasAdvancedReporting)
+                features.Add("گزارش‌های پیشرفته");
+            
+            if (HasCustomBranding)
+                features.Add("برندینگ اختصاصی");
+            
+            if (HasPrioritySupport)
+                features.Add("پشتیبانی اولویت‌دار");
+            
+            if (Has24x7Support)
+                features.Add("پشتیبانی ۲۴/۷");
+            
+            if (HasCustomIntegrations)
+                features.Add("یکپارچه‌سازی سفارشی");
+            
+            return features;
+        }
+    }
+
+    public class CreatePlanDto
+    {
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+        
+        public string? Description { get; set; }
+        
+        [Required]
+        public PlanType Type { get; set; }
+        
+        [Range(0, double.MaxValue)]
+        public decimal Price { get; set; }
+        
+        [MaxLength(3)]
+        public string Currency { get; set; } = "IRR";
+        
+        [Range(1, 365)]
+        public int BillingCycleDays { get; set; } = 30;
+        
+        [Range(-1, int.MaxValue)] // -1 means unlimited
+        public int MonthlyTicketLimit { get; set; } = 50;
+        
+        public bool HasApiAccess { get; set; } = true;
+        public bool HasPrioritySupport { get; set; } = false;
+        public bool Has24x7Support { get; set; } = false;
+        public bool HasCustomBranding { get; set; } = false;
+        public bool HasAdvancedReporting { get; set; } = false;
+        public bool HasCustomIntegrations { get; set; } = false;
+        public bool HasKnowledgeBase { get; set; } = true;
+        public bool HasEmailIntegration { get; set; } = true;
+        public bool HasCannedResponses { get; set; } = false;
+        public bool HasCSATSurveys { get; set; } = false;
+        
+        [Range(0, 1000)]
+        public int DisplayOrder { get; set; }
+        
+        public bool IsActive { get; set; } = true;
+        public bool IsRecommended { get; set; } = false;
+        public string? Features { get; set; }
+    }
+
+    public class UpdatePlanDto
+    {
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+        
+        public string? Description { get; set; }
+        
+        [Range(0, double.MaxValue)]
+        public decimal Price { get; set; }
+        
+        [MaxLength(3)]
+        public string Currency { get; set; } = "IRR";
+        
+        [Range(1, 365)]
+        public int BillingCycleDays { get; set; } = 30;
+        
+        [Range(-1, int.MaxValue)]
+        public int MonthlyTicketLimit { get; set; } = 50;
+        
+        public bool HasApiAccess { get; set; } = true;
+        public bool HasPrioritySupport { get; set; } = false;
+        public bool Has24x7Support { get; set; } = false;
+        public bool HasCustomBranding { get; set; } = false;
+        public bool HasAdvancedReporting { get; set; } = false;
+        public bool HasCustomIntegrations { get; set; } = false;
+        public bool HasKnowledgeBase { get; set; } = true;
+        public bool HasEmailIntegration { get; set; } = true;
+        public bool HasCannedResponses { get; set; } = false;
+        public bool HasCSATSurveys { get; set; } = false;
+        
+        [Range(0, 1000)]
+        public int DisplayOrder { get; set; }
+        
+        public bool IsActive { get; set; } = true;
+        public bool IsRecommended { get; set; } = false;
+        public string? Features { get; set; }
+    }
+}

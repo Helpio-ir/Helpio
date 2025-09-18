@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Helpio.Ir.Domain.Entities.Business
 {
@@ -12,62 +13,108 @@ namespace Helpio.Ir.Domain.Entities.Business
         Suspended = 5
     }
 
-    public enum SubscriptionPlanType
-    {
-        Freemium = 1,
-        Basic = 2,
-        Professional = 3,
-        Enterprise = 4
-    }
-
     public class Subscription : BaseEntity
     {
+        [Required]
+        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public decimal Price { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int BillingCycleDays { get; set; } = 30; // Monthly by default
-        public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
-        public SubscriptionPlanType PlanType { get; set; } = SubscriptionPlanType.Freemium;
-        public int? OrganizationId { get; set; }
-        public bool IsActive { get; set; } = true;
-        public string? Features { get; set; } // JSON string of features
         
-        // Freemium limitations
-        public int MonthlyTicketLimit { get; set; } = 50; // Default for freemium
-        public int CurrentMonthTicketCount { get; set; } = 0;
-        public DateTime CurrentMonthStartDate { get; set; } = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
+        public string? Description { get; set; }
+        
+        public DateTime StartDate { get; set; }
+        
+        public DateTime? EndDate { get; set; }
+        
+        public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
+        
+        public bool IsActive { get; set; } = true;
+        
+        // Foreign Keys
+        [Required]
+        public int PlanId { get; set; }
+        
+        [Required]
+        public int OrganizationId { get; set; }
+        
+        // Usage tracking for current billing period
+        public int CurrentPeriodTicketCount { get; set; } = 0;
+        
+        public DateTime CurrentPeriodStartDate { get; set; } = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
+        
+        // Custom overrides (optional - if organization needs custom limits)
+        public int? CustomMonthlyTicketLimit { get; set; }
+        
+        public decimal? CustomPrice { get; set; }
         
         // Navigation properties
-        public virtual Core.Organization? Organization { get; set; }
+        public virtual Plan Plan { get; set; } = null!;
+        
+        public virtual Core.Organization Organization { get; set; } = null!;
+        
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         
         // Helper methods
-        public bool IsFreemium => PlanType == SubscriptionPlanType.Freemium;
-        public bool HasReachedTicketLimit => IsFreemium && CurrentMonthTicketCount >= MonthlyTicketLimit;
+        public bool IsFreemium => Plan?.IsFreemium ?? false;
         
-        public void ResetMonthlyCounterIfNeeded()
+        public int GetMonthlyTicketLimit()
         {
-            var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
-            if (CurrentMonthStartDate.Month != currentMonth.Month || CurrentMonthStartDate.Year != currentMonth.Year)
+            return CustomMonthlyTicketLimit ?? Plan?.MonthlyTicketLimit ?? 50;
+        }
+        
+        public decimal GetPrice()
+        {
+            return CustomPrice ?? Plan?.Price ?? 0;
+        }
+        
+        public string GetCurrency()
+        {
+            return Plan?.Currency ?? "IRR";
+        }
+        
+        public bool HasReachedTicketLimit()
+        {
+            var limit = GetMonthlyTicketLimit();
+            return limit != -1 && CurrentPeriodTicketCount >= limit;
+        }
+        
+        public void ResetPeriodCounterIfNeeded()
+        {
+            var currentPeriodStart = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
+            if (CurrentPeriodStartDate.Month != currentPeriodStart.Month || 
+                CurrentPeriodStartDate.Year != currentPeriodStart.Year)
             {
-                CurrentMonthStartDate = currentMonth;
-                CurrentMonthTicketCount = 0;
+                CurrentPeriodStartDate = currentPeriodStart;
+                CurrentPeriodTicketCount = 0;
             }
         }
         
         public void IncrementTicketCount()
         {
-            ResetMonthlyCounterIfNeeded();
-            CurrentMonthTicketCount++;
+            ResetPeriodCounterIfNeeded();
+            CurrentPeriodTicketCount++;
         }
         
         public int GetRemainingTickets()
         {
-            ResetMonthlyCounterIfNeeded();
-            return IsFreemium ? Math.Max(0, MonthlyTicketLimit - CurrentMonthTicketCount) : int.MaxValue;
+            ResetPeriodCounterIfNeeded();
+            var limit = GetMonthlyTicketLimit();
+            return limit == -1 ? int.MaxValue : Math.Max(0, limit - CurrentPeriodTicketCount);
+        }
+        
+        public bool IsExpired()
+        {
+            return EndDate.HasValue && EndDate.Value < DateTime.UtcNow;
+        }
+        
+        public bool IsInTrial()
+        {
+            return EndDate.HasValue && (EndDate.Value - StartDate).TotalDays <= 30;
+        }
+        
+        public int GetDaysUntilExpiry()
+        {
+            if (!EndDate.HasValue) return int.MaxValue;
+            return Math.Max(0, (int)(EndDate.Value - DateTime.UtcNow).TotalDays);
         }
     }
 }

@@ -208,6 +208,16 @@ namespace Helpio.Ir.Application.Mappings
 
         private void CreateBusinessMappings()
         {
+            // Plan mappings
+            CreateMap<Plan, PlanDto>();
+            CreateMap<CreatePlanDto, Plan>();
+            CreateMap<UpdatePlanDto, Plan>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Type, opt => opt.Ignore()) // Type cannot be changed
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+
             // Order mappings
             CreateMap<Order, OrderDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (OrderStatusDto)src.Status));
@@ -233,13 +243,15 @@ namespace Helpio.Ir.Application.Mappings
             CreateMap<Subscription, SubscriptionDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (SubscriptionStatusDto)src.Status));
             CreateMap<CreateSubscriptionDto, Subscription>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Entities.Business.SubscriptionStatus.Active));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Entities.Business.SubscriptionStatus.Active))
+                .ForMember(dest => dest.CurrentPeriodStartDate, opt => opt.MapFrom(src => DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day)));
             CreateMap<UpdateSubscriptionDto, Subscription>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (Domain.Entities.Business.SubscriptionStatus)src.Status))
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.OrganizationId, opt => opt.Ignore())
                 .ForMember(dest => dest.StartDate, opt => opt.Ignore())
-                .ForMember(dest => dest.Currency, opt => opt.Ignore())
+                .ForMember(dest => dest.CurrentPeriodTicketCount, opt => opt.Ignore())
+                .ForMember(dest => dest.CurrentPeriodStartDate, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());

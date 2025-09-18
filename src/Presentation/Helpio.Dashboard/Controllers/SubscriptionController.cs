@@ -1,5 +1,5 @@
-﻿using Helpio.Dashboard.Services;
-using Helpio.Dashboard.Models;
+﻿using Helpio.Dashboard.Models;
+using Helpio.Dashboard.Services;
 using Helpio.Ir.Application.Services.Business;
 using Helpio.Ir.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -41,6 +41,7 @@ namespace Helpio.Dashboard.Controllers
 
                 // Get subscription history
                 var subscriptions = await _context.Subscriptions
+                    .Include(s => s.Plan)
                     .Where(s => s.OrganizationId == CurrentOrganizationId.Value)
                     .OrderByDescending(s => s.CreatedAt)
                     .ToListAsync();
@@ -65,7 +66,7 @@ namespace Helpio.Dashboard.Controllers
             try
             {
                 var limitInfo = await _subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
-                
+
                 return View(limitInfo);
             }
             catch (Exception ex)
@@ -86,13 +87,13 @@ namespace Helpio.Dashboard.Controllers
             try
             {
                 var limitInfo = await _subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
-                
+
                 // Get monthly ticket creation statistics
                 var currentMonth = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day);
                 var tickets = await _context.Tickets
                     .Include(t => t.Team)
                         .ThenInclude(t => t.Branch)
-                    .Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value 
+                    .Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value
                                && t.CreatedAt >= currentMonth)
                     .GroupBy(t => t.CreatedAt.Date)
                     .Select(g => new { Date = g.Key, Count = g.Count() })
@@ -154,6 +155,30 @@ namespace Helpio.Dashboard.Controllers
                     return RedirectToAction("Index");
                 }
 
+                // First, create or get the Freemium plan
+                var freemiumPlan = await _context.Plans
+                    .FirstOrDefaultAsync(p => p.Type == Helpio.Ir.Domain.Entities.Business.PlanType.Freemium);
+
+                if (freemiumPlan == null)
+                {
+                    // Create a basic Freemium plan if it doesn't exist
+                    freemiumPlan = new Helpio.Ir.Domain.Entities.Business.Plan
+                    {
+                        Name = "Freemium Plan",
+                        Description = "طرح رایگان با محدودیت ۵۰ تیکت در ماه",
+                        Type = Helpio.Ir.Domain.Entities.Business.PlanType.Freemium,
+                        Price = 0,
+                        Currency = "IRR",
+                        BillingCycleDays = 30,
+                        MonthlyTicketLimit = 50,
+                        HasApiAccess = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Plans.Add(freemiumPlan);
+                    await _context.SaveChangesAsync();
+                }
+
                 // Create freemium subscription
                 var subscription = new Helpio.Ir.Domain.Entities.Business.Subscription
                 {
@@ -161,16 +186,12 @@ namespace Helpio.Dashboard.Controllers
                     Description = "طرح رایگان با محدودیت ۵۰ تیکت در ماه",
                     StartDate = DateTime.UtcNow,
                     EndDate = null, // Freemium doesn't expire
-                    Price = 0,
-                    Currency = "IRR",
-                    BillingCycleDays = 30,
                     Status = Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Active,
-                    PlanType = Helpio.Ir.Domain.Entities.Business.SubscriptionPlanType.Freemium,
+                    PlanId = freemiumPlan.Id,
                     OrganizationId = CurrentOrganizationId.Value,
                     IsActive = true,
-                    MonthlyTicketLimit = 50,
-                    CurrentMonthTicketCount = 0,
-                    CurrentMonthStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
+                    CurrentPeriodTicketCount = 0,
+                    CurrentPeriodStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -188,6 +209,63 @@ namespace Helpio.Dashboard.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> ContactSales(int? planId)
+        {
+            if (planId.HasValue)
+            {
+                var plan = await _context.Plans.FindAsync(planId.Value);
+                if (plan != null && plan.IsActive)
+                {
+                    ViewBag.SelectedPlan = plan;
+                }
+            }
+
+            var model = new ContactSalesViewModel
+            {
+                PlanId = planId,
+                OrganizationName = UserContext.CurrentOrganization?.Name ?? "",
+                ContactName = UserContext.UserFullName ?? "",
+                ContactEmail = UserContext.UserEmail ?? "",
+                ContactPhone = "" // Phone number not available in current user context
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ContactSales(ContactSalesViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (model.PlanId.HasValue)
+                {
+                    var plan = await _context.Plans.FindAsync(model.PlanId.Value);
+                    if (plan != null && plan.IsActive)
+                    {
+                        ViewBag.SelectedPlan = plan;
+                    }
+                }
+                return View(model);
+            }
+
+            try
+            {
+                // در اینجا می‌توانید ایمیل را به تیم فروش ارسال کنید
+                // یا درخواست را در دیتابیس ذخیره کنید
+
+                // برای الان فقط پیام موفقیت نمایش می‌دهیم
+                TempData["Success"] = "درخواست شما با موفقیت ارسال شد. تیم فروش ما در اسرع وقت با شما تماس خواهد گرفت.";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "خطا در ارسال درخواست: " + ex.Message;
+                return View(model);
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetLimitInfo()
         {
             if (!CurrentOrganizationId.HasValue)
@@ -198,7 +276,7 @@ namespace Helpio.Dashboard.Controllers
             try
             {
                 var limitInfo = await _subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
-                
+
                 return Json(new
                 {
                     success = true,
@@ -212,7 +290,7 @@ namespace Helpio.Dashboard.Controllers
                         isFreemium = limitInfo.IsFreemium,
                         currentMonthStartDate = limitInfo.CurrentMonthStartDate.ToString("yyyy-MM-dd"),
                         limitationMessage = limitInfo.LimitationMessage,
-                        percentageUsed = limitInfo.MonthlyLimit > 0 ? 
+                        percentageUsed = limitInfo.MonthlyLimit > 0 ?
                             Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1) : 0
                     }
                 });

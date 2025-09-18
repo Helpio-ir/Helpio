@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "Knowledge Base - Helpio";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+            <h1 class="display-6 fw-bold">Knowledge Base</h1>
+            <p class="lead text-muted">Browse our comprehensive collection of help articles, guides, and tutorials</p>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-white">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Search knowledge base...">
+                <button class="btn btn-primary" type="button">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-rocket fa-2x text-primary me-3"></i>
+                        <h5 class="card-title mb-0">Getting Started</h5>
+                    </div>
+                    <p class="card-text text-muted">Everything you need to know to get up and running quickly</p>
+                    <span class="badge bg-light text-dark">12 articles</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-user-cog fa-2x text-success me-3"></i>
+                        <h5 class="card-title mb-0">Account Management</h5>
+                    </div>
+                    <p class="card-text text-muted">Manage your profile, settings, and preferences</p>
+                    <span class="badge bg-light text-dark">8 articles</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-credit-card fa-2x text-warning me-3"></i>
+                        <h5 class="card-title mb-0">Billing & Payments</h5>
+                    </div>
+                    <p class="card-text text-muted">Payment methods, invoices, and subscription management</p>
+                    <span class="badge bg-light text-dark">6 articles</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-tools fa-2x text-danger me-3"></i>
+                        <h5 class="card-title mb-0">Troubleshooting</h5>
+                    </div>
+                    <p class="card-text text-muted">Common issues and step-by-step solutions</p>
+                    <span class="badge bg-light text-dark">15 articles</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-shield-alt fa-2x text-info me-3"></i>
+                        <h5 class="card-title mb-0">Security & Privacy</h5>
+                    </div>
+                    <p class="card-text text-muted">Keep your account and data secure</p>
+                    <span class="badge bg-light text-dark">10 articles</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-mobile-alt fa-2x text-secondary me-3"></i>
+                        <h5 class="card-title mb-0">Mobile App</h5>
+                    </div>
+                    <p class="card-text text-muted">Using our mobile applications effectively</p>
+                    <span class="badge bg-light text-dark">7 articles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Articles -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">Popular Articles</h3>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action p-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-star text-warning me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">How to get started with Helpio</h6>
+                                    <p class="text-muted mb-1">A comprehensive guide to setting up your account and basic configuration</p>
+                                    <small class="text-muted">Updated 2 days ago • 5 min read</small>
+                                </div>
+                                <span class="badge bg-primary">Most Popular</span>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-lock text-success me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Setting up two-factor authentication</h6>
+                                    <p class="text-muted mb-1">Secure your account with an additional layer of protection</p>
+                                    <small class="text-muted">Updated 1 week ago • 3 min read</small>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-sync text-info me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">How to reset your password</h6>
+                                    <p class="text-muted mb-1">Step-by-step instructions for password recovery</p>
+                                    <small class="text-muted">Updated 3 days ago • 2 min read</small>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-credit-card text-warning me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Understanding your billing cycle</h6>
+                                    <p class="text-muted mb-1">Learn about payment dates, invoices, and subscription renewals</p>
+                                    <small class="text-muted">Updated 5 days ago • 4 min read</small>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-download text-primary me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Downloading the mobile app</h6>
+                                    <p class="text-muted mb-1">Get our mobile app for iOS and Android devices</p>
+                                    <small class="text-muted">Updated 1 week ago • 2 min read</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body p-4 text-center">
+                    <h5 class="card-title">Can't find what you're looking for?</h5>
+                    <p class="card-text text-muted">Our support team is here to help you with any questions or concerns.</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a asp-action="SubmitTicket" class="btn btn-primary">
+                            <i class="fas fa-ticket-alt me-2"></i>Submit a Ticket
+                        </a>
+                        <a asp-action="Contact" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

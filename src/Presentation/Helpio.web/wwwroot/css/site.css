@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -19,6 +19,45 @@ html {
 
 body {
   margin-bottom: 60px;
+  font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Support */
+[dir="rtl"] .me-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .me-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .me-3 {
+  margin-left: 1rem !important;
+  margin-right: 0 !important;
+}
+
+[dir="rtl"] .ms-2 {
+  margin-right: 0.5rem !important;
+  margin-left: 0 !important;
+}
+
+[dir="rtl"] .pe-lg-4 {
+  padding-left: 1.5rem !important;
+  padding-right: 0 !important;
+}
+
+[dir="rtl"] .ps-lg-4 {
+  padding-right: 1.5rem !important;
+  padding-left: 0 !important;
+}
+
+/* Persian Number Support */
+.persian-numbers {
+  font-feature-settings: "tnum";
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +67,323 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* Custom Styles for Helpio */
+.hero-section {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  min-height: 60vh;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.min-vh-50 {
+  min-height: 50vh;
+}
+
+.feature-icon {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-item {
+  padding: 2rem 1rem;
+}
+
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.navbar {
+  transition: all 0.3s ease;
+}
+
+.navbar-scrolled {
+  background-color: rgba(0, 123, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.social-links a {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  text-align: center;
+  line-height: 40px;
+  transition: background 0.3s ease;
+}
+
+.social-links a:hover {
+  background: rgba(255,255,255,0.2);
+  text-decoration: none;
+}
+
+.list-group-item-action:hover {
+  background-color: rgba(0,123,255,0.05);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: rgba(0,123,255,0.1);
+  border-color: rgba(0,123,255,0.2);
+}
+
+/* Persian Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* RTL Bootstrap fixes */
+[dir="rtl"] .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+[dir="rtl"] .navbar-nav .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+[dir="rtl"] .modal-footer {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] .modal-footer > * {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .modal-footer > *:first-child {
+  margin-right: 0;
+}
+
+/* Chat Widget Styles */
+#chat-widget {
+  animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Form Styles */
+.was-validated .form-control:valid {
+  border-color: #198754;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.98-.97-.97-.97-.98.97zm1.78-1.47L8 1.34l-.98-.97L3.05 4.34l-.98-.97L.1 5.34z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid {
+  border-color: #dc3545;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4m0-1.4L5.8 6'/%3e%3c/svg%3e");
+}
+
+/* Enhanced modal styles for better UX */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+}
+
+/* Form validation styles */
+.form-control:invalid:not(:placeholder-shown) {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control:valid:not(:placeholder-shown) {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+/* Loading spinner styles */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Toast styles for RTL */
+.toast {
+    z-index: 1060;
+}
+
+.toast-body {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* Alert styles for freemium promotion */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+    background-color: #e7f3ff;
+    border-color: #b8daff;
+}
+
+/* Required field indicator */
+.text-danger {
+    font-weight: 600;
+}
+
+/* OTP Modal specific styles */
+#otpModal .form-control {
+    font-size: 1.2rem;
+    letter-spacing: 0.2rem;
+    font-weight: 600;
+}
+
+/* Button loading state */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Persian number styles */
+.persian-numbers {
+    font-family: 'Vazirmatn', 'IRANSans', sans-serif;
+}
+
+/* Hover effects for better interactivity */
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Enhanced form focus styles */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Success states */
+.text-success {
+    color: #198754 !important;
+}
+
+.bg-success {
+    background-color: #198754 !important;
+}
+
+/* Error states */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Info states */
+.text-info {
+    color: #0dcaf0 !important;
+}
+
+.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+/* Warning states */
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+/* Chat widget styles */
+#chat-widget {
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.15);
+}
+
+#chat-widget .btn-close-white {
+    filter: invert(1);
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    #chat-widget {
+        width: 280px !important;
+        height: 380px !important;
+    }
+}
+
+/* Accessibility improvements */
+.btn:focus,
+.form-control:focus,
+.form-check-input:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn-outline-light {
+        border-width: 2px;
+    }
+    
+    .form-control {
+        border-width: 2px;
+    }
 }

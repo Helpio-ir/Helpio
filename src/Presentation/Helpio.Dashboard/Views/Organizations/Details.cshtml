@@ -300,12 +300,13 @@
                 @if (ViewBag.Subscription != null)
                 {
                     var subscription = (Helpio.Ir.Domain.Entities.Business.Subscription)ViewBag.Subscription;
-                    var percentage = subscription.MonthlyTicketLimit > 0 ? 
-                        Math.Round((double)subscription.CurrentMonthTicketCount / subscription.MonthlyTicketLimit * 100, 1) : 0;
+                    var ticketLimit = subscription.GetMonthlyTicketLimit();
+                    var percentage = ticketLimit > 0 ? 
+                        Math.Round((double)subscription.CurrentPeriodTicketCount / ticketLimit * 100, 1) : 0;
                     
                     <div class="d-flex align-items-center mb-3">
                         <div class="flex-shrink-0">
-                            <div class="bg-@(subscription.PlanType.ToString() == "Freemium" ? "warning" : "success") rounded-circle d-flex align-items-center justify-content-center" 
+                            <div class="bg-@(subscription.Plan?.Type.ToString() == "Freemium" ? "warning" : "success") rounded-circle d-flex align-items-center justify-content-center" 
                                  style="width: 50px; height: 50px;">
                                 <i class="bi bi-credit-card text-white"></i>
                             </div>
@@ -315,26 +316,26 @@
                             <span class="badge bg-@(subscription.Status.ToString() == "Active" ? "success" : "danger")">
                                 @subscription.Status.ToString()
                             </span>
-                            <span class="badge bg-info">@subscription.PlanType.ToString()</span>
+                            <span class="badge bg-info">@(subscription.Plan?.Type.ToString() ?? "Unknown")</span>
                         </div>
                     </div>
                     
                     <div class="row text-center">
                         <div class="col-4">
-                            <h6 class="text-primary">@subscription.CurrentMonthTicketCount</h6>
+                            <h6 class="text-primary">@subscription.CurrentPeriodTicketCount</h6>
                             <small class="text-muted">استفاده شده</small>
                         </div>
                         <div class="col-4">
-                            <h6 class="text-success">@(subscription.MonthlyTicketLimit == int.MaxValue ? "∞" : (subscription.MonthlyTicketLimit - subscription.CurrentMonthTicketCount).ToString())</h6>
+                            <h6 class="text-success">@(ticketLimit == -1 ? "∞" : subscription.GetRemainingTickets().ToString())</h6>
                             <small class="text-muted">باقی‌مانده</small>
                         </div>
                         <div class="col-4">
-                            <h6 class="text-info">@(subscription.MonthlyTicketLimit == int.MaxValue ? "∞" : subscription.MonthlyTicketLimit.ToString())</h6>
+                            <h6 class="text-info">@(ticketLimit == -1 ? "∞" : ticketLimit.ToString())</h6>
                             <small class="text-muted">حد مجاز</small>
                         </div>
                     </div>
                     
-                    @if (subscription.MonthlyTicketLimit > 0)
+                    @if (ticketLimit > 0)
                     {
                         <div class="mt-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -365,7 +366,7 @@
                         }
                         <div class="d-flex justify-content-between">
                             <span>قیمت:</span>
-                            <span>@subscription.Price.ToString("N0") @subscription.Currency</span>
+                            <span>@subscription.GetPrice().ToString("N0") @subscription.GetCurrency()</span>
                         </div>
                     </div>
                 }

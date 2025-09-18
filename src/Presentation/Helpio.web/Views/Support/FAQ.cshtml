@@ -1,0 +1,278 @@
+﻿@{
+    ViewData["Title"] = "Frequently Asked Questions - Helpio";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+            <h1 class="display-6 fw-bold">Frequently Asked Questions</h1>
+            <p class="lead text-muted">Quick answers to the most common questions about Helpio</p>
+        </div>
+    </div>
+
+    <!-- Search FAQ -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Search FAQ..." id="faqSearch">
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Categories -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <button class="btn btn-outline-primary active" onclick="filterFAQ('all')">All</button>
+                <button class="btn btn-outline-primary" onclick="filterFAQ('account')">Account</button>
+                <button class="btn btn-outline-primary" onclick="filterFAQ('billing')">Billing</button>
+                <button class="btn btn-outline-primary" onclick="filterFAQ('technical')">Technical</button>
+                <button class="btn btn-outline-primary" onclick="filterFAQ('security')">Security</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="accordion" id="faqAccordion">
+                
+                <!-- Account Questions -->
+                <div class="accordion-item faq-item" data-category="account">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            How do I create a new account?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>Creating a new account is simple and takes just a few minutes:</p>
+                            <ol>
+                                <li>Click the "Sign Up" button in the top right corner of the page</li>
+                                <li>Fill in your name, email address, and create a secure password</li>
+                                <li>Verify your email address by clicking the link we send you</li>
+                                <li>Complete your profile setup and you're ready to go!</li>
+                            </ol>
+                            <p>If you encounter any issues during registration, please <a asp-action="Contact">contact our support team</a>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item" data-category="account">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            How do I reset my password?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>To reset your password:</p>
+                            <ol>
+                                <li>Go to the login page and click "Forgot Password"</li>
+                                <li>Enter your email address</li>
+                                <li>Check your email for a password reset link</li>
+                                <li>Click the link and follow the instructions to create a new password</li>
+                            </ol>
+                            <p><strong>Note:</strong> Password reset links expire after 24 hours for security reasons.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Questions -->
+                <div class="accordion-item faq-item" data-category="billing">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            What payment methods do you accept?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>We accept the following payment methods:</p>
+                            <ul>
+                                <li><i class="fab fa-cc-visa me-2"></i>Visa</li>
+                                <li><i class="fab fa-cc-mastercard me-2"></i>Mastercard</li>
+                                <li><i class="fab fa-cc-amex me-2"></i>American Express</li>
+                                <li><i class="fab fa-cc-discover me-2"></i>Discover</li>
+                                <li><i class="fab fa-paypal me-2"></i>PayPal</li>
+                                <li><i class="fas fa-university me-2"></i>Bank Transfer (for enterprise plans)</li>
+                            </ul>
+                            <p>All payments are processed securely through our encrypted payment system.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item" data-category="billing">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Can I cancel my subscription anytime?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>Yes! You can cancel your subscription at any time with no cancellation fees. Here's how:</p>
+                            <ol>
+                                <li>Log into your account</li>
+                                <li>Go to Account Settings > Subscription</li>
+                                <li>Click "Cancel Subscription"</li>
+                                <li>Follow the confirmation steps</li>
+                            </ol>
+                            <p>Your account will remain active until the end of your current billing period, and you'll still have access to all features until then.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Questions -->
+                <div class="accordion-item faq-item" data-category="technical">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            What browsers are supported?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>Helpio works best with modern web browsers. We support:</p>
+                            <ul>
+                                <li><i class="fab fa-chrome me-2"></i>Google Chrome (recommended)</li>
+                                <li><i class="fab fa-firefox me-2"></i>Mozilla Firefox</li>
+                                <li><i class="fab fa-safari me-2"></i>Safari (macOS and iOS)</li>
+                                <li><i class="fab fa-edge me-2"></i>Microsoft Edge</li>
+                            </ul>
+                            <p>For the best experience, please ensure you're using the latest version of your preferred browser.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item" data-category="technical">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                            Is there a mobile app available?
+                        </button>
+                    </h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>Yes! We have mobile apps available for both iOS and Android devices:</p>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <a href="#" class="btn btn-dark w-100 mb-2">
+                                        <i class="fab fa-apple me-2"></i>Download for iOS
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="#" class="btn btn-success w-100 mb-2">
+                                        <i class="fab fa-google-play me-2"></i>Download for Android
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="mt-3">The mobile apps include all core features and sync seamlessly with your web account.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Questions -->
+                <div class="accordion-item faq-item" data-category="security">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                            How secure is my data?
+                        </button>
+                    </h2>
+                    <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>We take data security very seriously. Here's how we protect your information:</p>
+                            <ul>
+                                <li><i class="fas fa-lock me-2 text-success"></i>256-bit SSL encryption for all data transmission</li>
+                                <li><i class="fas fa-server me-2 text-success"></i>Data stored in secure, certified data centers</li>
+                                <li><i class="fas fa-shield-alt me-2 text-success"></i>Regular security audits and penetration testing</li>
+                                <li><i class="fas fa-user-shield me-2 text-success"></i>Two-factor authentication available</li>
+                                <li><i class="fas fa-history me-2 text-success"></i>Regular automated backups</li>
+                            </ul>
+                            <p>We are also compliant with GDPR, CCPA, and other major privacy regulations.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item" data-category="security">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                            How do I enable two-factor authentication?
+                        </button>
+                    </h2>
+                    <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <p>To enable two-factor authentication (2FA):</p>
+                            <ol>
+                                <li>Go to Account Settings > Security</li>
+                                <li>Click "Enable Two-Factor Authentication"</li>
+                                <li>Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)</li>
+                                <li>Enter the verification code from your app</li>
+                                <li>Save your backup codes in a secure location</li>
+                            </ol>
+                            <p><strong>Important:</strong> Keep your backup codes safe! You'll need them if you lose access to your authenticator device.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Still Need Help -->
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-primary text-white text-center">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Still have questions?</h5>
+                    <p class="card-text">Can't find the answer you're looking for? Our support team is here to help!</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a asp-action="SubmitTicket" class="btn btn-light">
+                            <i class="fas fa-ticket-alt me-2"></i>Submit a Ticket
+                        </a>
+                        <a asp-action="Contact" class="btn btn-outline-light">
+                            <i class="fas fa-envelope me-2"></i>Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function filterFAQ(category) {
+        const items = document.querySelectorAll('.faq-item');
+        const buttons = document.querySelectorAll('.btn-outline-primary');
+        
+        // Remove active class from all buttons
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        // Add active class to clicked button
+        event.target.classList.add('active');
+        
+        items.forEach(item => {
+            if (category === 'all' || item.dataset.category === category) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Search functionality
+    document.getElementById('faqSearch').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const items = document.querySelectorAll('.faq-item');
+        
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+}
