@@ -1,8 +1,9 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Helpio.Ir.Application.DTOs.Ticketing;
 using Helpio.Ir.Application.DTOs.Common;
 using Helpio.Ir.Application.Services.Ticketing;
+using Helpio.Ir.Application.Services.Business;
 using Helpio.Ir.Application.Common.Exceptions;
 using Helpio.Ir.Application.Common.Interfaces;
 using Helpio.Ir.Domain.Interfaces;
@@ -17,19 +18,22 @@ namespace Helpio.Ir.Application.Services.Ticketing
         private readonly ILogger<TicketService> _logger;
         private readonly ICurrentUserService _currentUserService;
         private readonly IDateTime _dateTime;
+        private readonly ISubscriptionLimitService _subscriptionLimitService;
 
         public TicketService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<TicketService> logger,
             ICurrentUserService currentUserService,
-            IDateTime dateTime)
+            IDateTime dateTime,
+            ISubscriptionLimitService subscriptionLimitService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _currentUserService = currentUserService;
             _dateTime = dateTime;
+            _subscriptionLimitService = subscriptionLimitService;
         }
 
         public async Task<TicketDto?> GetByIdAsync(int id)
@@ -113,6 +117,30 @@ namespace Helpio.Ir.Application.Services.Ticketing
                 throw new NotFoundException("TicketCategory", createDto.TicketCategoryId);
             }
 
+            // Get organization ID - prioritize customer's organization, fallback to team's organization via branch
+            int? organizationId = customer.OrganizationId;
+            if (!organizationId.HasValue)
+            {
+                // Load branch with organization to get organizationId
+                var branch = await _unitOfWork.Branches.GetByIdAsync(team.BranchId);
+                organizationId = branch?.OrganizationId;
+            }
+
+            if (!organizationId.HasValue)
+            {
+                throw new InvalidOperationException("Could not determine organization for ticket creation");
+            }
+
+            // Check subscription limits
+            var canCreateTicket = await _subscriptionLimitService.CanCreateTicketAsync(organizationId.Value);
+            if (!canCreateTicket)
+            {
+                var limitInfo = await _subscriptionLimitService.GetSubscriptionLimitInfoAsync(organizationId.Value);
+                throw new BusinessRuleViolationException(
+                    limitInfo.LimitationMessage ?? 
+                    $"شما به حد مجاز ماهانه {limitInfo.MonthlyLimit} تیکت رسیده‌اید. لطفاً برای ایجاد تیکت بیشتر، اشتراک خود را ارتقا دهید.");
+            }
+
             // Get default state
             var defaultState = await _unitOfWork.TicketStates.GetDefaultStateAsync();
             if (defaultState == null)
@@ -125,8 +153,11 @@ namespace Helpio.Ir.Application.Services.Ticketing
 
             var createdTicket = await _unitOfWork.Tickets.AddAsync(ticket);
 
-            _logger.LogInformation("Ticket created with ID: {TicketId} for Customer: {CustomerId}", 
-                createdTicket.Id, createDto.CustomerId);
+            // Increment ticket count for subscription limits
+            await _subscriptionLimitService.IncrementTicketCountAsync(organizationId.Value);
+
+            _logger.LogInformation("Ticket created with ID: {TicketId} for Customer: {CustomerId}, Organization: {OrganizationId}", 
+                createdTicket.Id, createDto.CustomerId, organizationId.Value);
 
             // Create system note for ticket creation
             await CreateSystemNoteAsync(createdTicket.Id, $"Ticket created with priority: {createDto.Priority}");

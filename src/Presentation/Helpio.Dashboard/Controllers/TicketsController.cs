@@ -83,6 +83,26 @@ namespace Helpio.Dashboard.Controllers
             {
                 try
                 {
+                    // Check subscription limits before creating ticket
+                    if (CurrentOrganizationId.HasValue)
+                    {
+                        var subscriptionLimitService = HttpContext.RequestServices.GetRequiredService<Helpio.Ir.Application.Services.Business.ISubscriptionLimitService>();
+                        var canCreateTicket = await subscriptionLimitService.CanCreateTicketAsync(CurrentOrganizationId.Value);
+                        
+                        if (!canCreateTicket)
+                        {
+                            var limitInfo = await subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
+                            TempData["Error"] = limitInfo.LimitationMessage ?? 
+                                $"شما به حد مجاز ماهانه {limitInfo.MonthlyLimit} تیکت رسیده‌اید. لطفاً برای ایجاد تیکت بیشتر، اشتراک خود را ارتقا دهید.";
+                            
+
+                            ViewBag.Categories = await GetAccessibleCategoriesAsync();
+                            ViewBag.Customers = await GetAccessibleCustomersAsync();
+                            ViewBag.Teams = await GetAccessibleTeamsAsync();
+                            return View(dto);
+                        }
+                    }
+
                     // Map DTO to Entity
                     var ticket = new Ticket
                     {
@@ -126,6 +146,13 @@ namespace Helpio.Dashboard.Controllers
 
                     _context.Tickets.Add(ticket);
                     await _context.SaveChangesAsync();
+
+                    // Increment ticket count for subscription limits
+                    if (CurrentOrganizationId.HasValue)
+                    {
+                        var subscriptionLimitService = HttpContext.RequestServices.GetRequiredService<Helpio.Ir.Application.Services.Business.ISubscriptionLimitService>();
+                        await subscriptionLimitService.IncrementTicketCountAsync(CurrentOrganizationId.Value);
+                    }
 
                     TempData["Success"] = "تیکت با موفقیت ایجاد شد.";
                     return RedirectToAction(nameof(Details), new { id = ticket.Id });

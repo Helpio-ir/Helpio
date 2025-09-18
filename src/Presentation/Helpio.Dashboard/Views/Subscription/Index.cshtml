@@ -1,0 +1,378 @@
+﻿@model List<Helpio.Ir.Domain.Entities.Business.Subscription>
+
+@{
+    ViewData["Title"] = "مدیریت اشتراک";
+    ViewData["PageTitle"] = "مدیریت اشتراک و طرح‌های خدماتی";
+    var limitInfo = ViewBag.LimitInfo as Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo;
+    var activeSubscription = ViewBag.ActiveSubscription as Helpio.Ir.Domain.Entities.Business.Subscription;
+}
+
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">مدیریت اشتراک</h1>
+            <p class="mb-0 text-muted">مشاهده و مدیریت اشتراک سازمان</p>
+        </div>
+        <div>
+            @if (activeSubscription == null)
+            {
+                <form asp-action="CreateFreemiumSubscription" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        فعال‌سازی اشتراک فریمیوم
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a href="@Url.Action("Status")" class="btn btn-info">
+                    <i class="bi bi-eye me-2"></i>
+                    مشاهده وضعیت
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (activeSubscription != null && limitInfo != null)
+    {
+        <!-- Current Subscription Overview -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-start border-primary border-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    نوع اشتراک
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @activeSubscription.PlanType.ToString()
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi @(activeSubscription.IsFreemium ? "bi-star" : "bi-crown") fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-start border-success border-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    باقی‌مانده این ماه
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @limitInfo.RemainingTickets
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-ticket-perforated fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-start border-info border-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    حد مجاز ماهانه
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @(limitInfo.MonthlyLimit == int.MaxValue ? "نامحدود" : limitInfo.MonthlyLimit.ToString())
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-speedometer2 fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-start border-warning border-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    استفاده شده
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    @limitInfo.CurrentMonthUsage
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Progress -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">میزان استفاده ماهانه</h6>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var percentage = limitInfo.MonthlyLimit > 0 ? Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1) : 0;
+                            var progressClass = percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success";
+                        }
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>@limitInfo.CurrentMonthUsage از @limitInfo.MonthlyLimit تیکت</span>
+                            <span class="badge @progressClass.Replace("bg-", "bg-")">@percentage%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar @progressClass" role="progressbar" style="width: @percentage%" 
+                                 aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(limitInfo.LimitationMessage))
+                        {
+                            <small class="text-muted mt-2 d-block">@limitInfo.LimitationMessage</small>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Subscription Plans (if freemium or no subscription) -->
+    @if (activeSubscription == null || (activeSubscription != null && activeSubscription.IsFreemium))
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">طرح‌های اشتراک موجود</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Freemium Plan -->
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card border @(activeSubscription?.IsFreemium == true ? "border-primary" : "border-light") h-100">
+                                    <div class="card-header text-center @(activeSubscription?.IsFreemium == true ? "bg-primary text-white" : "bg-light")">
+                                        <h6 class="mb-0">فریمیوم</h6>
+                                        @if (activeSubscription?.IsFreemium == true)
+                                        {
+                                            <small class="badge bg-success">فعال</small>
+                                        }
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="h4 mb-3">رایگان</div>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>۵۰ تیکت در ماه</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>پشتیبانی ایمیل</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>گزارش‌گیری پایه</li>
+                                            <li class="mb-2"><i class="bi bi-x text-danger me-2"></i>پشتیبانی تلفنی</li>
+                                        </ul>
+                                        @if (activeSubscription?.IsFreemium != true)
+                                        {
+                                            <form asp-action="CreateFreemiumSubscription" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-primary btn-sm">فعال‌سازی</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Basic Plan -->
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card border-light h-100">
+                                    <div class="card-header text-center bg-light">
+                                        <h6 class="mb-0">بیسیک</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="h4 mb-3">۵۰۰,۰۰۰ تومان<small class="text-muted">/ماه</small></div>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>۲۰۰ تیکت در ماه</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>پشتیبانی ایمیل</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>گزارش‌گیری پیشرفته</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>API محدود</li>
+                                        </ul>
+                                        <button class="btn btn-primary btn-sm" onclick="contactSales('Basic')">خرید اشتراک</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Plan -->
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card border-warning h-100">
+                                    <div class="card-header text-center bg-warning">
+                                        <h6 class="mb-0">حرفه‌ای</h6>
+                                        <small class="badge bg-dark">محبوب</small>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="h4 mb-3">۱,۵۰۰,۰۰۰ تومان<small class="text-muted">/ماه</small></div>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>۱,۰۰۰ تیکت در ماه</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>پشتیبانی اولویت‌دار</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>گزارش‌گیری کامل</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>API کامل</li>
+                                        </ul>
+                                        <button class="btn btn-warning btn-sm" onclick="contactSales('Professional')">خرید اشتراک</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enterprise Plan -->
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card border-success h-100">
+                                    <div class="card-header text-center bg-success text-white">
+                                        <h6 class="mb-0">سازمانی</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div class="h4 mb-3">۵,۰۰۰,۰۰۰ تومان<small class="text-muted">/ماه</small></div>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>تیکت نامحدود</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>پشتیبانی ۲۴/۷</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>گزارش‌گیری تخصصی</li>
+                                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>یکپارچه‌سازی سفارشی</li>
+                                        </ul>
+                                        <button class="btn btn-success btn-sm" onclick="contactSales('Enterprise')">تماس با فروش</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Subscription History -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">تاریخچه اشتراک‌ها</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>نام طرح</th>
+                                        <th>نوع</th>
+                                        <th>تاریخ شروع</th>
+                                        <th>تاریخ پایان</th>
+                                        <th>وضعیت</th>
+                                        <th>قیمت</th>
+                                        <th>محدودیت ماهانه</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var subscription in Model)
+                                    {
+                                        <tr>
+                                            <td>@subscription.Name</td>
+                                            <td>
+                                                <span class="badge @(subscription.IsFreemium ? "bg-warning" : "bg-info") text-dark">
+                                                    @subscription.PlanType.ToString()
+                                                </span>
+                                            </td>
+                                            <td>@subscription.StartDate.ToString("yyyy/MM/dd")</td>
+                                            <td>
+                                                @if (subscription.EndDate.HasValue)
+                                                {
+                                                    @subscription.EndDate.Value.ToString("yyyy/MM/dd")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">نامحدود</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge @(subscription.Status == Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Active ? "bg-success" : "bg-secondary")">
+                                                    @switch (subscription.Status)
+                                                    {
+                                                        case Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Active:
+                                                            <text>فعال</text>
+                                                            break;
+                                                        case Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Expired:
+                                                            <text>منقضی</text>
+                                                            break;
+                                                        case Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Cancelled:
+                                                            <text>لغو شده</text>
+                                                            break;
+                                                        default:
+                                                            @subscription.Status.ToString()
+                                                            break;
+                                                    }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (subscription.Price > 0)
+                                                {
+                                                    @subscription.Price.ToString("N0") @subscription.Currency
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-success">رایگان</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (subscription.MonthlyTicketLimit == int.MaxValue)
+                                                {
+                                                    <span class="text-success">نامحدود</span>
+                                                }
+                                                else
+                                                {
+                                                    @subscription.MonthlyTicketLimit.ToString()
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function contactSales(planName) {
+            const subject = encodeURIComponent(`درخواست خرید اشتراک ${planName}`);
+            const body = encodeURIComponent(`سلام،
+
+من علاقه‌مند به خرید اشتراک ${planName} هستم. لطفاً جزئیات بیشتر و فرآیند خرید را برای من ارسال کنید.
+
+با تشکر`);
+            
+            window.open(`mailto:sales@helpio.ir?subject=${subject}&body=${body}`, '_blank');
+        }
+
+        // Auto refresh limit info every 2 minutes
+        setInterval(function() {
+            fetch('@Url.Action("GetLimitInfo", "Subscription")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update progress bar if usage changed
+                        console.log('Limit info refreshed');
+                    }
+                })
+                .catch(error => console.error('Auto refresh error:', error));
+        }, 120000); // 2 minutes
+    </script>
+}

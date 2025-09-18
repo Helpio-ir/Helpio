@@ -1,0 +1,383 @@
+﻿@{
+    ViewData["Title"] = "آمار استفاده";
+    ViewData["PageTitle"] = "آمار استفاده از اشتراک";
+    var limitInfo = ViewBag.LimitInfo as Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo;
+    var dailyTickets = ViewBag.DailyTickets as List<dynamic>;
+}
+
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">آمار استفاده</h1>
+            <p class="mb-0 text-muted">تحلیل استفاده از تیکت‌های ماهانه</p>
+        </div>
+        <div>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>
+                بازگشت
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-start border-primary border-4 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                استفاده شده
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @limitInfo.CurrentMonthUsage
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-start border-success border-4 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                باقی‌مانده
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @limitInfo.RemainingTickets
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-ticket-perforated fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-start border-info border-4 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                حد مجاز
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @(limitInfo.MonthlyLimit == int.MaxValue ? "نامحدود" : limitInfo.MonthlyLimit.ToString())
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-speedometer2 fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-start border-warning border-4 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                درصد استفاده
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @{
+                                    var percentage = limitInfo.MonthlyLimit > 0 ? Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1) : 0;
+                                }
+                                @percentage%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-pie-chart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Daily Usage Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">آمار روزانه ایجاد تیکت (ماه جاری)</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">گزینه‌های نمودار:</div>
+                            <a class="dropdown-item" href="#" onclick="exportChart()">صادرات PNG</a>
+                            <a class="dropdown-item" href="#" onclick="printChart()">چاپ</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="dailyUsageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Usage Overview -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">نمای کلی ماهانه</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="monthlyOverviewChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="bi bi-circle-fill text-primary"></i> استفاده شده
+                        </span>
+                        <span class="mr-2">
+                            <i class="bi bi-circle-fill text-success"></i> باقی‌مانده
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Details -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">جزئیات استفاده</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="small font-weight-bold">
+                        میزان استفاده ماهانه 
+                        <span class="float-end">@percentage%</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-primary")" 
+                             role="progressbar" style="width: @percentage%" 
+                             aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="border-end pe-3">
+                                <h5 class="font-weight-bold">@limitInfo.CurrentMonthUsage</h5>
+                                <p class="text-muted mb-0">تیکت ایجاد شده</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="ps-3">
+                                <h5 class="font-weight-bold">@limitInfo.RemainingTickets</h5>
+                                <p class="text-muted mb-0">باقی‌مانده</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(limitInfo.LimitationMessage))
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @limitInfo.LimitationMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">اطلاعات طرح اشتراک</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            نوع طرح:
+                            <span class="badge @(limitInfo.IsFreemium ? "bg-warning" : "bg-success") text-dark">
+                                @limitInfo.PlanType.ToString()
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            شروع ماه جاری:
+                            <strong>@limitInfo.CurrentMonthStartDate.ToString("yyyy/MM/dd")</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            حد مجاز ماهانه:
+                            <strong>@(limitInfo.MonthlyLimit == int.MaxValue ? "نامحدود" : limitInfo.MonthlyLimit.ToString())</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            وضعیت ایجاد تیکت:
+                            <span class="badge @(limitInfo.CanCreateTickets ? "bg-success" : "bg-danger")">
+                                @(limitInfo.CanCreateTickets ? "فعال" : "غیرفعال")
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (limitInfo.IsFreemium)
+                    {
+                        <div class="mt-3">
+                            <a href="@Url.Action("Upgrade")" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-arrow-up-circle me-2"></i>
+                                ارتقا اشتراک
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Usage Table -->
+    @if (dailyTickets != null && dailyTickets.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">آمار روزانه تفصیلی</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>تاریخ</th>
+                                        <th>تعداد تیکت ایجاد شده</th>
+                                        <th>روز هفته</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var daily in dailyTickets)
+                                    {
+                                        <tr>
+                                            <td>@((DateTime)daily.Date).ToString("yyyy/MM/dd")</td>
+                                            <td>
+                                                <span class="badge bg-primary">@daily.Count</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var dayName = ((DateTime)daily.Date).ToString("dddd", new System.Globalization.CultureInfo("fa-IR"));
+                                                }
+                                                @dayName
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Daily Usage Chart
+        const dailyCtx = document.getElementById('dailyUsageChart').getContext('2d');
+        const dailyDataRaw = @Html.Raw(Json.Serialize(dailyTickets ?? new List<dynamic>()));
+        const dailyData = dailyDataRaw.map(d => ({
+            date: new Date(d.Date).toLocaleDateString('fa-IR', { month: '2-digit', day: '2-digit' }),
+            count: d.Count
+        }));
+        
+        const dailyChart = new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyData.map(d => d.date),
+                datasets: [{
+                    label: 'تیکت‌های ایجاد شده',
+                    data: dailyData.map(d => d.count),
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'آمار روزانه ایجاد تیکت'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Monthly Overview Chart
+        const monthlyCtx = document.getElementById('monthlyOverviewChart').getContext('2d');
+        const monthlyChart = new Chart(monthlyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['استفاده شده', 'باقی‌مانده'],
+                datasets: [{
+                    data: [@limitInfo.CurrentMonthUsage, @limitInfo.RemainingTickets],
+                    backgroundColor: [
+                        @(percentage >= 90 ? "'#dc3545'" : percentage >= 70 ? "'#ffc107'" : "'#0d6efd'"),
+                        '#e9ecef'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // Export and Print functions
+        function exportChart() {
+            const link = document.createElement('a');
+            link.download = 'daily-usage-chart.png';
+            link.href = dailyChart.toBase64Image();
+            link.click();
+        }
+
+        function printChart() {
+            window.print();
+        }
+
+        // Auto refresh every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+    </script>
+}

@@ -1,0 +1,432 @@
+﻿@{
+    ViewData["Title"] = "ارتقا اشتراک";
+    ViewData["PageTitle"] = "ارتقا طرح اشتراک";
+    var limitInfo = ViewBag.LimitInfo as Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo;
+    var plans = ViewBag.Plans as List<object>;
+}
+
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">ارتقا اشتراک</h1>
+            <p class="mb-0 text-muted">انتخاب طرح مناسب برای نیازهای سازمان شما</p>
+        </div>
+        <div>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>
+                بازگشت
+            </a>
+        </div>
+    </div>
+
+    @if (limitInfo != null)
+    {
+        <!-- Current Plan Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            وضعیت فعلی اشتراک شما
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 text-center">
+                                <i class="bi bi-star-fill text-warning" style="font-size: 3rem;"></i>
+                                <h4 class="mt-2 mb-0">@limitInfo.PlanType.ToString()</h4>
+                                <small class="text-muted">طرح فعلی</small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h6 class="text-muted">استفاده شده:</h6>
+                                        <h4 class="text-primary mb-0">@limitInfo.CurrentMonthUsage</h4>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted">باقی‌مانده:</h6>
+                                        <h4 class="@(limitInfo.RemainingTickets <= 5 ? "text-danger" : "text-success") mb-0">@limitInfo.RemainingTickets</h4>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    @{
+                                        var percentage = limitInfo.MonthlyLimit > 0 ? Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1) : 0;
+                                    }
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")" 
+                                             style="width: @percentage%"></div>
+                                    </div>
+                                    <small class="text-muted">@percentage% از @limitInfo.MonthlyLimit تیکت</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                @if (!string.IsNullOrEmpty(limitInfo.LimitationMessage))
+                                {
+                                    <div class="alert alert-warning mb-0 p-2">
+                                        <small>@limitInfo.LimitationMessage</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success fs-6">همه چیز عالی است!</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Pricing Plans -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-grid-3x3-gap me-2"></i>
+                        طرح‌های اشتراک موجود
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (plans != null)
+                        {
+                            @foreach (var plan in plans)
+                            {
+                                var planData = plan as dynamic;
+                                var isCurrentPlan = limitInfo != null && planData.Name == limitInfo.PlanType.ToString();
+                                var isRecommended = planData.Name == "Professional";
+                                
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="card h-100 @(isCurrentPlan ? "border-warning" : isRecommended ? "border-primary" : "border-light") position-relative">
+                                        @if (isRecommended)
+                                        {
+                                            <div class="badge bg-primary position-absolute top-0 start-50 translate-middle px-3 py-2">
+                                                محبوب‌ترین
+                                            </div>
+                                        }
+                                        @if (isCurrentPlan)
+                                        {
+                                            <div class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle px-3 py-2">
+                                                طرح فعلی
+                                            </div>
+                                        }
+                                        
+                                        <div class="card-header text-center @(isCurrentPlan ? "bg-warning text-dark" : isRecommended ? "bg-primary text-white" : "bg-light")">
+                                            <h4 class="my-0 fw-normal">@planData.Name</h4>
+                                            <small>@planData.Description</small>
+                                        </div>
+                                        
+                                        <div class="card-body d-flex flex-column">
+                                            <div class="text-center mb-4">
+                                                @if (planData.Price == 0)
+                                                {
+                                                    <h1 class="card-title pricing-card-title">رایگان</h1>
+                                                }
+                                                else
+                                                {
+                                                    <h1 class="card-title pricing-card-title">
+                                                        @planData.Price.ToString("N0")
+                                                        <small class="text-muted fw-light">@planData.Currency</small>
+                                                    </h1>
+                                                    <small class="text-muted">در ماه</small>
+                                                }
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="text-muted">تعداد تیکت:</span>
+                                                    <strong>
+                                                        @if (planData.TicketLimit == -1)
+                                                        {
+                                                            <span class="text-success">نامحدود</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            @planData.TicketLimit.ToString()
+                                                        }
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            
+                                            <ul class="list-unstyled mt-3 mb-4 flex-grow-1">
+                                                @if (planData.Features != null)
+                                                {
+                                                    @foreach (string feature in planData.Features)
+                                                    {
+                                                        <li class="mb-2">
+                                                            <i class="bi bi-check-circle text-success me-2"></i>
+                                                            @feature
+                                                        </li>
+                                                    }
+                                                }
+                                            </ul>
+                                            
+                                            <div class="mt-auto">
+                                                @if (isCurrentPlan)
+                                                {
+                                                    <button class="btn btn-outline-warning w-100" disabled>
+                                                        <i class="bi bi-check me-2"></i>
+                                                        طرح فعلی شما
+                                                    </button>
+                                                }
+                                                else if (planData.Name == "Freemium")
+                                                {
+                                                    <button class="btn btn-outline-secondary w-100" disabled>
+                                                        طرح پایه
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn @(isRecommended ? "btn-primary" : "btn-outline-primary") w-100" 
+                                                            onclick="selectPlan('@planData.Name', '@planData.Price', '@planData.TicketLimit')">
+                                                        @if (planData.Name == "Enterprise")
+                                                        {
+                                                            <i class="bi bi-telephone me-2"></i>
+                                                            <text>تماس با فروش</text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="bi bi-cart-plus me-2"></i>
+                                                            <text>انتخاب این طرح</text>
+                                                        }
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Comparison -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-table me-2"></i>
+                        مقایسه ویژگی‌ها
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ویژگی</th>
+                                    <th class="text-center">فریمیوم</th>
+                                    <th class="text-center">بیسیک</th>
+                                    <th class="text-center">حرفه‌ای</th>
+                                    <th class="text-center">سازمانی</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>تعداد تیکت ماهانه</strong></td>
+                                    <td class="text-center">۵۰</td>
+                                    <td class="text-center">۲۰۰</td>
+                                    <td class="text-center">۱,۰۰۰</td>
+                                    <td class="text-center text-success"><strong>نامحدود</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>داشبورد و گزارش‌گیری</td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>پشتیبانی ایمیل</td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>API کامل</td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-warning"></i> محدود</td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>پشتیبانی اولویت‌دار</td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>پشتیبانی ۲۴/۷</td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>یکپارچه‌سازی سفارشی</td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title">سوال یا نیاز به مشاوره دارید؟</h5>
+                    <p class="card-text">تیم فروش ما آماده پاسخگویی به سوالات شما و ارائه بهترین راهکار است.</p>
+                    <div class="btn-group" role="group">
+                        <a href="mailto:sales@helpio.ir" class="btn btn-primary">
+                            <i class="bi bi-envelope me-2"></i>
+                            ایمیل به فروش
+                        </a>
+                        <a href="tel:+982188888888" class="btn btn-outline-primary">
+                            <i class="bi bi-telephone me-2"></i>
+                            تماس تلفنی
+                        </a>
+                        <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            <i class="bi bi-play-circle me-2"></i>
+                            درخواست دمو
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Demo Request Modal -->
+<div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="demoModalLabel">درخواست دمو</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="demoRequestForm">
+                    <div class="mb-3">
+                        <label for="contactName" class="form-label">نام و نام خانوادگی</label>
+                        <input type="text" class="form-control" id="contactName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contactEmail" class="form-label">ایمیل</label>
+                        <input type="email" class="form-control" id="contactEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contactPhone" class="form-label">شماره تماس</label>
+                        <input type="tel" class="form-control" id="contactPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">نام شرکت</label>
+                        <input type="text" class="form-control" id="companyName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">پیام (اختیاری)</label>
+                        <textarea class="form-control" id="message" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" onclick="submitDemoRequest()">ارسال درخواست</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function selectPlan(planName, price, ticketLimit) {
+            if (planName === 'Enterprise') {
+                // Open contact modal or redirect to contact page
+                const subject = encodeURIComponent(`درخواست اطلاعات طرح سازمانی`);
+                const body = encodeURIComponent(`سلام،
+
+من علاقه‌مند به کسب اطلاعات بیشتر در مورد طرح سازمانی هستم. لطفاً با من تماس بگیرید.
+
+با تشکر`);
+                
+                window.open(`mailto:sales@helpio.ir?subject=${subject}&body=${body}`, '_blank');
+            } else {
+                // Show purchase confirmation
+                const confirmMessage = `آیا مایل به خرید طرح ${planName} با قیمت ${price} تومان در ماه هستید؟
+
+این طرح شامل ${ticketLimit} تیکت در ماه می‌باشد.`;
+                
+                if (confirm(confirmMessage)) {
+                    // Redirect to payment or contact sales
+                    const subject = encodeURIComponent(`درخواست خرید طرح ${planName}`);
+                    const body = encodeURIComponent(`سلام،
+
+من مایل به خرید طرح ${planName} با مشخصات زیر هستم:
+- قیمت: ${price} تومان در ماه
+- تعداد تیکت: ${ticketLimit} در ماه
+
+لطفاً فرآیند خرید را برای من راهنمایی کنید.
+
+با تشکر`);
+                    
+                    window.open(`mailto:sales@helpio.ir?subject=${subject}&body=${body}`, '_blank');
+                }
+            }
+        }
+
+        function submitDemoRequest() {
+            const form = document.getElementById('demoRequestForm');
+            const formData = new FormData(form);
+            
+            // Here you would typically send the data to your server
+            // For now, we'll just show a success message and compose an email
+            
+            const name = document.getElementById('contactName').value;
+            const email = document.getElementById('contactEmail').value;
+            const phone = document.getElementById('contactPhone').value;
+            const company = document.getElementById('companyName').value;
+            const message = document.getElementById('message').value;
+            
+            if (!name || !email || !company) {
+                alert('لطفاً فیلدهای ضروری را پر کنید.');
+                return;
+            }
+            
+            const subject = encodeURIComponent('درخواست دمو محصول');
+            const body = encodeURIComponent(`درخواست دمو از:
+
+نام: ${name}
+ایمیل: ${email}
+تلفن: ${phone}
+شرکت: ${company}
+
+پیام:
+${message}
+
+با تشکر`);
+            
+            window.open(`mailto:sales@helpio.ir?subject=${subject}&body=${body}`, '_blank');
+            
+            // Close modal and show success message
+            bootstrap.Modal.getInstance(document.getElementById('demoModal')).hide();
+            alert('درخواست شما ارسال شد. به زودی با شما تماس خواهیم گرفت.');
+        }
+    </script>
+}

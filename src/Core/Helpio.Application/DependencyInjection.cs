@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Helpio.Ir.Application.Services.Core;
@@ -56,6 +56,7 @@ namespace Helpio.Ir.Application
         {
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<ISubscriptionLimitService, SubscriptionLimitService>();
             services.AddScoped<ITransactionService, TransactionService>();
         }
 

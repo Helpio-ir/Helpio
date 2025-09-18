@@ -1,6 +1,7 @@
-﻿@model Helpio.Dashboard.Controllers.DashboardStatsViewModel
+﻿@model Helpio.Dashboard.Models.DashboardStatsViewModel
 @{
     ViewData["Title"] = "داشبورد اصلی";
+    var subscriptionInfo = ViewBag.SubscriptionInfo as Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo;
 }
 
 <!--begin::Row-->
@@ -38,6 +39,92 @@
         </div>
     </div>
 </div>
+
+@if (subscriptionInfo != null)
+{
+    <!-- Subscription Status Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-start @(subscriptionInfo.IsFreemium ? "border-warning" : "border-success") border-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="bi bi-credit-card me-2"></i>
+                            وضعیت اشتراک - @subscriptionInfo.PlanType.ToString()
+                        </h5>
+                    </div>
+                    <div>
+                        <a href="@Url.Action("Index", "Subscription")" class="btn btn-sm btn-outline-primary">
+                            مدیریت اشتراک
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">@subscriptionInfo.CurrentMonthUsage</h4>
+                                <small class="text-muted">تیکت ایجاد شده</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="@(subscriptionInfo.RemainingTickets <= 5 ? "text-danger" : "text-success")">@subscriptionInfo.RemainingTickets</h4>
+                                <small class="text-muted">باقی‌مانده</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">@(subscriptionInfo.MonthlyLimit == int.MaxValue ? "∞" : subscriptionInfo.MonthlyLimit.ToString())</h4>
+                                <small class="text-muted">حد مجاز ماهانه</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                @{
+                                    var percentage = subscriptionInfo.MonthlyLimit > 0 ? Math.Round((double)subscriptionInfo.CurrentMonthUsage / subscriptionInfo.MonthlyLimit * 100, 1) : 0;
+                                    var statusClass = subscriptionInfo.CanCreateTickets ? "text-success" : "text-danger";
+                                }
+                                <h4 class="@statusClass">@(subscriptionInfo.CanCreateTickets ? "فعال" : "غیرفعال")</h4>
+                                <small class="text-muted">وضعیت ایجاد تیکت</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (subscriptionInfo.MonthlyLimit > 0)
+                    {
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>میزان استفاده ماهانه</span>
+                                <span class="badge @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")">@percentage%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")" 
+                                     style="width: @percentage%"></div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(subscriptionInfo.LimitationMessage))
+                    {
+                        <div class="alert @(subscriptionInfo.CanCreateTickets ? "alert-warning" : "alert-danger") mt-3 mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @subscriptionInfo.LimitationMessage
+                            @if (subscriptionInfo.IsFreemium)
+                            {
+                                <div class="mt-2">
+                                    <a href="@Url.Action("Upgrade", "Subscription")" class="btn btn-sm btn-primary">
+                                        ارتقا اشتراک
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <!--begin::Stats Row-->
 <div class="row">
@@ -164,10 +251,21 @@
                     @if (ViewBag.IsAdmin == true || ViewBag.IsManager == true)
                     {
                         <div class="col-md-3 mb-3">
-                            <a asp-controller="Tickets" asp-action="Create" class="btn btn-primary btn-lg w-100">
-                                <i class="bi bi-plus-circle"></i>
-                                <br>ایجاد تیکت جدید
-                            </a>
+                            @if (subscriptionInfo?.CanCreateTickets == true)
+                            {
+                                <a asp-controller="Tickets" asp-action="Create" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <br>ایجاد تیکت جدید
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary btn-lg w-100" disabled title="محدودیت اشتراک">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <br>ایجاد تیکت جدید
+                                    <br><small>(محدود شده)</small>
+                                </button>
+                            }
                         </div>
                         <div class="col-md-3 mb-3">
                             <a asp-controller="Customers" asp-action="Create" class="btn btn-success btn-lg w-100">
@@ -190,6 +288,16 @@
                             <br>گزارشات
                         </a>
                     </div>
+                    
+                    @if (subscriptionInfo != null)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <a asp-controller="Subscription" asp-action="Status" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="bi bi-credit-card"></i>
+                                <br>وضعیت اشتراک
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

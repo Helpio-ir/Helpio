@@ -274,6 +274,46 @@
           </ul>
         </li>
 
+        <!-- Subscription Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon bi bi-credit-card"></i>
+            <p>
+              اشتراک و طرح‌ها
+              <i class="nav-arrow bi bi-chevron-right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a asp-controller="Subscription" asp-action="Index" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>مدیریت اشتراک</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a asp-controller="Subscription" asp-action="Status" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>وضعیت اشتراک</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a asp-controller="Subscription" asp-action="Usage" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>آمار استفاده</p>
+              </a>
+            </li>
+            @if (UserContext.IsAdmin || UserContext.IsManager)
+            {
+              <li class="nav-item">
+                <a asp-controller="Subscription" asp-action="Upgrade" class="nav-link">
+                  <i class="nav-icon bi bi-circle"></i>
+                  <p>ارتقا اشتراک</p>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+
         <!-- User Profile -->
         <li class="nav-header">کاربر</li>
         <li class="nav-item">

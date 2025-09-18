@@ -1,0 +1,351 @@
+﻿@model Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo
+
+@{
+    ViewData["Title"] = "وضعیت اشتراک";
+    ViewData["PageTitle"] = "وضعیت اشتراک و محدودیت‌ها";
+}
+
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">وضعیت اشتراک</h1>
+            <p class="mb-0 text-muted">مشاهده اطلاعات اشتراک و محدودیت‌های ماهانه</p>
+        </div>
+        <div>
+            <span class="badge @(Model.IsFreemium ? "bg-warning" : "bg-success") text-dark fs-6">
+                @Model.PlanType.ToString()
+            </span>
+        </div>
+    </div>
+
+    <!-- Alert for Limitations -->
+    @if (!string.IsNullOrEmpty(Model.LimitationMessage))
+    {
+        <div class="alert @(Model.CanCreateTickets ? "alert-warning" : "alert-danger") alert-dismissible fade show" role="alert">
+            <i class="bi @(Model.CanCreateTickets ? "bi-exclamation-triangle" : "bi-x-circle") me-2"></i>
+            @Model.LimitationMessage
+            @if (!Model.CanCreateTickets)
+            {
+                <br><small class="text-muted">برای ایجاد تیکت‌های بیشتر، لطفاً با پشتیبانی تماس بگیرید یا اشتراک خود را ارتقا دهید.</small>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Usage Overview Card -->
+        <div class="col-lg-8 col-md-7 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        استفاده از تیکت‌های ماهانه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-md-3">
+                            <div class="text-primary">
+                                <i class="bi bi-ticket-perforated fs-2"></i>
+                                <h4 class="mt-2 mb-1">@Model.CurrentMonthUsage</h4>
+                                <small class="text-muted">استفاده شده</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-success">
+                                <i class="bi bi-check-circle fs-2"></i>
+                                <h4 class="mt-2 mb-1">@Model.RemainingTickets</h4>
+                                <small class="text-muted">باقی‌مانده</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-info">
+                                <i class="bi bi-speedometer2 fs-2"></i>
+                                <h4 class="mt-2 mb-1">@Model.MonthlyLimit</h4>
+                                <small class="text-muted">حد مجاز</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="@(Model.IsFreemium ? "text-warning" : "text-success")">
+                                <i class="bi @(Model.IsFreemium ? "bi-star" : "bi-crown") fs-2"></i>
+                                <h4 class="mt-2 mb-1">@Model.PlanType</h4>
+                                <small class="text-muted">نوع اشتراک</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0">میزان استفاده</label>
+                            <span class="badge @(Model.CurrentMonthUsage >= Model.MonthlyLimit * 0.9 ? "bg-danger" : Model.CurrentMonthUsage >= Model.MonthlyLimit * 0.7 ? "bg-warning" : "bg-success")">
+                                @{
+                                    var percentage = Model.MonthlyLimit > 0 ? Math.Round((double)Model.CurrentMonthUsage / Model.MonthlyLimit * 100, 1) : 0;
+                                }
+                                @percentage%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")" 
+                                 role="progressbar" 
+                                 style="width: @percentage%" 
+                                 aria-valuenow="@percentage" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">0</small>
+                            <small class="text-muted">@Model.MonthlyLimit</small>
+                        </div>
+                    </div>
+
+                    <!-- Usage Chart Placeholder -->
+                    <div class="text-center py-3">
+                        <canvas id="usageChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Details Card -->
+        <div class="col-lg-4 col-md-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        جزئیات اشتراک
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">سازمان:</span>
+                                <strong>@ViewBag.OrganizationName</strong>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">نوع طرح:</span>
+                                <span class="badge @(Model.IsFreemium ? "bg-warning" : "bg-success") text-dark">
+                                    @(Model.IsFreemium ? "رایگان" : Model.PlanType.ToString())
+                                </span>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">شروع ماه جاری:</span>
+                                <strong>@Model.CurrentMonthStartDate.ToString("yyyy/MM/dd")</strong>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">وضعیت ایجاد تیکت:</span>
+                                <span class="badge @(Model.CanCreateTickets ? "bg-success" : "bg-danger")">
+                                    @(Model.CanCreateTickets ? "فعال" : "غیرفعال")
+                                </span>
+                            </div>
+                        </li>
+                        @if (Model.IsFreemium && Model.RemainingTickets <= 10)
+                        {
+                            <li class="mb-3">
+                                <div class="alert alert-warning py-2 px-3 mb-0">
+                                    <small>
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        تعداد تیکت‌های باقی‌مانده شما کم است!
+                                    </small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+
+                    @if (Model.IsFreemium)
+                    {
+                        <div class="mt-4">
+                            <h6 class="text-muted mb-3">مزایای ارتقا اشتراک:</h6>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    تیکت‌های نامحدود
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    پشتیبانی اولویت‌دار
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    ویژگی‌های پیشرفته
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    گزارش‌گیری تفصیلی
+                                </li>
+                            </ul>
+                            <button class="btn btn-primary btn-sm w-100 mt-3" data-bs-toggle="modal" data-bs-target="#upgradeModal">
+                                <i class="bi bi-arrow-up-circle me-2"></i>
+                                ارتقا اشتراک
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        اقدامات سریع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="@Url.Action("Create", "Tickets")" class="btn btn-outline-primary w-100 @(!Model.CanCreateTickets ? "disabled" : "")" @(!Model.CanCreateTickets ? "tabindex=-1 aria-disabled=true" : "")>
+                                <i class="bi bi-plus-circle me-2"></i>
+                                ایجاد تیکت جدید
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="@Url.Action("Index", "Tickets")" class="btn btn-outline-info w-100">
+                                <i class="bi bi-list me-2"></i>
+                                مشاهده تیکت‌ها
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <a href="@Url.Action("Index", "Reports")" class="btn btn-outline-success w-100">
+                                <i class="bi bi-graph-up me-2"></i>
+                                گزارش‌گیری
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="refreshLimitInfo()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>
+                                به‌روزرسانی اطلاعات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upgrade Modal -->
+@if (Model.IsFreemium)
+{
+    <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="upgradeModalLabel">ارتقا اشتراک</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>برای ارتقا اشتراک خود و دسترسی به ویژگی‌های پیشرفته، لطفاً با تیم فروش ما تماس بگیرید.</p>
+                    <div class="alert alert-info">
+                        <strong>مزایای اشتراک پریمیوم:</strong>
+                        <ul class="mt-2 mb-0">
+                            <li>تیکت‌های نامحدود</li>
+                            <li>پشتیبانی ۲۴/۷</li>
+                            <li>گزارش‌گیری پیشرفته</li>
+                            <li>یکپارچه‌سازی API کامل</li>
+                            <li>پشتیبانی چندکاربره</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <a href="mailto:sales@helpio.ir" class="btn btn-primary">تماس با فروش</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Usage Chart
+        const ctx = document.getElementById('usageChart').getContext('2d');
+        const usageChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['استفاده شده', 'باقی‌مانده'],
+                datasets: [{
+                    data: [@Model.CurrentMonthUsage, @Model.RemainingTickets],
+                    backgroundColor: [
+                        @(Model.CurrentMonthUsage >= Model.MonthlyLimit * 0.9 ? "'#dc3545'" : Model.CurrentMonthUsage >= Model.MonthlyLimit * 0.7 ? "'#ffc107'" : "'#0d6efd'"),
+                        '#e9ecef'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        // Refresh function
+        function refreshLimitInfo() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>در حال به‌روزرسانی...';
+            btn.disabled = true;
+
+            fetch('@Url.Action("GetLimitInfo", "Subscription")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Refresh the page to show updated data
+                        location.reload();
+                    } else {
+                        alert('خطا در به‌روزرسانی اطلاعات: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در اتصال به سرور');
+                })
+                .finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+
+        // Auto refresh every 5 minutes
+        setInterval(function() {
+            fetch('@Url.Action("GetLimitInfo", "Subscription")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.currentMonthUsage !== @Model.CurrentMonthUsage) {
+                        // Show notification if usage changed
+                        if (typeof toastr !== 'undefined') {
+                            toastr.info('اطلاعات استفاده به‌روزرسانی شد');
+                        }
+                        // Optionally reload the page
+                        // location.reload();
+                    }
+                })
+                .catch(error => console.error('Auto refresh error:', error));
+        }, 300000); // 5 minutes
+    </script>
+}

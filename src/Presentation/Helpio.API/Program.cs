@@ -1,4 +1,4 @@
-using Helpio.Ir.Application;
+﻿using Helpio.Ir.Application;
 using Helpio.Ir.Infrastructure;
 using Helpio.Ir.Infrastructure.Data;
 using Helpio.Ir.Infrastructure.Data.Seeders;
@@ -100,17 +100,17 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     
     try
     {
-        await SampleDataSeeder.SeedSampleDataAsync(context);
+        await SampleDataSeeder.SeedSampleDataAsync(scope.ServiceProvider);
         
-        // ????? API Keys ???? ???
+        // نمایش API Keys برای تست
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var apiKeys = await context.ApiKeys.ToListAsync();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         
-        logger.LogInformation("?? Available API Keys for testing:");
+        logger.LogInformation("🔑 Available API Keys for testing:");
         foreach (var key in apiKeys)
         {
             logger.LogInformation("Organization: {OrganizationName} | API Key: {ApiKey}", 

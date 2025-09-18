@@ -1,8 +1,13 @@
 ﻿using Helpio.Dashboard.Middleware;
 using Helpio.Dashboard.Services;
 using Helpio.Ir.Application.Mappings;
+using Helpio.Ir.Application.Common.Interfaces;
+using Helpio.Ir.Application.Services.Business;
 using Helpio.Ir.Domain.Entities.Core;
+using Helpio.Ir.Domain.Interfaces;
 using Helpio.Ir.Infrastructure.Data;
+using Helpio.Ir.Infrastructure.Repositories;
+using Helpio.Ir.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +20,6 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Disable Hot Reload and Browser Link completely
-
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -65,6 +69,13 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IOrganizationService, OrganizationService>();
         builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+        
+        // Add Infrastructure services
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddSingleton<IDateTime, DateTimeService>();
+        
+        // Add Application services
+        builder.Services.AddScoped<ISubscriptionLimitService, SubscriptionLimitService>();
 
         // Add AutoMapper
         builder.Services.AddAutoMapper(typeof(MappingProfile)); // Add AutoMapper
@@ -99,7 +110,7 @@ public class Program
             pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
         // Initialize database with default users
-        await DatabaseInitializer.SeedDefaultUsersAsync(app.Services);
+        await Services.DatabaseInitializer.SeedDefaultUsersAsync(app.Services);
 
         await app.RunAsync();
     }

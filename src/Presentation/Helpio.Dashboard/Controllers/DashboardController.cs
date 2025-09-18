@@ -1,85 +1,110 @@
-using Helpio.Dashboard.Services;
+﻿using Helpio.Dashboard.Services;
+using Helpio.Dashboard.Models;
 using Helpio.Ir.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
-namespace Helpio.Dashboard.Controllers;
-
-public class DashboardController : BaseController
+namespace Helpio.Dashboard.Controllers
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ILogger<DashboardController> _logger;
-
-    public DashboardController(
-        ICurrentUserContext userContext,
-        ApplicationDbContext context,
-        ILogger<DashboardController> logger)
-        : base(userContext)
+    public class DashboardController : BaseController
     {
-        _context = context;
-        _logger = logger;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<IActionResult> Index()
-    {
-        var stats = await GetDashboardStatsAsync();
-        return View(stats);
-    }
-
-    private async Task<DashboardStatsViewModel> GetDashboardStatsAsync()
-    {
-        var orgId = CurrentOrganizationId;
-        var teamId = CurrentTeamId;
-
-        var stats = new DashboardStatsViewModel();
-
-        if (IsCurrentUserAdmin)
+        public DashboardController(ICurrentUserContext userContext, ApplicationDbContext context)
+            : base(userContext)
         {
-            // Admin sees all stats
-            stats.TotalTickets = await _context.Tickets.CountAsync();
-            stats.OpenTickets = await _context.Tickets.CountAsync(t => t.TicketState.Name == "Open");
-            stats.ClosedTickets = await _context.Tickets.CountAsync(t => t.TicketState.Name == "Closed");
-            stats.TotalCustomers = await _context.Customers.CountAsync();
-            stats.TotalOrganizations = await _context.Organizations.CountAsync();
-            stats.TotalAgents = await _context.SupportAgents.CountAsync();
-        }
-        else if (IsCurrentUserManager && orgId.HasValue)
-        {
-            // Manager sees organization stats
-            var orgTickets = _context.Tickets
-                .Where(t => t.Team.Branch.OrganizationId == orgId.Value);
-
-            stats.TotalTickets = await orgTickets.CountAsync();
-            stats.OpenTickets = await orgTickets.CountAsync(t => t.TicketState.Name == "Open");
-            stats.ClosedTickets = await orgTickets.CountAsync(t => t.TicketState.Name == "Closed");
-            stats.TotalCustomers = await _context.Customers
-                .CountAsync(c => c.Tickets.Any(t => t.Team.Branch.OrganizationId == orgId.Value));
-            stats.TotalAgents = await _context.SupportAgents
-                .CountAsync(sa => sa.Team.Branch.OrganizationId == orgId.Value);
-        }
-        else if (IsCurrentUserAgent && teamId.HasValue)
-        {
-            // Agent sees only their stats
-            var agentTickets = _context.Tickets
-                .Where(t => t.SupportAgentId == UserContext.CurrentSupportAgent!.Id);
-
-            stats.TotalTickets = await agentTickets.CountAsync();
-            stats.OpenTickets = await agentTickets.CountAsync(t => t.TicketState.Name == "Open");
-            stats.ClosedTickets = await agentTickets.CountAsync(t => t.TicketState.Name == "Closed");
-            stats.MyTickets = stats.TotalTickets;
+            _context = context;
         }
 
-        return stats;
-    }
-}
+        public async Task<IActionResult> Index()
+        {
+            var model = new DashboardStatsViewModel();
 
-public class DashboardStatsViewModel
-{
-    public int TotalTickets { get; set; }
-    public int OpenTickets { get; set; }
-    public int ClosedTickets { get; set; }
-    public int TotalCustomers { get; set; }
-    public int TotalOrganizations { get; set; }
-    public int TotalAgents { get; set; }
-    public int MyTickets { get; set; }
+            try
+            {
+                // Get subscription information for the organization
+                if (CurrentOrganizationId.HasValue)
+                {
+                    var subscriptionLimitService = HttpContext.RequestServices.GetRequiredService<Helpio.Ir.Application.Services.Business.ISubscriptionLimitService>();
+                    ViewBag.SubscriptionInfo = await subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
+                }
+
+                // Get tickets statistics based on user role
+                var ticketsQuery = _context.Tickets
+                    .Include(t => t.Team)
+                        .ThenInclude(t => t.Branch)
+                    .AsQueryable();
+
+                if (IsCurrentUserAdmin)
+                {
+                    // Admin sees all tickets
+                    model.TotalTickets = await ticketsQuery.CountAsync();
+                    model.OpenTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 1);
+                    model.ClosedTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 3);
+                }
+                else if (IsCurrentUserManager && CurrentOrganizationId.HasValue)
+                {
+                    // Manager sees organization tickets
+                    ticketsQuery = ticketsQuery.Where(t => t.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+                    model.TotalTickets = await ticketsQuery.CountAsync();
+                    model.OpenTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 1);
+                    model.ClosedTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 3);
+                }
+                else if (IsCurrentUserAgent)
+                {
+                    // Agent sees only assigned tickets
+                    ticketsQuery = ticketsQuery.Where(t => 
+                        t.SupportAgentId == UserContext.CurrentSupportAgent!.Id ||
+                        (t.TeamId == CurrentTeamId && t.SupportAgentId == null));
+                    model.TotalTickets = await ticketsQuery.CountAsync();
+                    model.OpenTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 1);
+                    model.ClosedTickets = await ticketsQuery.CountAsync(t => t.TicketStateId == 3);
+                    model.MyTickets = model.TotalTickets; // For agents, all accessible tickets are "my tickets"
+                }
+
+                // Get customers count
+                if (IsCurrentUserAdmin)
+                {
+                    model.TotalCustomers = await _context.Customers.CountAsync();
+                }
+                else if (CurrentOrganizationId.HasValue)
+                {
+                    model.TotalCustomers = await _context.Customers
+                        .CountAsync(c => c.OrganizationId == CurrentOrganizationId.Value);
+                }
+
+                // Get support agents count
+                if (IsCurrentUserAdmin)
+                {
+                    model.TotalAgents = await _context.SupportAgents.CountAsync();
+                }
+                else if (CurrentOrganizationId.HasValue)
+                {
+                    model.TotalAgents = await _context.SupportAgents
+                        .Include(sa => sa.Team)
+                            .ThenInclude(t => t.Branch)
+                        .CountAsync(sa => sa.Team.Branch.OrganizationId == CurrentOrganizationId.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception in a real application
+                TempData["Error"] = $"خطا در بارگذاری داشبورد: {ex.Message}";
+            }
+
+            return View(model);
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
 }

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Helpio.Ir.Application.Services.Business;
 using Helpio.Ir.Application.DTOs.Business;
 using Helpio.Ir.Application.DTOs.Common;
@@ -461,6 +461,51 @@ namespace Helpio.Ir.API.Controllers.Business
             {
                 _logger.LogError(ex, "Error cancelling subscription: {SubscriptionId}", id);
                 return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get subscription limit information for current organization
+        /// </summary>
+        [HttpGet("limits")]
+        public async Task<ActionResult<object>> GetSubscriptionLimits()
+        {
+            // ????? ????? ????
+            if (!_organizationContext.IsAuthenticated)
+            {
+                return Unauthorized("User must be authenticated");
+            }
+
+            if (!_organizationContext.OrganizationId.HasValue)
+            {
+                return BadRequest("Organization context not found");
+            }
+
+            try
+            {
+                var limitService = HttpContext.RequestServices.GetRequiredService<ISubscriptionLimitService>();
+                var limitInfo = await limitService.GetSubscriptionLimitInfoAsync(_organizationContext.OrganizationId.Value);
+
+                return Ok(new
+                {
+                    OrganizationId = _organizationContext.OrganizationId.Value,
+                    CanCreateTickets = limitInfo.CanCreateTickets,
+                    RemainingTickets = limitInfo.RemainingTickets,
+                    MonthlyLimit = limitInfo.MonthlyLimit,
+                    CurrentMonthUsage = limitInfo.CurrentMonthUsage,
+                    PlanType = limitInfo.PlanType.ToString(),
+                    IsFreemium = limitInfo.IsFreemium,
+                    CurrentMonthStartDate = limitInfo.CurrentMonthStartDate,
+                    LimitationMessage = limitInfo.LimitationMessage,
+                    PercentageUsed = limitInfo.MonthlyLimit > 0 ? 
+                        Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1) : 0
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subscription limits for organization: {OrganizationId}", 
+                    _organizationContext.OrganizationId);
+                return BadRequest("Error retrieving subscription limits");
             }
         }
 
