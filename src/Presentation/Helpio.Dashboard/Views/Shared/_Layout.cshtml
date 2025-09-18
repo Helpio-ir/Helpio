@@ -49,6 +49,7 @@
     <!--begin::Custom Styles-->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Helpio.Dashboard.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
     <!--end::Custom Styles-->
   </head>
   <!--end::Head-->

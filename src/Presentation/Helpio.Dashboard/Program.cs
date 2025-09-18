@@ -69,6 +69,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IOrganizationService, OrganizationService>();
         builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+        builder.Services.AddScoped<IVariableReplacementService, VariableReplacementService>();
         
         // Add Infrastructure services
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

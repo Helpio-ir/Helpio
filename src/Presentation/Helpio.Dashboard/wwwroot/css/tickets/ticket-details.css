@@ -1,0 +1,358 @@
+﻿/**
+ * Ticket Details Page Styles
+ * استایل‌های صفحه جزئیات تیکت
+ */
+
+/* Conversation Thread Styles */
+.conversation-thread {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.response-item {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.response-bubble {
+    transition: all 0.2s ease;
+}
+
+.response-bubble:hover {
+    transform: translateX(2px);
+}
+
+.avatar {
+    transition: all 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.1);
+}
+
+.response-content {
+    border-left: 4px solid #0d6efd;
+    word-wrap: break-word;
+}
+
+/* Notes Container Styles */
+.notes-container .alert {
+    transition: all 0.2s ease;
+}
+
+.notes-container .alert:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Form Sections */
+.add-response-section, 
+.add-note-section {
+    background: linear-gradient(45deg, #f8f9fa, #ffffff);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* Textarea Styles */
+textarea {
+    transition: border-color 0.2s ease;
+}
+
+textarea:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    margin: 0 0 0 10px;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 10px;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline > div {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.timeline > div > .bi {
+    position: absolute;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-size: 10px;
+    color: white;
+}
+
+.timeline-item {
+    margin-left: 35px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.timeline-header {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+}
+
+.timeline-body {
+    font-size: 12px;
+    color: #666;
+}
+
+.time {
+    font-size: 11px;
+    color: #999;
+}
+
+/* Timeline Icon Colors */
+.bg-blue { 
+    background-color: #007bff !important; 
+}
+
+.bg-green { 
+    background-color: #28a745 !important; 
+}
+
+.bg-gray { 
+    background-color: #6c757d !important; 
+}
+
+/* Canned Responses Modal Styles */
+.canned-response-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.canned-response-item:hover {
+    border-color: #0d6efd !important;
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.canned-response-item.selected {
+    border-color: #0d6efd !important;
+    background-color: #e7f3ff;
+}
+
+.hover-effect {
+    transition: all 0.2s ease;
+}
+
+.hover-effect:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.response-preview {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Scrollbar Styles */
+.canned-responses-container {
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 transparent;
+}
+
+.canned-responses-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.canned-responses-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.canned-responses-container::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 3px;
+}
+
+.canned-responses-container::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* Variables Modal Styles */
+#variablesModal .btn {
+    text-align: start;
+    display: flex;
+    align-items: center;
+}
+
+#variablesModal code {
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Badge Improvements */
+.badge.border {
+    border-width: 1px !important;
+}
+
+/* Modal Improvements */
+.modal-lg {
+    max-width: 900px;
+}
+
+/* Search Input Focus */
+#cannedResponseSearch:focus,
+#cannedResponseCategory:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+#cannedResponsesLoading {
+    animation: pulse 2s infinite;
+}
+
+/* Toast Notifications */
+.alert.position-fixed {
+    animation: slideInDown 0.3s ease;
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateX(-50%) translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .response-actions,
+    .response-options {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .response-actions .btn,
+    .response-options .btn {
+        width: 100%;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-lg {
+        max-width: 95%;
+    }
+
+    .canned-response-item {
+        margin-bottom: 1rem !important;
+    }
+    
+    .timeline-item {
+        margin-left: 25px;
+        padding: 8px;
+    }
+    
+    .timeline > div > .bi {
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        font-size: 8px;
+    }
+    
+    .conversation-thread {
+        max-height: 400px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .card-tools,
+    .response-actions,
+    .response-options,
+    .add-response-section,
+    .add-note-section {
+        display: none !important;
+    }
+    
+    .conversation-thread {
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .timeline {
+        page-break-inside: avoid;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .response-content {
+        border-left-width: 6px;
+    }
+    
+    .canned-response-item:hover {
+        border-width: 2px !important;
+    }
+    
+    .timeline:before {
+        width: 3px;
+        background: #000;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .response-item,
+    .response-bubble,
+    .avatar,
+    .notes-container .alert,
+    .canned-response-item,
+    .hover-effect {
+        animation: none;
+        transition: none;
+    }
+    
+    .response-bubble:hover,
+    .avatar:hover,
+    .notes-container .alert:hover,
+    .canned-response-item:hover,
+    .hover-effect:hover {
+        transform: none;
+    }
+}

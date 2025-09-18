@@ -223,6 +223,25 @@
                             <i class="bi bi-telephone"></i> تماس تلفنی
                         </a>
                     }
+                    
+                    <hr>
+                    
+                    <!-- Admin Testing Tools -->
+                    <form asp-action="CreateTestSubscription" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-warning" onclick="return confirm('آیا می‌خواهید اشتراک تست برای این سازمان ایجاد کنید؟')">
+                            <i class="bi bi-credit-card"></i> ایجاد اشتراک تست
+                        </button>
+                    </form>
+                    
+                    <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-@(Model.IsActive ? "danger" : "success")" 
+                                onclick="return confirm('آیا می‌خواهید وضعیت این سازمان را تغییر دهید؟')">
+                            <i class="bi bi-@(Model.IsActive ? "pause" : "play")"></i> 
+                            @(Model.IsActive ? "غیرفعال کردن" : "فعال کردن")
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -267,6 +286,95 @@
                     <div class="text-center text-muted">
                         <i class="bi bi-key" style="font-size: 2rem;"></i>
                         <p>هیچ API Key وجود ندارد</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Subscription Information -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">اطلاعات اشتراک</h3>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Subscription != null)
+                {
+                    var subscription = (Helpio.Ir.Domain.Entities.Business.Subscription)ViewBag.Subscription;
+                    var percentage = subscription.MonthlyTicketLimit > 0 ? 
+                        Math.Round((double)subscription.CurrentMonthTicketCount / subscription.MonthlyTicketLimit * 100, 1) : 0;
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-@(subscription.PlanType.ToString() == "Freemium" ? "warning" : "success") rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="bi bi-credit-card text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-1">@subscription.Name</h5>
+                            <span class="badge bg-@(subscription.Status.ToString() == "Active" ? "success" : "danger")">
+                                @subscription.Status.ToString()
+                            </span>
+                            <span class="badge bg-info">@subscription.PlanType.ToString()</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h6 class="text-primary">@subscription.CurrentMonthTicketCount</h6>
+                            <small class="text-muted">استفاده شده</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="text-success">@(subscription.MonthlyTicketLimit == int.MaxValue ? "∞" : (subscription.MonthlyTicketLimit - subscription.CurrentMonthTicketCount).ToString())</h6>
+                            <small class="text-muted">باقی‌مانده</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="text-info">@(subscription.MonthlyTicketLimit == int.MaxValue ? "∞" : subscription.MonthlyTicketLimit.ToString())</h6>
+                            <small class="text-muted">حد مجاز</small>
+                        </div>
+                    </div>
+                    
+                    @if (subscription.MonthlyTicketLimit > 0)
+                    {
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small>استفاده ماهانه</small>
+                                <small class="badge @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")">
+                                    @percentage%
+                                </small>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")" 
+                                     style="width: @percentage%"></div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <hr>
+                    <div class="small text-muted">
+                        <div class="d-flex justify-content-between">
+                            <span>شروع:</span>
+                            <span>@subscription.StartDate.ToString("yyyy/MM/dd")</span>
+                        </div>
+                        @if (subscription.EndDate.HasValue)
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>پایان:</span>
+                                <span>@subscription.EndDate.Value.ToString("yyyy/MM/dd")</span>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between">
+                            <span>قیمت:</span>
+                            <span>@subscription.Price.ToString("N0") @subscription.Currency</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-credit-card" style="font-size: 2rem;"></i>
+                        <h6>بدون اشتراک</h6>
+                        <p class="small">این سازمان هیچ اشتراک فعالی ندارد</p>
                     </div>
                 }
             </div>

@@ -3,6 +3,10 @@
     ViewData["Title"] = "جزئیات تیکت";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/tickets/ticket-details.css" />
+}
+
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -261,10 +265,10 @@
                                                 </button>
                                             </div>
                                             <div class="response-options mb-2">
-                                                <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#cannedResponsesModal">
+                                                <button type="button" class="btn btn-outline-info btn-sm" onclick="loadCannedResponses()">
                                                     <i class="bi bi-bookmarks"></i> پاسخ‌های آماده
                                                 </button>
-                                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="insertVariable('{نام_مشتری}')">
+                                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="insertVariable()">
                                                     <i class="bi bi-person"></i> متغیرها
                                                 </button>
                                             </div>
@@ -502,596 +506,12 @@
 
 @section Scripts {
     <script>
-        function changeTicketStatus(ticketId, newStatus) {
-            if (confirm('آیا مطمئن هستید؟')) {
-                // Implementation for changing ticket status
-                console.log('Changing ticket', ticketId, 'to status', newStatus);
-                // You can implement AJAX call here
-            }
-        }
-
-        function clearResponse() {
-            document.getElementById('responseContent').value = '';
-        }
-
-        function clearNote() {
-            document.getElementById('noteContent').value = '';
-        }
-
-        function editResponse(responseId) {
-            // Implementation for editing response
-            alert('قابلیت ویرایش پاسخ در نسخه بعدی اضافه خواهد شد');
-        }
-
-        function editNote(noteId) {
-            // Implementation for editing note
-            alert('قابلیت ویرایش یادداشت در نسخه بعدی اضافه خواهد شد');
-        }
-
-        function loadCannedResponses() {
-            // Show modal and load canned responses
-            const modal = new bootstrap.Modal(document.getElementById('cannedResponsesModal'));
-            modal.show();
-            
-            // Load canned responses via AJAX
-            loadCannedResponsesData();
-        }
-
-        function loadCannedResponsesData() {
-            const loading = document.getElementById('cannedResponsesLoading');
-            const list = document.getElementById('cannedResponsesList');
-            const empty = document.getElementById('cannedResponsesEmpty');
-            
-            loading.style.display = 'block';
-            list.style.display = 'none';
-            empty.style.display = 'none';
-            
-            // Simulate API call - replace with actual API endpoint
-            fetch('@Url.Action("GetCannedResponses", "Knowledge")', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = 'none';
-                if (data && data.length > 0) {
-                    renderCannedResponses(data);
-                    list.style.display = 'block';
-                } else {
-                    empty.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading canned responses:', error);
-                loading.style.display = 'none';
-                empty.style.display = 'block';
-                
-                // Fallback - show sample data
-                const sampleData = [
-                    {
-                        id: 1,
-                        name: 'سلام و احوالپرسی',
-                        content: 'سلام {نام_مشتری} عزیز،\n\nامیدوارم حال شما خوب باشد. با تشکر از تماس شما با تیم پشتیبانی ما.',
-                        description: 'پاسخ استاندارد برای شروع مکالمه',
-                        tags: 'پشتیبانی,عمومی',
-                        usageCount: 25
-                    },
-                    {
-                        id: 2,
-                        name: 'درخواست اطلاعات تکمیلی',
-                        content: 'سلام {نام_مشتری} عزیز،\n\nبرای بررسی دقیق‌تر مشکل شما، لطفاً اطلاعات زیر را ارسال کنید:\n\n- توضیح کامل مشکل\n- تصاویر مرتبط (در صورت وجود)\n- زمان وقوع مشکل',
-                        description: 'درخواست اطلاعات بیشتر از مشتری',
-                        tags: 'پشتیبانی,بررسی',
-                        usageCount: 18
-                    },
-                    {
-                        id: 3,
-                        name: 'تشکر و خداحافظی',
-                        content: 'در صورت داشتن سوال اضافی، لطفاً با ما در تماس باشید.\n\nبا تشکر از صبر و شکیبایی شما،\n{نام_کارشناس}\nتیم پشتیبانی',
-                        description: 'پایان دادن به مکالمه با تشکر',
-                        tags: 'عمومی,تشکر',
-                        usageCount: 32
-                    },
-                    {
-                        id: 4,
-                        name: 'راهنمای ورود به سیستم',
-                        content: 'برای ورود به سیستم لطفاً مراحل زیر را دنبال کنید:\n\n1. به آدرس سایت مراجعه کنید\n2. نام کاربری و رمز عبور خود را وارد کنید\n3. روی دکمه ورود کلیک کنید\n\nدر صورت فراموشی رمز عبور، از گزینه "رمز عبور را فراموش کرده‌ام" استفاده کنید.',
-                        description: 'راهنمای ورود برای کاربران',
-                        tags: 'فنی,ورود,راهنمایی',
-                        usageCount: 15
-                    },
-                    {
-                        id: 5,
-                        name: 'مشکل فنی در حال بررسی',
-                        content: 'سلام {نام_مشتری} عزیز،\n\nمشکل فنی گزارش شده توسط شما در دست بررسی تیم فنی ما قرار گرفته است. به محض حل مشکل، نتیجه را با شما در میان خواهیم گذاشت.\n\nزمان تخمینی حل مشکل: 24 ساعت کاری\n\nبا تشکر از صبر شما',
-                        description: 'اطلاع‌رسانی در مورد بررسی مشکل فنی',
-                        tags: 'فنی,بررسی,انتظار',
-                        usageCount: 12
-                    }
-                ];
-                renderCannedResponses(sampleData);
-                list.style.display = 'block';
-                empty.style.display = 'none';
-            });
-        }
-
-        function renderCannedResponses(responses) {
-            const container = document.getElementById('cannedResponsesList');
-            let html = '';
-            
-            responses.forEach(response => {
-                const shortContent = response.content.length > 100 ? 
-                    response.content.substring(0, 100) + '...' : response.content;
-                
-                const tags = response.tags ? response.tags.split(',').map(tag => 
-                    `<span class="badge bg-light text-dark border me-1">${tag.trim()}</span>`
-                ).join('') : '';
-                
-                html += `
-                    <div class="canned-response-item border rounded p-3 mb-3 cursor-pointer hover-effect" 
-                         data-response-id="${response.id}" 
-                         data-name="${response.name.toLowerCase()}" 
-                         data-tags="${response.tags || ''}"
-                         onclick="selectCannedResponse(${response.id})">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 text-primary">${response.name}</h6>
-                                ${response.description ? `<p class="text-muted small mb-2">${response.description}</p>` : ''}
-                                <div class="response-preview bg-light rounded p-2 mb-2" style="font-size: 0.875em;">
-                                    ${shortContent.replace(/\n/g, '<br>')}
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>${tags}</div>
-                                    <small class="text-muted">
-                                        <i class="bi bi-graph-up"></i> ${response.usageCount} استفاده
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="ms-3">
-                                <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); previewCannedResponse(${response.id})">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            // Store responses data for search and filtering
-            window.allCannedResponses = responses;
-        }
-
-        function selectCannedResponse(responseId) {
-            const response = window.allCannedResponses.find(r => r.id === responseId);
-            if (response) {
-                // Insert into response textarea
-                const textarea = document.getElementById('responseContent');
-                const currentContent = textarea.value.trim();
-                
-                if (currentContent && !confirm('آیا می‌خواهید محتوای فعلی جایگزین شود؟')) {
-                    return;
-                }
-                
-                textarea.value = response.content;
-                textarea.focus();
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('cannedResponsesModal'));
-                modal.hide();
-                
-                // Show success message
-                showToast(`پاسخ آماده "${response.name}" اعمال شد`, 'success');
-                
-                // Update usage count (optional - should be done via API)
-                updateCannedResponseUsage(responseId);
-            }
-        }
-
-        function previewCannedResponse(responseId) {
-            const response = window.allCannedResponses.find(r => r.id === responseId);
-            if (response) {
-                const previewWindow = window.open('', '_blank', 'width=600,height=500');
-                previewWindow.document.write(`
-                    <html dir="rtl" lang="fa">
-                    <head>
-                        <title>پیش‌نمایش: ${response.name}</title>
-                        <meta charset="utf-8">
-                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-                    </head>
-                    <body class="bg-light">
-                        <div class="container mt-4">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-eye"></i> ${response.name}
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        ${response.description ? `<p class="text-muted">${response.description}</p>` : ''}
-                                    </div>
-                                    <div class="border rounded p-3 bg-white">
-                                        ${response.content.replace(/\n/g, '<br>')}
-                                    </div>
-                                    <div class="mt-3 text-center">
-                                        <button class="btn btn-secondary" onclick="window.close()">بستن</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                `);
-                previewWindow.document.close();
-            }
-        }
-
-        function searchCannedResponses() {
-            const searchTerm = document.getElementById('cannedResponseSearch').value.toLowerCase();
-            const category = document.getElementById('cannedResponseCategory').value;
-            
-            if (!window.allCannedResponses) return;
-            
-            let filteredResponses = window.allCannedResponses.filter(response => {
-                const matchesSearch = !searchTerm || 
-                    response.name.toLowerCase().includes(searchTerm) ||
-                    response.content.toLowerCase().includes(searchTerm) ||
-                    (response.description && response.description.toLowerCase().includes(searchTerm));
-                
-                const matchesCategory = !category || 
-                    (response.tags && response.tags.toLowerCase().includes(category.toLowerCase()));
-                
-                return matchesSearch && matchesCategory;
-            });
-            
-            renderCannedResponses(filteredResponses);
-        }
-
-        function filterCannedResponses() {
-            searchCannedResponses(); // Reuse search function
-        }
-
-        function updateCannedResponseUsage(responseId) {
-            // This should make an API call to increment usage count
-            // For now, just log it
-            console.log('Updated usage for canned response:', responseId);
-        }
-
-        function insertVariableIntoResponse(variable) {
-            const textarea = document.getElementById('responseContent');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            
-            textarea.value = text.substring(0, start) + variable + text.substring(end);
-            textarea.focus();
-            textarea.setSelectionRange(start + variable.length, start + variable.length);
-        }
-
-        function closeVariablesModal() {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('variablesModal'));
-            if (modal) {
-                modal.hide();
-            }
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type} position-fixed`;
-            toast.style.cssText = 'top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px;';
-            toast.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 4000);
-        }
-
-        // Real-time search for canned responses
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('cannedResponseSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    clearTimeout(this.searchTimeout);
-                    this.searchTimeout = setTimeout(() => {
-                        searchCannedResponses();
-                    }, 300);
-                });
-            }
-        });
-
-        // Override the original loadCannedResponses function
-        function loadCannedResponses() {
-            const modal = new bootstrap.Modal(document.getElementById('cannedResponsesModal'));
-            modal.show();
-            loadCannedResponsesData();
-        }
-
-        // Update the insertVariable function to show variables modal
-        function insertVariable(variable) {
-            if (variable) {
-                insertVariableIntoResponse(variable);
-            } else {
-                const modal = new bootstrap.Modal(document.getElementById('variablesModal'));
-                modal.show();
-            }
-        }
+        // Set API URLs and data for JavaScript
+        window.cannedResponsesApiUrl = '@Url.Action("GetCannedResponses", "Knowledge")';
+        window.incrementUsageApiUrl = '@Url.Action("IncrementCannedResponseUsage", "Knowledge")';
+        window.currentTicketId = @Model.Id;
     </script>
-
-    <style>
-        .conversation-thread {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .response-item {
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @@keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .response-bubble {
-            transition: all 0.2s ease;
-        }
-
-        .response-bubble:hover {
-            transform: translateX(2px);
-        }
-
-        .avatar {
-            transition: all 0.2s ease;
-        }
-
-        .avatar:hover {
-            transform: scale(1.1);
-        }
-
-        .response-content {
-            border-left: 4px solid #0d6efd;
-            word-wrap: break-word;
-        }
-
-        .notes-container .alert {
-            transition: all 0.2s ease;
-        }
-
-        .notes-container .alert:hover {
-            transform: translateX(2px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .add-response-section, .add-note-section {
-            background: linear-gradient(45deg, #f8f9fa, #ffffff);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        textarea {
-            transition: border-color 0.2s ease;
-        }
-
-        textarea:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        }
-
-        .timeline {
-            position: relative;
-            margin: 0 0 0 10px;
-        }
-
-        .timeline:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 10px;
-            width: 2px;
-            background: #dee2e6;
-        }
-
-        .timeline > div {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .timeline > div > .bi {
-            position: absolute;
-            left: 0;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 20px;
-            font-size: 10px;
-            color: white;
-        }
-
-        .timeline-item {
-            margin-left: 35px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .timeline-header {
-            font-size: 14px;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-        }
-
-        .timeline-body {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .time {
-            font-size: 11px;
-            color: #999;
-        }
-
-        .bg-blue { background-color: #007bff !important; }
-        .bg-green { background-color: #28a745 !important; }
-        .bg-gray { background-color: #6c757d !important; }
-
-        /* Canned Responses Styles */
-        .canned-response-item {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .canned-response-item:hover {
-            border-color: #0d6efd !important;
-            background-color: #f8f9fa;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .canned-response-item.selected {
-            border-color: #0d6efd !important;
-            background-color: #e7f3ff;
-        }
-
-        .hover-effect {
-            transition: all 0.2s ease;
-        }
-
-        .hover-effect:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .response-preview {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.4;
-            max-height: 60px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .canned-responses-container {
-            scrollbar-width: thin;
-            scrollbar-color: #dee2e6 transparent;
-        }
-
-        .canned-responses-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .canned-responses-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .canned-responses-container::-webkit-scrollbar-thumb {
-            background: #dee2e6;
-            border-radius: 3px;
-        }
-
-        .canned-responses-container::-webkit-scrollbar-thumb:hover {
-            background: #adb5bd;
-        }
-
-        /* Variables Modal Styles */
-        #variablesModal .btn {
-            text-align: start;
-            display: flex;
-            align-items: center;
-        }
-
-        #variablesModal code {
-            background-color: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-
-        /* Badge improvements */
-        .badge.border {
-            border-width: 1px !important;
-        }
-
-        /* Modal improvements */
-        .modal-lg {
-            max-width: 900px;
-        }
-
-        /* Search input focus */
-        #cannedResponseSearch:focus,
-        #cannedResponseCategory:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        }
-
-        /* Loading animation */
-        @@keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        #cannedResponsesLoading {
-            animation: pulse 2s infinite;
-        }
-
-        /* Toast notifications */
-        .alert.position-fixed {
-            animation: slideInDown 0.3s ease;
-        }
-
-        @@keyframes slideInDown {
-            from {
-                transform: translateX(-50%) translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        /* Responsive improvements */
-        @@media (max-width: 768px) {
-            .response-actions,
-            .response-options {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-            
-            .response-actions .btn,
-            .response-options .btn {
-                width: 100%;
-                margin-bottom: 0.25rem;
-            }
-
-            .modal-lg {
-                max-width: 95%;
-            }
-
-            .canned-response-item {
-                margin-bottom: 1rem !important;
-            }
-        }
-    </style>
+    <script src="~/js/tickets/ticket-details.js"></script>
 }
 
 <!-- Canned Responses Modal -->
@@ -1182,22 +602,88 @@
             <div class="modal-body">
                 <p class="text-muted mb-3">روی هر متغیر کلیک کنید تا به متن پاسخ اضافه شود:</p>
                 
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_مشتری}'); closeVariablesModal();">
-                        <code>{نام_مشتری}</code> - نام کامل مشتری
-                    </button>
-                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{شماره_تیکت}'); closeVariablesModal();">
-                        <code>{شماره_تیکت}</code> - شماره تیکت فعلی
-                    </button>
-                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_شرکت}'); closeVariablesModal();">
-                        <code>{نام_شرکت}</code> - نام شرکت مشتری
-                    </button>
-                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{تاریخ_امروز}'); closeVariablesModal();">
-                        <code>{تاریخ_امروز}</code> - تاریخ جاری
-                    </button>
-                    <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_کارشناس}'); closeVariablesModal();">
-                        <code>{نام_کارشناس}</code> - نام کارشناس پاسخ‌دهنده
-                    </button>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-person"></i> اطلاعات مشتری
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_مشتری}'); closeVariablesModal();">
+                                <code>{نام_مشتری}</code> - نام کامل مشتری
+                            </button>
+                            <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{نام_شرکت}'); closeVariablesModal();">
+                                <code>{نام_شرکت}</code> - نام شرکت مشتری
+                            </button>
+                            <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{ایمیل_مشتری}'); closeVariablesModal();">
+                                <code>{ایمیل_مشتری}</code> - ایمیل مشتری
+                            </button>
+                            <button type="button" class="btn btn-outline-primary text-start" onclick="insertVariableIntoResponse('{تلفن_مشتری}'); closeVariablesModal();">
+                                <code>{تلفن_مشتری}</code> - شماره تلفن مشتری
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12 mb-3">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="bi bi-ticket-detailed"></i> اطلاعات تیکت
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-success text-start" onclick="insertVariableIntoResponse('{شماره_تیکت}'); closeVariablesModal();">
+                                <code>{شماره_تیکت}</code> - شماره تیکت فعلی
+                            </button>
+                            <button type="button" class="btn btn-outline-success text-start" onclick="insertVariableIntoResponse('{عنوان_تیکت}'); closeVariablesModal();">
+                                <code>{عنوان_تیکت}</code> - عنوان تیکت
+                            </button>
+                            <button type="button" class="btn btn-outline-success text-start" onclick="insertVariableIntoResponse('{دسته_بندی_تیکت}'); closeVariablesModal();">
+                                <code>{دسته_بندی_تیکت}</code> - دسته‌بندی تیکت
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12 mb-3">
+                        <h6 class="text-warning border-bottom pb-2">
+                            <i class="bi bi-person-badge"></i> اطلاعات کارشناس
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-warning text-start" onclick="insertVariableIntoResponse('{نام_کارشناس}'); closeVariablesModal();">
+                                <code>{نام_کارشناس}</code> - نام کارشناس پاسخ‌دهنده
+                            </button>
+                            <button type="button" class="btn btn-outline-warning text-start" onclick="insertVariableIntoResponse('{ایمیل_کارشناس}'); closeVariablesModal();">
+                                <code>{ایمیل_کارشناس}</code> - ایمیل کارشناس
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12 mb-3">
+                        <h6 class="text-info border-bottom pb-2">
+                            <i class="bi bi-calendar"></i> اطلاعات زمانی
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-info text-start" onclick="insertVariableIntoResponse('{تاریخ_امروز}'); closeVariablesModal();">
+                                <code>{تاریخ_امروز}</code> - تاریخ جاری
+                            </button>
+                            <button type="button" class="btn btn-outline-info text-start" onclick="insertVariableIntoResponse('{زمان_فعلی}'); closeVariablesModal();">
+                                <code>{زمان_فعلی}</code> - زمان فعلی
+                            </button>
+                            <button type="button" class="btn btn-outline-info text-start" onclick="insertVariableIntoResponse('{تاریخ_و_زمان}'); closeVariablesModal();">
+                                <code>{تاریخ_و_زمان}</code> - تاریخ و زمان کامل
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <h6 class="text-secondary border-bottom pb-2">
+                            <i class="bi bi-globe"></i> اطلاعات سیستم
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-secondary text-start" onclick="insertVariableIntoResponse('{نام_سایت}'); closeVariablesModal();">
+                                <code>{نام_سایت}</code> - نام سایت
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary text-start" onclick="insertVariableIntoResponse('{آدرس_سایت}'); closeVariablesModal();">
+                                <code>{آدرس_سایت}</code> - آدرس سایت
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="alert alert-info mt-3">

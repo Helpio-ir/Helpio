@@ -11,11 +11,13 @@ namespace Helpio.Dashboard.Controllers
     public class TicketsController : BaseController
     {
         private readonly ApplicationDbContext _context;
+        private readonly IVariableReplacementService _variableReplacementService;
 
-        public TicketsController(ICurrentUserContext userContext, ApplicationDbContext context)
+        public TicketsController(ICurrentUserContext userContext, ApplicationDbContext context, IVariableReplacementService variableReplacementService)
             : base(userContext)
         {
             _context = context;
+            _variableReplacementService = variableReplacementService;
         }
 
         public async Task<IActionResult> Index()
@@ -43,6 +45,23 @@ namespace Helpio.Dashboard.Controllers
                 return Forbid();
             }
 
+            // Check subscription limits before showing form
+            bool canCreateTicket = true;
+            Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo? limitInfo = null;
+            
+            if (CurrentOrganizationId.HasValue)
+            {
+                var subscriptionLimitService = HttpContext.RequestServices.GetRequiredService<Helpio.Ir.Application.Services.Business.ISubscriptionLimitService>();
+                canCreateTicket = await subscriptionLimitService.CanCreateTicketAsync(CurrentOrganizationId.Value);
+                limitInfo = await subscriptionLimitService.GetSubscriptionLimitInfoAsync(CurrentOrganizationId.Value);
+                
+                if (!canCreateTicket)
+                {
+                    TempData["Error"] = limitInfo.LimitationMessage ?? 
+                        $"شما به حد مجاز ماهانه {limitInfo.MonthlyLimit} تیکت رسیده‌اید. لطفاً برای ایجاد تیکت بیشتر، اشتراک خود را ارتقا دهید.";
+                }
+            }
+
             var categories = await GetAccessibleCategoriesAsync();
             var customers = await GetAccessibleCustomersAsync();
             var teams = await GetAccessibleTeamsAsync();
@@ -66,6 +85,8 @@ namespace Helpio.Dashboard.Controllers
             ViewBag.Categories = categories;
             ViewBag.Customers = customers;
             ViewBag.Teams = teams;
+            ViewBag.CanCreateTicket = canCreateTicket;
+            ViewBag.SubscriptionLimitInfo = limitInfo;
             
             return View(new CreateTicketDto());
         }
@@ -317,15 +338,26 @@ namespace Helpio.Dashboard.Controllers
 
             if (string.IsNullOrWhiteSpace(content))
             {
-                TempData["Error"] = "محتوای پاسخ نمی‌تواند خالی باشد.";
+                TempData["Error"] = "محتوای پاسخ نمی‌تواندد خالی باشد.";
                 return RedirectToAction(nameof(Details), new { id });
             }
+
+            // Get current user
+            var currentUser = await _context.Users.FindAsync(UserContext.UserId);
+            if (currentUser == null)
+            {
+                TempData["Error"] = "کاربر یافت نشد.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Replace variables in content before saving
+            var processedContent = await _variableReplacementService.ReplaceVariablesAsync(content, ticket, currentUser);
 
             var response = new Response
             {
                 TicketId = id,
                 UserId = UserContext.UserId,
-                Content = content,
+                Content = processedContent, // Use processed content with replaced variables
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -357,11 +389,22 @@ namespace Helpio.Dashboard.Controllers
                 return BadRequest("فقط کارشناسان می‌توانند یادداشت اضافه کنند.");
             }
 
+            // Get current user
+            var currentUser = await _context.Users.FindAsync(UserContext.UserId);
+            if (currentUser == null)
+            {
+                TempData["Error"] = "کاربر یافت نشد.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Replace variables in content قبل از ذخیره
+            var processedContent = await _variableReplacementService.ReplaceVariablesAsync(content, ticket, currentUser);
+
             var note = new Note
             {
                 TicketId = id,
                 SupportAgentId = UserContext.CurrentSupportAgent.Id,
-                Description = content,
+                Description = processedContent, // Use processed content with replaced variables
                 IsPrivate = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -517,70 +560,6 @@ namespace Helpio.Dashboard.Controllers
             }
 
             return await query.FirstOrDefaultAsync();
-        }
-
-        /// <summary>
-        /// Action for testing - creates sample data if missing
-        /// Remove this in production
-        /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> CreateSampleData()
-        {
-            if (!IsCurrentUserAdmin)
-            {
-                return Forbid();
-            }
-
-            try
-            {
-                // Create sample customer if none exists
-                if (!await _context.Customers.AnyAsync())
-                {
-                    var sampleCustomer = new Customer
-                    {
-                        FirstName = "احمد",
-                        LastName = "محمدی",
-                        Email = "ahmad@example.com",
-                        PhoneNumber = "09123456789",
-                        CompanyName = "شرکت نمونه",
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.Customers.Add(sampleCustomer);
-                }
-
-                // Create sample ticket category if none exists
-                if (!await _context.TicketCategories.AnyAsync())
-                {
-                    var sampleCategory = new TicketCategory
-                    {
-                        Name = "پشتیبانی فنی",
-                        Description = "مسائل فنی و پشتیبانی",
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.TicketCategories.Add(sampleCategory);
-                }
-
-                // Create sample ticket state if none exists
-                if (!await _context.TicketStates.AnyAsync())
-                {
-                    var ticketStates = new[]
-                    {
-                        new TicketState { Name = "Open", Description = "باز", CreatedAt = DateTime.UtcNow },
-                        new TicketState { Name = "In Progress", Description = "در حال پیگیری", CreatedAt = DateTime.UtcNow },
-                        new TicketState { Name = "Closed", Description = "بسته شده", CreatedAt = DateTime.UtcNow }
-                    };
-                    _context.TicketStates.AddRange(ticketStates);
-                }
-
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "داده‌های نمونه با موفقیت ایجاد شدند.";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"خطا در ایجاد داده‌های نمونه: {ex.Message}";
-            }
-
-            return RedirectToAction(nameof(Create));
         }
     }
 }

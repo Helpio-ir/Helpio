@@ -5,6 +5,24 @@
 
 <div class="row">
     <div class="col-md-8">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <h6><i class="bi bi-exclamation-triangle"></i> خطا</h6>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <h6><i class="bi bi-check-circle"></i> موفقیت</h6>
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        
         @if (TempData["Warning"] != null)
         {
             <div class="alert alert-warning alert-dismissible fade show">
@@ -183,11 +201,38 @@
                 </div>
                 
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-primary" 
-                            @((ViewBag.Customers == null || !((List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers).Any() ||
-                               ViewBag.Categories == null || !((List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories).Any()) ? "disabled" : "")>
+                    @{
+                        bool canCreate = ViewBag.CanCreateTicket != null ? (bool)ViewBag.CanCreateTicket : true;
+                        bool hasRequiredData = ViewBag.Customers != null && ((List<Helpio.Ir.Domain.Entities.Core.Customer>)ViewBag.Customers).Any() &&
+                                             ViewBag.Categories != null && ((List<Helpio.Ir.Domain.Entities.Ticketing.TicketCategory>)ViewBag.Categories).Any();
+                        bool isDisabled = !canCreate || !hasRequiredData;
+                    }
+                    
+                    <button type="submit" class="btn btn-primary" @(isDisabled ? "disabled" : "")>
                         <i class="bi bi-check"></i> ایجاد تیکت
                     </button>
+                    
+                    @if (!canCreate)
+                    {
+                        <div class="mt-2">
+                            <small class="text-danger">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                امکان ایجاد تیکت جدید وجود ندارد.
+                            </small>
+                            @if (ViewBag.SubscriptionLimitInfo != null)
+                            {
+                                var limitInfo = (Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo)ViewBag.SubscriptionLimitInfo;
+                                if (limitInfo.IsFreemium)
+                                {
+                                    <br>
+                                    <a href="@Url.Action("Upgrade", "Subscription")" class="btn btn-sm btn-warning mt-1">
+                                        <i class="bi bi-arrow-up-circle"></i> ارتقا اشتراک
+                                    </a>
+                                }
+                            }
+                        </div>
+                    }
+                    
                     <a asp-action="Index" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> بازگشت
                     </a>
@@ -244,6 +289,56 @@
                                 <i class="bi bi-people"></i> ایجاد تیم
                             </a>
                         </div>
+                    </div>
+                }
+                
+                @if (ViewBag.SubscriptionLimitInfo != null)
+                {
+                    var limitInfo = (Helpio.Ir.Application.Services.Business.SubscriptionLimitInfo)ViewBag.SubscriptionLimitInfo;
+                    <div class="alert @(limitInfo.CanCreateTickets ? "alert-info" : "alert-warning")">
+                        <h6><i class="bi bi-credit-card"></i> وضعیت اشتراک</h6>
+                        <div class="small">
+                            <div class="d-flex justify-content-between">
+                                <span>استفاده شده:</span>
+                                <strong>@limitInfo.CurrentMonthUsage</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>حد مجاز:</span>
+                                <strong>@(limitInfo.MonthlyLimit == int.MaxValue ? "نامحدود" : limitInfo.MonthlyLimit.ToString())</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>باقی‌مانده:</span>
+                                <strong class="@(limitInfo.RemainingTickets <= 5 ? "text-danger" : "text-success")">
+                                    @(limitInfo.MonthlyLimit == int.MaxValue ? "نامحدود" : limitInfo.RemainingTickets.ToString())
+                                </strong>
+                            </div>
+                            @if (limitInfo.MonthlyLimit > 0)
+                            {
+                                var percentage = Math.Round((double)limitInfo.CurrentMonthUsage / limitInfo.MonthlyLimit * 100, 1);
+                                <div class="mt-2">
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar @(percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success")" 
+                                             style="width: @percentage%"></div>
+                                    </div>
+                                    <small class="text-muted">@percentage% استفاده شده</small>
+                                </div>
+                            }
+                        </div>
+                        @if (!limitInfo.CanCreateTickets)
+                        {
+                            <hr>
+                            <div class="text-center">
+                                <a href="@Url.Action("Index", "Subscription")" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> مشاهده جزئیات
+                                </a>
+                                @if (limitInfo.IsFreemium)
+                                {
+                                    <a href="@Url.Action("Upgrade", "Subscription")" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-arrow-up-circle"></i> ارتقا
+                                    </a>
+                                }
+                            </div>
+                        }
                     </div>
                 }
             </div>

@@ -45,6 +45,14 @@ namespace Helpio.Dashboard.Controllers
                 return NotFound();
             }
 
+            // Get subscription information
+            var subscription = await _context.Subscriptions
+                .Where(s => s.OrganizationId == id && s.IsActive)
+                .OrderByDescending(s => s.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            ViewBag.Subscription = subscription;
+
             return View(organization);
         }
 
@@ -132,6 +140,66 @@ namespace Helpio.Dashboard.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = $"سازمان {(organization.IsActive ? "فعال" : "غیرفعال")} شد.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// Action for creating test subscription for an organization - For testing purposes only
+        /// Remove this in production
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTestSubscription(int id)
+        {
+            var organization = await _context.Organizations.FindAsync(id);
+            if (organization == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // Check if subscription already exists
+                var existingSubscription = await _context.Subscriptions
+                    .Where(s => s.OrganizationId == id && s.IsActive)
+                    .FirstOrDefaultAsync();
+
+                if (existingSubscription != null)
+                {
+                    TempData["Warning"] = $"سازمان {organization.Name} قبلاً دارای اشتراک فعال است.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                // Create Professional subscription for testing
+                var testSubscription = new Helpio.Ir.Domain.Entities.Business.Subscription
+                {
+                    Name = "Professional Plan - Test",
+                    Description = "طرح حرفه‌ای با 1000 تیکت در ماه برای تست",
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddYears(1), // 1 year subscription
+                    Price = 1500000,
+                    Currency = "IRR",
+                    BillingCycleDays = 30,
+                    Status = Helpio.Ir.Domain.Entities.Business.SubscriptionStatus.Active,
+                    PlanType = Helpio.Ir.Domain.Entities.Business.SubscriptionPlanType.Professional,
+                    OrganizationId = id,
+                    IsActive = true,
+                    MonthlyTicketLimit = 1000,
+                    CurrentMonthTicketCount = Random.Shared.Next(5, 50), // Random usage for testing
+                    CurrentMonthStartDate = DateTime.UtcNow.Date.AddDays(1 - DateTime.UtcNow.Day),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Subscriptions.Add(testSubscription);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"اشتراک Professional برای سازمان {organization.Name} با موفقیت ایجاد شد. ({testSubscription.CurrentMonthTicketCount}/1000 تیکت استفاده شده)";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"خطا در ایجاد اشتراک تست: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Details), new { id });
         }
     }
