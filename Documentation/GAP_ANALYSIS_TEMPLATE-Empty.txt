@@ -1,0 +1,71 @@
+# Gap Analysis - Project: [Project Name]
+
+## 1. Requirements Coverage
+
+| ID  | Requirement / Feature | Status (Done / Partial / Missing) | % Completion | Explanation (what exists, what is missing) | Code References (files/modules) | Priority (Critical / High / Medium / Low) |
+|-----|-----------------------|-----------------------------------|--------------|---------------------------------------------|---------------------------------|------------------------------------------|
+| 1.1 | [Feature Name]        | [ ] Done / [ ] Partial / [ ] Missing | [0-100%] | [Details about gaps] | [File/Class/Module] | [Priority] |
+| 1.2 | ...                   |                                   |              |                                             |                                 |                                          |
+
+---
+
+## 2. Ambiguities / Contradictions
+
+- [ ] PRD vs Code mismatch in [area]  
+- [ ] Unclear requirements for [feature]  
+- [ ] Missing technical details for [integration]
+
+---
+
+## 3. Missing but Important Requirements (Not in PRD)
+
+- **Security**: Input validation, rate limiting, HTTPS enforcement, XSS protection  
+- **Logging & Monitoring**: Error tracking, audit logs, performance metrics  
+- **Testing**: Unit tests, integration tests, API tests  
+- **UX/UI**: Responsiveness, accessibility, real-time notifications  
+- **DevOps**: CI/CD pipeline, migrations, backups  
+
+---
+
+## 4. Prioritized Backlog
+
+### 🔴 Critical (1-2 weeks)
+1. [Critical task #1]  
+2. [Critical task #2]  
+
+### 🟠 High (2-4 weeks)
+1. [High priority task #1]  
+2. [High priority task #2]  
+
+### 🟡 Medium (4-8 weeks)
+1. [Medium priority task #1]  
+2. [Medium priority task #2]  
+
+### 🟢 Low (8+ weeks)
+1. [Low priority task #1]  
+2. [Low priority task #2]  
+
+---
+
+## 5. Risks
+
+- **Security risk**: [description]  
+- **Performance risk**: [description]  
+- **Maintainability risk**: [description]  
+
+---
+
+## 6. Suggested QA Test Scenarios
+
+| Requirement | Suggested Test Scenario | Type (Unit / Integration / E2E) |
+|-------------|-------------------------|--------------------------------|
+| [Feature]   | [Example test case]     | [Unit/Integration/E2E]         |
+| [Feature]   | [Example test case]     | [Unit/Integration/E2E]         |
+
+---
+
+## 7. Overall Project Status
+
+- **Completion Estimate**: ~[xx%]  
+- **Key Strengths**: [short list]  
+- **Major Gaps**: [short list]  

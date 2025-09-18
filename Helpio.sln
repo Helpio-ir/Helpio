@@ -23,6 +23,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.web", "src\Presentat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpio.Dashboard", "src\Presentation\Helpio.Dashboard\Helpio.Dashboard.csproj", "{A3B20E15-B9A5-1D10-1E1B-20E7883A7606}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\GAP_ANALYSIS.md = Documentation\GAP_ANALYSIS.md
+		Documentation\GAP_ANALYSIS_TEMPLATE copy.md = Documentation\GAP_ANALYSIS_TEMPLATE copy.md
+		Documentation\GAP_ANALYSIS_TEMPLATE-Empty.txt = Documentation\GAP_ANALYSIS_TEMPLATE-Empty.txt
+		Documentation\PRD.md = Documentation\PRD.md
+		Documentation\Prompt.md = Documentation\Prompt.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

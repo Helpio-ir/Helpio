@@ -14,6 +14,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Disable Hot Reload and Browser Link completely
 
 
         // Add services to the container.
