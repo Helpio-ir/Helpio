@@ -302,8 +302,18 @@ start_sql_service() {
   log INFO "منتظر آماده شدن SQL Server"
   local attempt
   for attempt in {1..30}; do
-    if docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" exec -T sqlserver \
-      /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$SQL_SA_PASSWORD" -Q "SELECT 1" &>/dev/null; then
+    if docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" exec -T \
+      -e SA_PASSWORD="$SQL_SA_PASSWORD" sqlserver bash -lc '
+set -Eeuo pipefail
+if [[ -x /opt/mssql-tools18/bin/sqlcmd ]]; then
+  SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+elif [[ -x /opt/mssql-tools/bin/sqlcmd ]]; then
+  SQLCMD="/opt/mssql-tools/bin/sqlcmd"
+else
+  exit 127
+fi
+"$SQLCMD" -C -S localhost -U sa -P "$SA_PASSWORD" -Q "SELECT 1"
+' &>/dev/null; then
       log INFO "SQL Server آماده است."
       break
     fi
@@ -316,7 +326,19 @@ start_sql_service() {
     fi
   done
 
-  docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" exec -T sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$SQL_SA_PASSWORD" <<SQL
+  docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" exec -T \
+    -e SA_PASSWORD="$SQL_SA_PASSWORD" sqlserver bash -lc '
+set -Eeuo pipefail
+if [[ -x /opt/mssql-tools18/bin/sqlcmd ]]; then
+  SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+elif [[ -x /opt/mssql-tools/bin/sqlcmd ]]; then
+  SQLCMD="/opt/mssql-tools/bin/sqlcmd"
+else
+  echo "sqlcmd binary not found inside SQL Server container" >&2
+  exit 127
+fi
+"$SQLCMD" -C -S localhost -U sa -P "$SA_PASSWORD"
+' <<SQL
 IF DB_ID('${SQL_DB_NAME}') IS NULL
 BEGIN
   CREATE DATABASE [${SQL_DB_NAME}];
