@@ -28,7 +28,7 @@ namespace Helpio.Ir.Infrastructure.Data
             // If still no connection string, use a default for Docker
             if (string.IsNullOrEmpty(connectionString))
             {
-                connectionString = "Server=helpio-sql,1433;Database=HelpioDB;User Id=helpio_app;Password=DefaultPassword123!;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
+                connectionString = "Server=helpio-sql,1433;Database=HelpioDB;User Id=helpio_app;Password=wvm5S6H(3G0l7x_2;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
             }
             
             optionsBuilder.UseSqlServer(connectionString);
