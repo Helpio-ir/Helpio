@@ -18,7 +18,7 @@ services:
 
   helpio-api:
     build:
-      context: ${HOST_PROJECT_DIR}
+      context: ${HOST_SRC_DIR}
       dockerfile: deploy/docker/api/Dockerfile
     image: helpio-api:latest
     container_name: helpio-api
@@ -37,7 +37,7 @@ services:
 
   helpio-dashboard:
     build:
-      context: ${HOST_PROJECT_DIR}
+      context: ${HOST_SRC_DIR}
       dockerfile: deploy/docker/dashboard/Dockerfile
     image: helpio-dashboard:latest
     container_name: helpio-dashboard
@@ -55,7 +55,7 @@ services:
 
   helpio-web:
     build:
-      context: ${HOST_PROJECT_DIR}
+      context: ${HOST_SRC_DIR}
       dockerfile: deploy/docker/web/Dockerfile
     image: helpio-web:latest
     container_name: helpio-web
