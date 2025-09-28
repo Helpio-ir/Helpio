@@ -28,7 +28,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
+      ConnectionStrings__DefaultConnection: "Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
       Logging__Console__LogLevel__Default: Information
     ports:
       - "${API_PORT}:8080"
@@ -65,7 +65,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
+      ConnectionStrings__DefaultConnection: "Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
     ports:
       - "${WEB_PORT}:8080"
     networks:

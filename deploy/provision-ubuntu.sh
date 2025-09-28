@@ -189,7 +189,7 @@ clone_or_update_repo() {
 
 run_migrations() {
   log INFO "اجرای مایگریشن‌های پایگاه‌داده در کانتینر"
-  local conn="Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
+  local conn="Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
   local ef_commands="set -Eeuo pipefail
 dotnet tool list --global | grep -q 'dotnet-ef' || dotnet tool install --global dotnet-ef --version ${DOTNET_EF_VERSION}
 export PATH=\"\$PATH:/root/.dotnet/tools\"
@@ -223,7 +223,7 @@ SQL_CONTAINER_NAME=${SQL_CONTAINER_NAME}
 SQL_VOLUME_NAME=${SQL_VOLUME_NAME}
 SQL_PORT=${SQL_PORT}
 HOST_PROJECT_DIR=${SRC_DIR}
-MIGRATIONS_CONNECTION_STRING=Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
+MIGRATIONS_CONNECTION_STRING=Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
 EOF
 
   chown "$APP_USER":"$APP_GROUP" "$COMPOSE_ENV_FILE"
