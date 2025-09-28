@@ -372,7 +372,7 @@ SQL
 build_application_images() {
   log INFO "بیلد ایمیج‌های برنامه (API، Dashboard، Web)"
   cd "$SRC_DIR/deploy/docker"
-  sudo -u "$APP_USER" -H docker compose build helpio-api helpio-dashboard helpio-web
+  sudo -u "$APP_USER" -H HOST_PROJECT_DIR="$APP_ROOT" HOST_SRC_DIR="$SRC_DIR" docker compose build helpio-api helpio-dashboard helpio-web
 }
 
 start_application_containers() {
