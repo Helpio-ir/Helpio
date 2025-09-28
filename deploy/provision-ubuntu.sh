@@ -190,7 +190,15 @@ clone_or_update_repo() {
 run_migrations() {
   log INFO "اجرای مایگریشن‌های پایگاه‌داده در کانتینر"
   local conn="Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;"
+  
+  log INFO "تست اتصال شبکه‌ای به SQL Server"
+  if ! sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" run --rm --entrypoint bash migrator -c "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/${SQL_CONTAINER_NAME}/1433' && echo 'Network connection to ${SQL_CONTAINER_NAME}:1433 OK'"; then
+    log FATAL "عدم دسترسی شبکه‌ای به کانتینر SQL از migrator"
+    exit 1
+  fi
+  
   local ef_commands="set -Eeuo pipefail
+echo 'Connection string being used: Server=${SQL_CONTAINER_NAME},1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=***;Encrypt=True;TrustServerCertificate=True;'
 dotnet tool list --global | grep -q 'dotnet-ef' || dotnet tool install --global dotnet-ef --version ${DOTNET_EF_VERSION}
 export PATH=\"\$PATH:/root/.dotnet/tools\"
 dotnet restore src/Presentation/Helpio.API/Helpio.API.csproj
