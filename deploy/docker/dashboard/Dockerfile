@@ -26,4 +26,4 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
 EXPOSE 8080
 USER appuser
 
-ENTRYPOINT ["dotnet", "Helpio.Ir.Dashboard.dll"]
+ENTRYPOINT ["dotnet", "Helpio.Dashboard.dll"]
