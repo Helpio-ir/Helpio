@@ -92,6 +92,8 @@ public class Program
 
         // Add Seeders
         builder.Services.AddScoped<Helpio.Ir.Infrastructure.Data.Seeders.PlanSeeder>();
+        builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UserManager<User>>();
+        builder.Services.AddScoped<Microsoft.AspNetCore.Identity.RoleManager<IdentityRole<int>>>();
 
         var app = builder.Build();
 

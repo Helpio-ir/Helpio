@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ${SQL_CONTAINER_NAME}
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${HELPIO_SQL_SA_PASSWORD}
+      MSSQL_PID: "Express"
+    ports:
+      - "${SQL_PORT}:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    networks:
+      - helpio-net
+
+  helpio-api:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/api/Dockerfile
+    image: helpio-api:latest
+    container_name: helpio-api
+    restart: unless-stopped
+    depends_on:
+      - sqlserver
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
+      Logging__Console__LogLevel__Default: Information
+    ports:
+      - "${API_PORT}:8080"
+    networks:
+      - helpio-net
+
+  helpio-dashboard:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/dashboard/Dockerfile
+    image: helpio-dashboard:latest
+    container_name: helpio-dashboard
+    restart: unless-stopped
+    depends_on:
+      - helpio-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ApiBaseUrl: ${API_BASE_URL}
+    ports:
+      - "${DASH_PORT}:8080"
+    networks:
+      - helpio-net
+
+  helpio-web:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/web/Dockerfile
+    image: helpio-web:latest
+    container_name: helpio-web
+    restart: unless-stopped
+    depends_on:
+      - sqlserver
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=${SQL_DB_NAME};User Id=${SQL_APP_USER};Password=${HELPIO_SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True;
+    ports:
+      - "${WEB_PORT}:8080"
+    networks:
+      - helpio-net
+
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    container_name: helpio-migrator
+    working_dir: /workspace
+    volumes:
+      - ${HOST_PROJECT_DIR}:/workspace
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
+      ConnectionStrings__DefaultConnection: ${MIGRATIONS_CONNECTION_STRING}
+    entrypoint:
+      - bash
+      - -c
+      - >
+        dotnet restore src/Presentation/Helpio.API/Helpio.API.csproj &&
+        dotnet ef database update --project src/Infrastructure/Helpio.Infrastructure/Helpio.Infrastructure.csproj --startup-project src/Presentation/Helpio.API/Helpio.API.csproj
+    depends_on:
+      - sqlserver
+    networks:
+      - helpio-net
+
+networks:
+  helpio-net:
+    name: helpio-net
+    driver: bridge
+
+volumes:
+  sql-data:
+    external: true
+    name: ${SQL_VOLUME_NAME}

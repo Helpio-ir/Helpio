@@ -43,7 +43,7 @@
                     <div class="row" id="responsesContainer">
                         @foreach (var response in Model)
                         {
-                            <div class="col-md-6 col-lg-4 mb-4 response-card" data-name="@response.Name.ToLower()">
+                            <div class="col-md-6 col-lg-4 mb-4 response-card" data-name="@response.Name.ToLower()" data-response-id="@response.Id" data-usage="@response.UsageCount" data-created="@response.CreatedAt.ToString("yyyy-MM-dd")">
                                 <div class="card h-100">
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-start">
@@ -71,11 +71,14 @@
                                                                 <i class="bi bi-pencil"></i> ویرایش
                                                             </a>
                                                         </li>
-                                                        <li>
-                                                            <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteResponse(@response.Id)">
-                                                                <i class="bi bi-trash"></i> حذف
-                                                            </a>
-                                                        </li>
+                                                        @if (ViewBag.IsAdmin == true)
+                                                        {
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteResponse(@response.Id)">
+                                                                    <i class="bi bi-trash"></i> حذف
+                                                                </a>
+                                                            </li>
+                                                        }
                                                     }
                                                 </ul>
                                             </div>
@@ -177,6 +180,11 @@
     </div>
 </div>
 
+<!-- Hidden form for delete operations -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <!-- Statistics Cards -->
 @if (Model.Any())
 {
@@ -261,7 +269,9 @@
 
         function confirmDeleteResponse(responseId) {
             if (confirm('آیا از حذف این پاسخ آماده مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
-                window.location.href = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+                const form = document.getElementById('deleteForm');
+                form.action = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+                form.submit();
             }
         }
 
@@ -272,6 +282,15 @@
                 const content = responseCard.querySelector('.response-content').textContent;
                 navigator.clipboard.writeText(content).then(() => {
                     // Show success message
+                    showToast('پاسخ با موفقیت کپی شد', 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = content;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
                     showToast('پاسخ با موفقیت کپی شد', 'success');
                 });
             }
@@ -298,6 +317,15 @@
         function copyPreviewContent() {
             const content = document.getElementById('previewContent').textContent;
             navigator.clipboard.writeText(content).then(() => {
+                showToast('محتوا کپی شد', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
                 showToast('محتوا کپی شد', 'success');
             });
         }
@@ -339,15 +367,6 @@
             });
 
             responses.forEach(response => container.appendChild(response));
-        });
-
-        // Add data attributes for sorting (this should be done in the server-side code)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.response-card').forEach((card, index) => {
-                card.setAttribute('data-response-id', index + 1);
-                card.setAttribute('data-usage', Math.floor(Math.random() * 100));
-                card.setAttribute('data-created', new Date().toISOString());
-            });
         });
     </script>
 }

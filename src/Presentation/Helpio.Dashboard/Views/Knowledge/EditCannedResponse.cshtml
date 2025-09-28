@@ -14,7 +14,7 @@
                     </a>
                 </div>
             </div>
-            <form asp-action="EditCannedResponse" method="post">
+            <form asp-action="EditCannedResponse" method="post" id="editForm">
                 <input name="id" type="hidden" value="@ViewBag.Id" />
                 
                 <div class="card-body">
@@ -240,6 +240,11 @@
     </div>
 </div>
 
+<!-- Hidden form for delete operations -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     
@@ -379,7 +384,9 @@
 
         window.confirmDelete = function(responseId) {
             if (confirm('آیا از حذف این پاسخ آماده مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
-                window.location.href = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+                const form = document.getElementById('deleteForm');
+                form.action = '@Url.Action("DeleteCannedResponse", "Knowledge")/' + responseId;
+                form.submit();
             }
         };
 

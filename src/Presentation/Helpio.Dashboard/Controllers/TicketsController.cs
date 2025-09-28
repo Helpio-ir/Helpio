@@ -5,6 +5,7 @@ using Helpio.Ir.Domain.Entities.Ticketing;
 using Helpio.Ir.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Helpio.Dashboard.Controllers
 {
@@ -623,6 +624,42 @@ namespace Helpio.Dashboard.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSampleData()
+        {
+            try
+            {
+                // بررسی دسترسی کاربر
+                if (!IsCurrentUserAdmin)
+                {
+                    TempData["Error"] = "فقط ادمین‌ها می‌توانند داده‌های نمونه ایجاد کنند.";
+                    return RedirectToAction(nameof(Create));
+                }
+
+                var serviceProvider = HttpContext.RequestServices;
+                await Helpio.Ir.Infrastructure.Data.Seeders.SampleDataSeeder.SeedSampleDataAsync(serviceProvider);
+                
+                TempData["Success"] = "داده‌های نمونه با موفقیت ایجاد شد.";
+            }
+            catch (Exception ex)
+            {
+                // Log the detailed error
+                var logger = HttpContext.RequestServices.GetService<ILogger<TicketsController>>();
+                logger?.LogError(ex, "خطا در ایجاد داده‌های نمونه");
+                
+                TempData["Error"] = $"خطا در ایجاد داده‌های نمونه: {ex.Message}";
+                
+                // If inner exception exists, show it too for debugging
+                if (ex.InnerException != null)
+                {
+                    TempData["Error"] += $" جزئیات: {ex.InnerException.Message}";
+                }
+            }
+
+            return RedirectToAction(nameof(Create));
         }
     }
 }
