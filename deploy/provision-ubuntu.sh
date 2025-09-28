@@ -371,12 +371,14 @@ SQL
 
 build_application_images() {
   log INFO "بیلد ایمیج‌های برنامه (API، Dashboard، Web)"
-  sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" build helpio-api helpio-dashboard helpio-web
+  cd "$SRC_DIR/deploy/docker"
+  sudo -u "$APP_USER" -H docker compose build helpio-api helpio-dashboard helpio-web
 }
 
 start_application_containers() {
   log INFO "راه‌اندازی کانتینرهای API، Dashboard و Web"
-  sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" up -d helpio-api helpio-dashboard helpio-web
+  cd "$SRC_DIR/deploy/docker"
+  sudo -u "$APP_USER" -H docker compose up -d helpio-api helpio-dashboard helpio-web
 }
 
 configure_nginx() {

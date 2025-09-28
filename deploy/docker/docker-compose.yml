@@ -19,7 +19,7 @@ services:
   helpio-api:
     build:
       context: ${HOST_PROJECT_DIR}
-      dockerfile: src/deploy/docker/api/Dockerfile
+      dockerfile: deploy/docker/api/Dockerfile
     image: helpio-api:latest
     container_name: helpio-api
     restart: unless-stopped
@@ -38,7 +38,7 @@ services:
   helpio-dashboard:
     build:
       context: ${HOST_PROJECT_DIR}
-      dockerfile: src/deploy/docker/dashboard/Dockerfile
+      dockerfile: deploy/docker/dashboard/Dockerfile
     image: helpio-dashboard:latest
     container_name: helpio-dashboard
     restart: unless-stopped
@@ -56,7 +56,7 @@ services:
   helpio-web:
     build:
       context: ${HOST_PROJECT_DIR}
-      dockerfile: src/deploy/docker/web/Dockerfile
+      dockerfile: deploy/docker/web/Dockerfile
     image: helpio-web:latest
     container_name: helpio-web
     restart: unless-stopped
