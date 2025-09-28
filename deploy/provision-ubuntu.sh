@@ -50,10 +50,14 @@ require_dns_record() {
     log FATAL "دامنه برای بررسی DNS ارائه نشده است."
     exit 1
   fi
-  if ! getent ahosts "$domain" >/dev/null; then
+  log INFO "تأیید رکورد DNS برای دامنه ${domain}"
+  local lookup_output=""
+  lookup_output=$(getent ahosts "$domain" || true)
+  if [[ -z "$lookup_output" ]]; then
     log FATAL "رکورد DNS برای دامنه ${domain} یافت نشد. لطفاً قبل از فعال‌سازی TLS رکورد A یا AAAA را ایجاد کنید یا متغیر HELPIO_ENABLE_TLS=false را تنظیم کنید."
     exit 1
   fi
+  log INFO "رکورد DNS یافت شد: ${lookup_output%% *}"
 }
 
 # ----- متغیرهای پیکربندی -----
