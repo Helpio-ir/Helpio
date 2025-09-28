@@ -18,8 +18,8 @@ services:
 
   helpio-api:
     build:
-      context: ../../
-      dockerfile: deploy/docker/api/Dockerfile
+      context: ${HOST_PROJECT_DIR}
+      dockerfile: src/deploy/docker/api/Dockerfile
     image: helpio-api:latest
     container_name: helpio-api
     restart: unless-stopped
@@ -37,8 +37,8 @@ services:
 
   helpio-dashboard:
     build:
-      context: ../../
-      dockerfile: deploy/docker/dashboard/Dockerfile
+      context: ${HOST_PROJECT_DIR}
+      dockerfile: src/deploy/docker/dashboard/Dockerfile
     image: helpio-dashboard:latest
     container_name: helpio-dashboard
     restart: unless-stopped
@@ -55,8 +55,8 @@ services:
 
   helpio-web:
     build:
-      context: ../../
-      dockerfile: deploy/docker/web/Dockerfile
+      context: ${HOST_PROJECT_DIR}
+      dockerfile: src/deploy/docker/web/Dockerfile
     image: helpio-web:latest
     container_name: helpio-web
     restart: unless-stopped
@@ -76,7 +76,7 @@ services:
     container_name: helpio-migrator
     working_dir: /workspace
     volumes:
-      - ${HOST_PROJECT_DIR}:/workspace
+      - ${HOST_SRC_DIR}:/workspace
     environment:
       ASPNETCORE_ENVIRONMENT: ${HELPIO_ENVIRONMENT}
       ConnectionStrings__DefaultConnection: ${MIGRATIONS_CONNECTION_STRING}
