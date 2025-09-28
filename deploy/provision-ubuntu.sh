@@ -44,6 +44,18 @@ require_env() {
   fi
 }
 
+require_dns_record() {
+  local domain="$1"
+  if [[ -z "$domain" ]]; then
+    log FATAL "دامنه برای بررسی DNS ارائه نشده است."
+    exit 1
+  fi
+  if ! getent ahosts "$domain" >/dev/null; then
+    log FATAL "رکورد DNS برای دامنه ${domain} یافت نشد. لطفاً قبل از فعال‌سازی TLS رکورد A یا AAAA را ایجاد کنید یا متغیر HELPIO_ENABLE_TLS=false را تنظیم کنید."
+    exit 1
+  fi
+}
+
 # ----- متغیرهای پیکربندی -----
 APP_USER="${HELPIO_APP_USER:-helpio}"
 APP_GROUP="$APP_USER"
@@ -473,6 +485,11 @@ obtain_certificates() {
     log INFO "دریافت گواهی TLS غیرفعال است."
     return
   fi
+
+  log INFO "بررسی رکوردهای DNS برای دامنه‌های TLS"
+  require_dns_record "$API_DOMAIN"
+  require_dns_record "$DASH_DOMAIN"
+  require_dns_record "$WEB_DOMAIN"
 
   log INFO "دریافت گواهی‌های Let's Encrypt"
   certbot --nginx --non-interactive --agree-tos --redirect --no-eff-email \
