@@ -286,18 +286,32 @@ validate_helpio_repo_layout() {
 
 start_sql_service() {
   log INFO "راه‌اندازی سرویس SQL Server با Docker Compose"
-  docker volume create "$SQL_VOLUME_NAME" >/dev/null
-  sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" up -d sqlserver
+
+  local sql_already_running="false"
+  local existing_container_id=""
+  existing_container_id=$(sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" ps -q sqlserver || true)
+
+  if [[ -n "$existing_container_id" ]]; then
+    sql_already_running="true"
+    log INFO "کانتینر SQL Server از قبل در حال اجراست (ID: ${existing_container_id})."
+  else
+    docker volume create "$SQL_VOLUME_NAME" >/dev/null
+    sudo -u "$APP_USER" -H docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" up -d sqlserver
+  fi
 
   log INFO "منتظر آماده شدن SQL Server"
-  for i in {1..30}; do
+  local attempt
+  for attempt in {1..30}; do
     if docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV_FILE" exec -T sqlserver \
       /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$SQL_SA_PASSWORD" -Q "SELECT 1" &>/dev/null; then
       log INFO "SQL Server آماده است."
       break
     fi
     sleep 3
-    if [[ $i -eq 30 ]]; then
+    if [[ $attempt -eq 30 ]]; then
+      if [[ "$sql_already_running" == "true" ]]; then
+        log FATAL "عدم توانایی در اتصال به SQL Server موجود؛ به نظر می‌رسد رمز SA در کانتینر فعلی با مقدار HELPIO_SQL_SA_PASSWORD متفاوت است. مقدار درست را تنظیم کنید یا کانتینر و ولوم ${SQL_VOLUME_NAME} را حذف کنید."; exit 1;
+      fi
       log FATAL "عدم توانایی در اتصال به SQL Server"; exit 1;
     fi
   done
